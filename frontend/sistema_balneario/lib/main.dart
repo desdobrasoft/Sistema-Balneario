@@ -1,20 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_balneario/src/app.dart';
+import 'package:sistema_balneario/src/services/env/env.dart';
 
-void main() {
-  runApp(const MainApp());
-}
-
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
-      ),
-    );
-  }
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await EnvManager.env.init();
+  runApp(const SistemaBalneario());
 }

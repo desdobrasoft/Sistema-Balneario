@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sistema_balneario/src/api/login.dart';
 import 'package:sistema_balneario/src/app.dart';
 import 'package:sistema_balneario/src/constants/sizes.dart';
 import 'package:sistema_balneario/src/enums/window_class.dart';
+import 'package:sistema_balneario/src/localization/app_localizations.dart';
 import 'package:sistema_balneario/src/routes/home/drawer.dart';
+import 'package:sistema_balneario/src/routes/routes.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key, this.child});
@@ -18,6 +22,8 @@ class _HomeState extends State<Home> {
 
   // Essa flag é estática para manter o estado entre rotas.
   static final _expandDrawer = ValueNotifier(true);
+
+  late AppLocalizations _localizations;
 
   WindowClass _windowClass = WindowClass.expanded;
 
@@ -43,6 +49,8 @@ class _HomeState extends State<Home> {
       setState(() => _windowClass = newWC);
     }
 
+    _localizations = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primaryFixed,
@@ -59,7 +67,7 @@ class _HomeState extends State<Home> {
                   },
                 ),
               ),
-        title: Text('sistema_balneario'),
+        title: Text(_localizations.appTitle),
         actions: [
           PopupMenuButton<String>(
             popUpAnimationStyle: AnimationStyle(
@@ -69,8 +77,21 @@ class _HomeState extends State<Home> {
               reverseDuration: _popupDuration,
             ),
             icon: Icon(Icons.more_vert),
-            onSelected: (value) {},
-            itemBuilder: (context) => [],
+            onSelected: (value) async {
+              switch (value) {
+                case "logout":
+                  await AuthApi.api.logout();
+                  if (context.mounted) {
+                    context.goNamed(Routes.login.name);
+                  }
+                  break;
+                default:
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(value: "logout", child: Text('Logout')),
+            ],
           ),
         ],
       ),
@@ -82,10 +103,10 @@ class _HomeState extends State<Home> {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(AppSizes.gap.lg),
+                borderRadius: BorderRadius.circular(AppSizes.gap.md),
               ),
-              margin: EdgeInsets.all(AppSizes.gap.sm).copyWith(
-                left: _windowClass == WindowClass.compact ? AppSizes.gap.sm : 0,
+              margin: EdgeInsets.all(AppSizes.gap.xs).copyWith(
+                left: _windowClass == WindowClass.compact ? AppSizes.gap.xs : 0,
               ),
               child: widget.child,
             ),
@@ -117,7 +138,7 @@ class _HomeState extends State<Home> {
 
   Widget _drawer() {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: AppSizes.gap.sm),
+      padding: EdgeInsets.symmetric(vertical: AppSizes.gap.xs),
       child: ValueListenableBuilder(
         valueListenable: _expandDrawer,
         builder: (context, expand, _) {

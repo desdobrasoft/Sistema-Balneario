@@ -9,8 +9,8 @@ enum Routes {
 
   static const _loginName = 'login';
   static const _homeName = 'home';
-  static const _dashboardName = 'dashboard';
-  static const _settingsName = 'dashboard';
+  static const _dashboardName = 'painel';
+  static const _settingsName = 'configuracoes';
 
   static const _loginPath = '/$_loginName';
   static const _homePath = '/';

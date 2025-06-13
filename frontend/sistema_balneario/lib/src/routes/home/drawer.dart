@@ -25,13 +25,15 @@ class HomeDrawer extends StatefulWidget {
 }
 
 class _HomeDrawerState extends State<HomeDrawer> {
+  late ColorScheme _scheme;
+
   bool _isExpanded = false;
   bool _isHovered = false;
 
   static final List<Map<String, dynamic>> _routes = [
     {
       'icon': Icon(Icons.dashboard_outlined),
-      'label': Text('Dashboard'),
+      'label': Text('Painel'),
       'selectedIcon': Icon(Icons.dashboard),
       'path': Routes.dashboard.path,
     },
@@ -46,9 +48,12 @@ class _HomeDrawerState extends State<HomeDrawer> {
   @override
   Widget build(BuildContext context) {
     final currentPath = GoRouter.of(context).state.fullPath;
-    final selectedIndex = _routes.indexWhere((r) => r['path'] == currentPath);
+    final index = _routes.indexWhere((r) => r['path'] == currentPath);
+    final selectedIndex = index < 0 || index >= _routes.length ? 0 : index;
 
     _isExpanded = widget.isExpanded;
+    _scheme = ColorScheme.of(context);
+
     return AnimatedSize(
       alignment: Alignment.centerLeft,
       curve: Curves.fastOutSlowIn,
@@ -65,6 +70,7 @@ class _HomeDrawerState extends State<HomeDrawer> {
               selectedIcon: _routes[i]['selectedIcon'],
             ),
           ),
+          backgroundColor: _scheme.surfaceContainer,
           extended: _isExpanded || _isHovered,
           key: ValueKey('rail'),
           onDestinationSelected: (i) => context.go(_routes[i]['path']),
@@ -87,7 +93,7 @@ class _HomeDrawerState extends State<HomeDrawer> {
       selectedIndex: selectedIndex,
       children: List.generate(_routes.length * 2, (i) {
         if (i % 2 == 0) {
-          return SizedBox(height: AppSizes.gap.sm);
+          return SizedBox(height: AppSizes.gap.xs);
         }
         return NavigationDrawerDestination(
           icon: _routes[i ~/ 2]['icon'],

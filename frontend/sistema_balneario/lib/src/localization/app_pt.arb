@@ -3,5 +3,15 @@
   "@appTitle": {
     "description": "Sistema Balneário"
   },
+  "loginUsernameLabel": "Usuário",
+  "@loginUsernameLabel": {},
+  "loginUsernameHint": "exemplo@email.com",
+  "@loginUsernameHint": {},
+  "loginPasswordLabel": "Senha",
+  "@loginPasswordLabel": {},
+  "loginPasswordHint": "••••••",
+  "@loginPasswordHint": {},
+  "loginSubmitButtonLabel": "Login",
+  "@loginSubmitButtonLabel": {},
   "@@locale": "pt"
 }

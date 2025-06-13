@@ -10,6 +10,21 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get appTitle => 'Sistema Balneário';
+
+  @override
+  String get loginUsernameLabel => 'Usuário';
+
+  @override
+  String get loginUsernameHint => 'exemplo@email.com';
+
+  @override
+  String get loginPasswordLabel => 'Senha';
+
+  @override
+  String get loginPasswordHint => '••••••';
+
+  @override
+  String get loginSubmitButtonLabel => 'Login';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -18,4 +33,19 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get appTitle => 'Sistema Balneário';
+
+  @override
+  String get loginUsernameLabel => 'Usuário';
+
+  @override
+  String get loginUsernameHint => 'exemplo@email.com';
+
+  @override
+  String get loginPasswordLabel => 'Senha';
+
+  @override
+  String get loginPasswordHint => '••••••';
+
+  @override
+  String get loginSubmitButtonLabel => 'Login';
 }

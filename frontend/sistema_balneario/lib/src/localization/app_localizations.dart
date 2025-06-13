@@ -104,6 +104,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Balneário System'**
   String get appTitle;
+
+  /// No description provided for @loginUsernameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get loginUsernameLabel;
+
+  /// No description provided for @loginUsernameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'exemple@email.com'**
+  String get loginUsernameHint;
+
+  /// No description provided for @loginPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get loginPasswordLabel;
+
+  /// No description provided for @loginPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'••••••'**
+  String get loginPasswordHint;
+
+  /// No description provided for @loginSubmitButtonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Login'**
+  String get loginSubmitButtonLabel;
 }
 
 class _AppLocalizationsDelegate

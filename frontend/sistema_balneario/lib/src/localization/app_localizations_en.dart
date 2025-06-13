@@ -10,4 +10,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appTitle => 'Balneário System';
+
+  @override
+  String get loginUsernameLabel => 'User';
+
+  @override
+  String get loginUsernameHint => 'exemple@email.com';
+
+  @override
+  String get loginPasswordLabel => 'Password';
+
+  @override
+  String get loginPasswordHint => '••••••';
+
+  @override
+  String get loginSubmitButtonLabel => 'Login';
 }
