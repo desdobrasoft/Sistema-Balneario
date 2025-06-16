@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:sistema_balneario/src/api/login.dart';
 import 'package:sistema_balneario/src/app.dart';
+import 'package:sistema_balneario/src/components/home_popup_menu.dart';
 import 'package:sistema_balneario/src/constants/sizes.dart';
 import 'package:sistema_balneario/src/enums/window_class.dart';
-import 'package:sistema_balneario/src/localization/app_localizations.dart';
 import 'package:sistema_balneario/src/routes/home/drawer.dart';
-import 'package:sistema_balneario/src/routes/routes.dart';
+import 'package:sistema_balneario/src/utils/get_localization.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key, this.child});
@@ -18,12 +16,8 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  static const _popupDuration = Durations.short4;
-
   // Essa flag é estática para manter o estado entre rotas.
   static final _expandDrawer = ValueNotifier(true);
-
-  late AppLocalizations _localizations;
 
   WindowClass _windowClass = WindowClass.expanded;
 
@@ -49,90 +43,63 @@ class _HomeState extends State<Home> {
       setState(() => _windowClass = newWC);
     }
 
-    _localizations = AppLocalizations.of(context)!;
+    // TODO: Verificar por que a drawer não tá recolhendo ao transicionar de expanded para medium.
+    // TODO: Tratar cor de background da drawer.
 
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primaryFixed,
-        foregroundColor: Theme.of(context).colorScheme.onPrimaryFixed,
-        leading: _windowClass == WindowClass.compact
-            ? null
-            : IconButton(
-                onPressed: () => _expandDrawer.value = !_expandDrawer.value,
-                icon: ValueListenableBuilder(
-                  valueListenable: _expandDrawer,
-                  builder: (context, expand, _) {
-                    if (expand) return Icon(Icons.menu_open);
-                    return Icon(Icons.menu);
-                  },
-                ),
-              ),
-        title: Text(_localizations.appTitle),
-        actions: [
-          PopupMenuButton<String>(
-            popUpAnimationStyle: AnimationStyle(
-              curve: Curves.easeOutCirc,
-              duration: _popupDuration,
-              reverseCurve: Curves.easeInCirc,
-              reverseDuration: _popupDuration,
-            ),
-            icon: Icon(Icons.more_vert),
-            onSelected: (value) async {
-              switch (value) {
-                case "logout":
-                  await AuthApi.api.logout();
-                  if (context.mounted) {
-                    context.goNamed(Routes.login.name);
-                  }
-                  break;
-                default:
-                  break;
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(value: "logout", child: Text('Logout')),
-            ],
-          ),
-        ],
-      ),
-      drawer: _windowClass == WindowClass.compact ? HomeDrawer.drawer() : null,
-      body: Builder(
-        builder: (context) {
-          final body = Expanded(
-            child: Container(
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(AppSizes.gap.md),
-              ),
-              margin: EdgeInsets.all(AppSizes.gap.xs).copyWith(
-                left: _windowClass == WindowClass.compact ? AppSizes.gap.xs : 0,
-              ),
-              child: widget.child,
-            ),
-          );
-
-          switch (_windowClass) {
-            case WindowClass.compact:
-              // Essa Row é apenas para não gerar erros com o Expanded do body.
-              return Row(children: [body]);
-            case WindowClass.medium:
-              return Stack(
-                children: [
-                  Row(children: [HomeDrawer.empty(), body]),
-                  Row(
-                    children: [
-                      _drawer(),
-                      Expanded(child: SizedBox()),
-                    ],
+    final body = Expanded(
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.primaryFixed,
+          foregroundColor: Theme.of(context).colorScheme.onPrimaryFixed,
+          leading: _windowClass == WindowClass.compact
+              ? null
+              : IconButton(
+                  onPressed: () => _expandDrawer.value = !_expandDrawer.value,
+                  icon: ValueListenableBuilder(
+                    valueListenable: _expandDrawer,
+                    builder: (context, expand, _) {
+                      if (expand) return Icon(Icons.menu_open);
+                      return Icon(Icons.menu);
+                    },
                   ),
-                ],
-              );
-            case WindowClass.expanded:
-              return Row(children: [_drawer(), body]);
-          }
-        },
+                ),
+          title: Text(localization(context).appTitle),
+          actions: [HomePopupMenu()],
+        ),
+        drawer: _windowClass == WindowClass.compact
+            ? HomeDrawer.drawer()
+            : null,
+        body: Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(AppSizes.gap.md),
+          ),
+          margin: EdgeInsets.all(AppSizes.gap.xs).copyWith(
+            left: _windowClass == WindowClass.compact ? AppSizes.gap.xs : 0,
+          ),
+          child: widget.child,
+        ),
       ),
+    );
+
+    return Material(
+      child: switch (_windowClass) {
+        WindowClass.compact => Row(children: [body]),
+        WindowClass.medium => Stack(
+          children: [
+            // Essa Row é apenas para não gerar erros com o Expanded do body.
+            Row(children: [HomeDrawer.empty(), body]),
+            Row(
+              children: [
+                _drawer(),
+                Expanded(child: SizedBox()),
+              ],
+            ),
+          ],
+        ),
+        WindowClass.expanded => Row(children: [_drawer(), body]),
+      },
     );
   }
 

@@ -13,9 +13,12 @@ class AppButton extends StatefulWidget {
     super.key,
     this.alignment = MainAxisAlignment.center,
     this.backgroundColor,
+    this.foregroundColor,
     this.expand,
     this.fontSize,
     this.iconPlacement = IconPlacement.left,
+    this.isLoading,
+    this.padding,
     required this.onPressed,
     this.label,
     this.loadingWidget,
@@ -27,9 +30,12 @@ class AppButton extends StatefulWidget {
     super.key,
     this.alignment = MainAxisAlignment.center,
     this.backgroundColor,
+    this.foregroundColor,
     this.expand,
     this.fontSize,
     this.iconPlacement = IconPlacement.left,
+    this.isLoading,
+    this.padding,
     required this.onPressed,
     this.label,
     this.loadingWidget,
@@ -41,9 +47,12 @@ class AppButton extends StatefulWidget {
     super.key,
     this.alignment = MainAxisAlignment.center,
     this.backgroundColor,
+    this.foregroundColor,
     this.expand,
     this.fontSize,
     this.iconPlacement = IconPlacement.left,
+    this.isLoading,
+    this.padding,
     required this.onPressed,
     this.label,
     this.loadingWidget,
@@ -51,13 +60,33 @@ class AppButton extends StatefulWidget {
     this.child,
   }) : _variant = _Variant.outlined;
 
+  const AppButton.text({
+    super.key,
+    this.alignment = MainAxisAlignment.center,
+    this.expand,
+    this.fontSize,
+    this.foregroundColor,
+    this.iconPlacement = IconPlacement.left,
+    this.isLoading,
+    this.padding,
+    required this.onPressed,
+    this.label,
+    this.loadingWidget,
+    this.icon,
+    this.child,
+  }) : backgroundColor = null,
+       _variant = _Variant.text;
+
   const AppButton.tonal({
     super.key,
     this.alignment = MainAxisAlignment.center,
     this.backgroundColor,
+    this.foregroundColor,
     this.expand,
     this.fontSize,
     this.iconPlacement = IconPlacement.left,
+    this.isLoading,
+    this.padding,
     required this.onPressed,
     this.label,
     this.loadingWidget,
@@ -67,9 +96,12 @@ class AppButton extends StatefulWidget {
 
   final MainAxisAlignment alignment;
   final Color? backgroundColor;
+  final Color? foregroundColor;
   final bool? expand;
   final double? fontSize;
   final IconPlacement iconPlacement;
+  final bool? isLoading;
+  final EdgeInsetsGeometry? padding;
 
   final FutureOr<void> Function()? onPressed;
 
@@ -91,7 +123,6 @@ class _AppButtonState extends State<AppButton> {
   static const _spacingHorizontal = 8.0;
   static const _spacingVertical = 2.0;
 
-  late Color? _bg;
   late String _label;
   late Widget? _loadingWidget;
   late Widget? _icon;
@@ -106,7 +137,7 @@ class _AppButtonState extends State<AppButton> {
   void initState() {
     super.initState();
 
-    _bg = widget.backgroundColor;
+    widget.backgroundColor;
     _label = widget.label ?? '';
     _loadingWidget = widget.loadingWidget;
     _icon = widget.icon;
@@ -121,15 +152,35 @@ class _AppButtonState extends State<AppButton> {
     if (!_hasChild) {
       switch (_variant) {
         case _Variant.elevated:
-          return IconButton(onPressed: _handler, icon: _getIcon());
+          return IconButton(
+            style: _getStyle(),
+            onPressed: _handler,
+            icon: _getIcon(),
+          );
         case _Variant.filled:
-          return IconButton.filled(onPressed: _handler, icon: _getIcon());
+          return IconButton.filled(
+            style: _getStyle(),
+            onPressed: _handler,
+            icon: _getIcon(),
+          );
         case _Variant.outlined:
-          return IconButton.outlined(onPressed: _handler, icon: _getIcon());
+          return IconButton.outlined(
+            style: _getStyle(),
+            onPressed: _handler,
+            icon: _getIcon(),
+          );
         case _Variant.text:
-          return IconButton(onPressed: _handler, icon: _getIcon());
+          return IconButton(
+            style: _getStyle(),
+            onPressed: _handler,
+            icon: _getIcon(),
+          );
         case _Variant.tonal:
-          return IconButton.filledTonal(onPressed: _handler, icon: _getIcon());
+          return IconButton.filledTonal(
+            style: _getStyle(),
+            onPressed: _handler,
+            icon: _getIcon(),
+          );
       }
     }
 
@@ -169,17 +220,20 @@ class _AppButtonState extends State<AppButton> {
 
   Widget _getChild() {
     final Axis direction;
-    final EdgeInsetsGeometry padding;
     final double spacing;
     final TextDirection? horizontalDirection;
     final VerticalDirection verticalDirection;
 
+    EdgeInsetsGeometry? padding = widget.padding;
+
     if (_placement == IconPlacement.top || _placement == IconPlacement.bottom) {
       direction = Axis.vertical;
-      padding = EdgeInsets.symmetric(
-        horizontal: _paddingHorizontal,
-        vertical: _paddingVertical,
-      );
+      padding =
+          padding ??
+          EdgeInsets.symmetric(
+            horizontal: _paddingHorizontal,
+            vertical: _paddingVertical,
+          );
       spacing = _spacingVertical;
       horizontalDirection = null;
       verticalDirection = _placement == IconPlacement.top
@@ -187,7 +241,7 @@ class _AppButtonState extends State<AppButton> {
           : VerticalDirection.down;
     } else {
       direction = Axis.horizontal;
-      padding = EdgeInsets.symmetric(horizontal: _paddingHorizontal);
+      padding = padding ?? EdgeInsets.symmetric(horizontal: _paddingHorizontal);
       spacing = _spacingHorizontal;
       horizontalDirection = _placement == IconPlacement.left
           ? TextDirection.rtl
@@ -219,7 +273,7 @@ class _AppButtonState extends State<AppButton> {
   }
 
   Widget _getIcon() {
-    if (_isLoading) {
+    if (widget.isLoading ?? _isLoading) {
       if (_loadingWidget == null) {
         final dimension =
             widget.fontSize ??
@@ -244,35 +298,42 @@ class _AppButtonState extends State<AppButton> {
   ButtonStyle _getStyle() {
     return switch (_variant) {
       _Variant.elevated => ElevatedButton.styleFrom(
-        backgroundColor: _bg,
+        backgroundColor: widget.backgroundColor,
+        foregroundColor: _fg,
         padding: EdgeInsets.zero,
       ),
       _Variant.filled => FilledButton.styleFrom(
-        backgroundColor: _bg,
+        backgroundColor: widget.backgroundColor,
+        foregroundColor: _fg,
         padding: EdgeInsets.zero,
       ),
       _Variant.outlined => OutlinedButton.styleFrom(
-        backgroundColor: _bg,
+        backgroundColor: widget.backgroundColor,
+        foregroundColor: _fg,
         padding: EdgeInsets.zero,
       ),
       _Variant.text => TextButton.styleFrom(
-        backgroundColor: _bg,
+        backgroundColor: widget.backgroundColor,
+        foregroundColor: _fg,
         padding: EdgeInsets.zero,
       ),
       _Variant.tonal => FilledButton.styleFrom(
-        backgroundColor: _bg,
+        backgroundColor: widget.backgroundColor,
+        foregroundColor: _fg,
         padding: EdgeInsets.zero,
       ),
     };
   }
 
-  Color get _fg => switch (_variant) {
-    _Variant.elevated => _scheme.primary,
-    _Variant.filled => _scheme.onPrimary,
-    _Variant.outlined => _scheme.onSurfaceVariant,
-    _Variant.text => _scheme.primary,
-    _Variant.tonal => _scheme.onSecondaryContainer,
-  };
+  Color get _fg =>
+      widget.foregroundColor ??
+      switch (_variant) {
+        _Variant.elevated => _scheme.primary,
+        _Variant.filled => _scheme.onPrimary,
+        _Variant.outlined => _scheme.onSurfaceVariant,
+        _Variant.text => _scheme.primary,
+        _Variant.tonal => _scheme.onSecondaryContainer,
+      };
 
   bool get _hasChild => widget.child != null || _label.isNotEmpty;
 
@@ -280,7 +341,9 @@ class _AppButtonState extends State<AppButton> {
       widget.onPressed == null ? null : _onPressed;
 
   Future<void> _onPressed() async {
-    setState(() => _isLoading = true);
+    if (widget.isLoading != null) {
+      setState(() => _isLoading = true);
+    }
 
     try {
       final result = widget.onPressed?.call() as Future;
@@ -288,7 +351,9 @@ class _AppButtonState extends State<AppButton> {
     } catch (_) {
       // Catch apenas para evitar erros na aplicação quando onPressed não for Future.
     } finally {
-      setState(() => _isLoading = false);
+      if (widget.isLoading != null) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 }

@@ -117,6 +117,12 @@ abstract class AppLocalizations {
   /// **'exemple@email.com'**
   String get loginUsernameHint;
 
+  /// No description provided for @loginUsernameError.
+  ///
+  /// In en, this message translates to:
+  /// **'User is required'**
+  String get loginUsernameError;
+
   /// No description provided for @loginPasswordLabel.
   ///
   /// In en, this message translates to:
@@ -129,11 +135,35 @@ abstract class AppLocalizations {
   /// **'••••••'**
   String get loginPasswordHint;
 
+  /// No description provided for @loginPasswordError.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required'**
+  String get loginPasswordError;
+
   /// No description provided for @loginSubmitButtonLabel.
   ///
   /// In en, this message translates to:
   /// **'Login'**
   String get loginSubmitButtonLabel;
+
+  /// No description provided for @homeNavigationDashboardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get homeNavigationDashboardLabel;
+
+  /// No description provided for @homeNavigationSettingsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get homeNavigationSettingsLabel;
+
+  /// No description provided for @homePopupLogoutLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout'**
+  String get homePopupLogoutLabel;
 }
 
 class _AppLocalizationsDelegate

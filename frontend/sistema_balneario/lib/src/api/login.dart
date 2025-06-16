@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:sistema_balneario/src/services/env/env.dart';
 
 class AuthApi {
@@ -6,7 +7,7 @@ class AuthApi {
 
   final _env = EnvManager.env;
 
-  bool _isAuthenticated = false;
+  bool _isAuthenticated = kDebugMode;
 
   // public:
   static final AuthApi api = AuthApi._();

@@ -18,11 +18,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginUsernameHint => 'exemple@email.com';
 
   @override
+  String get loginUsernameError => 'User is required';
+
+  @override
   String get loginPasswordLabel => 'Password';
 
   @override
   String get loginPasswordHint => '••••••';
 
   @override
+  String get loginPasswordError => 'Password is required';
+
+  @override
   String get loginSubmitButtonLabel => 'Login';
+
+  @override
+  String get homeNavigationDashboardLabel => 'Dashboard';
+
+  @override
+  String get homeNavigationSettingsLabel => 'Settings';
+
+  @override
+  String get homePopupLogoutLabel => 'Logout';
 }

@@ -18,13 +18,28 @@ class AppLocalizationsPt extends AppLocalizations {
   String get loginUsernameHint => 'exemplo@email.com';
 
   @override
+  String get loginUsernameError => 'O usuário é obrigatório';
+
+  @override
   String get loginPasswordLabel => 'Senha';
 
   @override
   String get loginPasswordHint => '••••••';
 
   @override
+  String get loginPasswordError => 'A senha é obrigatória';
+
+  @override
   String get loginSubmitButtonLabel => 'Login';
+
+  @override
+  String get homeNavigationDashboardLabel => 'Painel';
+
+  @override
+  String get homeNavigationSettingsLabel => 'Configurações';
+
+  @override
+  String get homePopupLogoutLabel => 'Logout';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -41,11 +56,26 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get loginUsernameHint => 'exemplo@email.com';
 
   @override
+  String get loginUsernameError => 'O usuário é obrigatório';
+
+  @override
   String get loginPasswordLabel => 'Senha';
 
   @override
   String get loginPasswordHint => '••••••';
 
   @override
+  String get loginPasswordError => 'A senha é obrigatória';
+
+  @override
   String get loginSubmitButtonLabel => 'Login';
+
+  @override
+  String get homeNavigationDashboardLabel => 'Painel';
+
+  @override
+  String get homeNavigationSettingsLabel => 'Configurações';
+
+  @override
+  String get homePopupLogoutLabel => 'Logout';
 }
