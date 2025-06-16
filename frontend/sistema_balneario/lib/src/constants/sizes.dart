@@ -10,6 +10,7 @@ class AppSizes {
     xl: 20,
     xxl: 24,
   );
+  static const double homeDrawerMaxWidth = 256;
 }
 
 class _Sizes {
