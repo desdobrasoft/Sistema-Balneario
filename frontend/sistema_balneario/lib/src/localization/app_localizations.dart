@@ -164,6 +164,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Logout'**
   String get homePopupLogoutLabel;
+
+  /// No description provided for @dashboardTotalSalesCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Sales'**
+  String get dashboardTotalSalesCardTitle;
+
+  /// No description provided for @dashboardTotalSalesCardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Performance in the last 6 months'**
+  String get dashboardTotalSalesCardSubtitle;
+
+  /// No description provided for @dashboardActiveProdsCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Productions'**
+  String get dashboardActiveProdsCardTitle;
+
+  /// No description provided for @dashboardActiveProdsCardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Currently active projects'**
+  String get dashboardActiveProdsCardSubtitle;
+
+  /// No description provided for @dashboardAvgDeliveryTimeCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Average Delivery Time'**
+  String get dashboardAvgDeliveryTimeCardTitle;
+
+  /// No description provided for @dashboardAvgDeliveryTimeCardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Average for finished orders'**
+  String get dashboardAvgDeliveryTimeCardSubtitle;
+
+  /// No description provided for @dashboardMonthlyOverviewCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Sales Overview'**
+  String get dashboardMonthlyOverviewCardTitle;
+
+  /// No description provided for @dashboardMonthlyOverviewCardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly revenue'**
+  String get dashboardMonthlyOverviewCardSubtitle;
+
+  /// No description provided for @dashboardProdStatusCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Status'**
+  String get dashboardProdStatusCardTitle;
+
+  /// No description provided for @dashboardProdStatusCardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders per stage'**
+  String get dashboardProdStatusCardSubtitle;
+
+  /// No description provided for @dashboardDeliveryTimeAnalysisCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery Time Analysis'**
+  String get dashboardDeliveryTimeAnalysisCardTitle;
+
+  /// No description provided for @dashboardDeliveryTimeAnalysisCardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis of delivery time for each finished order'**
+  String get dashboardDeliveryTimeAnalysisCardSubtitle;
 }
 
 class _AppLocalizationsDelegate

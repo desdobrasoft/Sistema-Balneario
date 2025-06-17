@@ -40,6 +40,48 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get homePopupLogoutLabel => 'Logout';
+
+  @override
+  String get dashboardTotalSalesCardTitle => 'Vendas Totais';
+
+  @override
+  String get dashboardTotalSalesCardSubtitle =>
+      'Desempenho dos últimos 6 meses';
+
+  @override
+  String get dashboardActiveProdsCardTitle => 'Produções Ativas';
+
+  @override
+  String get dashboardActiveProdsCardSubtitle => 'Projetos atuais em andamento';
+
+  @override
+  String get dashboardAvgDeliveryTimeCardTitle => 'Tempo Médio de Entrega';
+
+  @override
+  String get dashboardAvgDeliveryTimeCardSubtitle =>
+      'Média para pedidos concluídos';
+
+  @override
+  String get dashboardMonthlyOverviewCardTitle =>
+      'Visão Geral Mensal de Vendas';
+
+  @override
+  String get dashboardMonthlyOverviewCardSubtitle => 'Receita gerada por mês';
+
+  @override
+  String get dashboardProdStatusCardTitle => 'Status da Produção';
+
+  @override
+  String get dashboardProdStatusCardSubtitle =>
+      'Distribuição dos status atuais dos projetos';
+
+  @override
+  String get dashboardDeliveryTimeAnalysisCardTitle =>
+      'Análise do Tempo de Entrega';
+
+  @override
+  String get dashboardDeliveryTimeAnalysisCardSubtitle =>
+      'Distribuição das durações de entrega';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -78,4 +120,46 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get homePopupLogoutLabel => 'Logout';
+
+  @override
+  String get dashboardTotalSalesCardTitle => 'Vendas Totais';
+
+  @override
+  String get dashboardTotalSalesCardSubtitle =>
+      'Desempenho dos últimos 6 meses';
+
+  @override
+  String get dashboardActiveProdsCardTitle => 'Produções Ativas';
+
+  @override
+  String get dashboardActiveProdsCardSubtitle => 'Projetos atuais em andamento';
+
+  @override
+  String get dashboardAvgDeliveryTimeCardTitle => 'Tempo Médio de Entrega';
+
+  @override
+  String get dashboardAvgDeliveryTimeCardSubtitle =>
+      'Média para pedidos concluídos';
+
+  @override
+  String get dashboardMonthlyOverviewCardTitle =>
+      'Visão Geral Mensal de Vendas';
+
+  @override
+  String get dashboardMonthlyOverviewCardSubtitle => 'Receita gerada por mês';
+
+  @override
+  String get dashboardProdStatusCardTitle => 'Status da Produção';
+
+  @override
+  String get dashboardProdStatusCardSubtitle =>
+      'Distribuição dos status atuais dos projetos';
+
+  @override
+  String get dashboardDeliveryTimeAnalysisCardTitle =>
+      'Análise do Tempo de Entrega';
+
+  @override
+  String get dashboardDeliveryTimeAnalysisCardSubtitle =>
+      'Distribuição das durações de entrega';
 }

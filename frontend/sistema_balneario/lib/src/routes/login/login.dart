@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FilteringTextInputFormatter;
 import 'package:go_router/go_router.dart';
-import 'package:sistema_balneario/src/api/login.dart';
+import 'package:sistema_balneario/src/api/auth.dart';
 import 'package:sistema_balneario/src/components/button.dart';
 import 'package:sistema_balneario/src/constants/constants.dart';
 import 'package:sistema_balneario/src/constants/sizes.dart';

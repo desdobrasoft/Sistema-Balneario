@@ -40,4 +40,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homePopupLogoutLabel => 'Logout';
+
+  @override
+  String get dashboardTotalSalesCardTitle => 'Total Sales';
+
+  @override
+  String get dashboardTotalSalesCardSubtitle =>
+      'Performance in the last 6 months';
+
+  @override
+  String get dashboardActiveProdsCardTitle => 'Active Productions';
+
+  @override
+  String get dashboardActiveProdsCardSubtitle => 'Currently active projects';
+
+  @override
+  String get dashboardAvgDeliveryTimeCardTitle => 'Average Delivery Time';
+
+  @override
+  String get dashboardAvgDeliveryTimeCardSubtitle =>
+      'Average for finished orders';
+
+  @override
+  String get dashboardMonthlyOverviewCardTitle => 'Monthly Sales Overview';
+
+  @override
+  String get dashboardMonthlyOverviewCardSubtitle => 'Monthly revenue';
+
+  @override
+  String get dashboardProdStatusCardTitle => 'Order Status';
+
+  @override
+  String get dashboardProdStatusCardSubtitle => 'Orders per stage';
+
+  @override
+  String get dashboardDeliveryTimeAnalysisCardTitle => 'Delivery Time Analysis';
+
+  @override
+  String get dashboardDeliveryTimeAnalysisCardSubtitle =>
+      'Analysis of delivery time for each finished order';
 }

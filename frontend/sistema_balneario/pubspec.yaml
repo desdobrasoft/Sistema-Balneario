@@ -7,12 +7,15 @@ environment:
   sdk: ^3.8.1
 
 dependencies:
+  auto_size_text: ^3.0.0
   flutter:
     sdk: flutter
   flutter_dotenv: ^5.2.1
   flutter_localizations:
     sdk: flutter
+  from_css_color: ^2.0.0
   go_router: ^15.1.3
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:sistema_balneario/src/api/login.dart';
+import 'package:sistema_balneario/src/api/auth.dart';
 import 'package:sistema_balneario/src/routes/routes.dart';
 import 'package:sistema_balneario/src/utils/get_localization.dart';
 

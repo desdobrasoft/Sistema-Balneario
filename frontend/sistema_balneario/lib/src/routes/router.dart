@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart' show BackButtonListener, PopScope;
 import 'package:go_router/go_router.dart';
-import 'package:sistema_balneario/src/api/login.dart';
+import 'package:sistema_balneario/src/api/auth.dart';
 import 'package:sistema_balneario/src/app.dart';
 import 'package:sistema_balneario/src/routes/home/dashboard/dashboard.dart';
 import 'package:sistema_balneario/src/routes/home/home.dart';
