@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_balneario/src/components/home_popup_menu.dart';
-import 'package:sistema_balneario/src/constants/sizes.dart';
+import 'package:sistema_balneario/src/constants/constants.dart' show px12;
 import 'package:sistema_balneario/src/enums/window_class.dart';
 import 'package:sistema_balneario/src/routes/home/drawer/drawer.dart';
 import 'package:sistema_balneario/src/utils/get_localization.dart';
@@ -27,8 +27,6 @@ class _HomeState extends State<Home> {
       setState(() => _windowClass = newWC);
     }
 
-    // TODO: Verificar por que a drawer não tá recolhendo ao transicionar de expanded para medium.
-
     final body = Scaffold(
       appBar: AppBar(
         leading: _windowClass != WindowClass.expanded
@@ -51,10 +49,7 @@ class _HomeState extends State<Home> {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(AppSizes.gap.md),
-        ),
-        margin: EdgeInsets.all(AppSizes.gap.xs).copyWith(
-          left: _windowClass == WindowClass.compact ? AppSizes.gap.xs : 0,
+          borderRadius: BorderRadius.circular(px12),
         ),
         child: widget.child,
       ),

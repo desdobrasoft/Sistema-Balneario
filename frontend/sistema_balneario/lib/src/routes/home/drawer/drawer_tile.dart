@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:sistema_balneario/src/constants/sizes.dart';
+import 'package:sistema_balneario/src/constants/constants.dart' show px16, px12;
 
 class DrawerTile extends StatelessWidget {
   const DrawerTile({
@@ -40,10 +40,10 @@ class DrawerTile extends StatelessWidget {
           color: selected ? scheme.secondaryContainer : null,
         ),
         height: _tileHeight,
-        padding: EdgeInsets.symmetric(horizontal: AppSizes.gap.lg),
+        padding: EdgeInsets.symmetric(horizontal: px16),
 
         child: Row(
-          spacing: AppSizes.gap.md,
+          spacing: px12,
           children: [
             if (icon != null)
               selected && selectedIcon != null

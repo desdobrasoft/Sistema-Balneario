@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_balneario/src/constants/sizes.dart';
+import 'package:sistema_balneario/src/constants/constants.dart' show px8;
 import 'package:sistema_balneario/src/routes/home/drawer/drawer_tile.dart';
 import 'package:sistema_balneario/src/routes/home/drawer/logo.dart';
 import 'package:sistema_balneario/src/routes/routes.dart';
@@ -55,25 +55,26 @@ class _HomeDrawerState extends State<HomeDrawer> {
     return Drawer(
       width: widget.isExpanded ? _width : _collapsedWidth,
       child: Padding(
-        padding: EdgeInsets.all(AppSizes.gap.sm).copyWith(bottom: 0),
+        padding: EdgeInsets.all(px8).copyWith(bottom: 0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (widget.isExpanded) ...[DrawerLogo(), Divider()],
+                widget.isExpanded ? DrawerLogo() : DrawerLogo.mini(),
+                Divider(),
               ],
             ),
 
             Expanded(
               child: Padding(
-                padding: EdgeInsets.only(bottom: AppSizes.gap.sm),
+                padding: EdgeInsets.only(bottom: px8),
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
-                    spacing: AppSizes.gap.sm,
+                    spacing: px8,
                     children: _routes!.map((route) {
                       return DrawerTile(
                         path: route.path,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_balneario/src/constants/constants.dart';
+import 'package:sistema_balneario/src/constants/constants.dart'
+    show appRestorationScopeId;
 import 'package:sistema_balneario/src/localization/app_localizations.dart';
 import 'package:sistema_balneario/src/routes/router.dart' as router;
 
@@ -25,7 +26,7 @@ class _SistemaBalnearioState extends State<SistemaBalneario> {
 
       // opcionais
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-      restorationScopeId: Constants.appRestorationScopeId,
+      restorationScopeId: appRestorationScopeId,
       routerConfig: router.Router.instance.router,
       supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData.light(useMaterial3: true),

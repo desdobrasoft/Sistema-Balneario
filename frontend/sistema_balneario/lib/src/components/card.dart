@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_balneario/src/constants/sizes.dart';
+import 'package:sistema_balneario/src/constants/constants.dart' show px16, px20;
 
 class AppCard extends StatefulWidget {
   const AppCard({super.key, this.title, this.subtitle, this.content});
@@ -19,11 +19,11 @@ class _AppCardState extends State<AppCard> {
 
     return Card(
       child: Padding(
-        padding: EdgeInsets.all(AppSizes.gap.lg),
+        padding: EdgeInsets.all(px16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
-          spacing: AppSizes.gap.xl,
+          spacing: px20,
           children: [
             Text.rich(
               TextSpan(
