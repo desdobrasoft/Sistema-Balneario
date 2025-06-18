@@ -43,17 +43,7 @@ class _HomeState extends State<Home> {
                   },
                 ),
               ),
-        title: Text(switch (Routes.fromPath(
-          GoRouter.maybeOf(
-            context,
-          )?.routeInformationProvider.value.uri.toString(),
-        )) {
-          Routes.dashboard => localization(
-            context,
-          ).homeNavigationDashboardLabel,
-          Routes.settings => localization(context).homeNavigationSettingsLabel,
-          _ => localization(context).appTitle,
-        }),
+        title: Text(_title()),
         actions: [HomePopupMenu()],
       ),
       drawer: HomeDrawer(),
@@ -85,5 +75,29 @@ class _HomeState extends State<Home> {
         return HomeDrawer(isExpanded: expand);
       },
     );
+  }
+
+  String _title() {
+    return switch (Routes.fromPath(
+      GoRouter.maybeOf(context)?.routeInformationProvider.value.uri.toString(),
+    )) {
+      Routes.login => localization(context).appTitle,
+      Routes.home => localization(context).appTitle,
+      Routes.dashboard => localization(context).homeNavigationDashboardLabel,
+      Routes.customers => localization(context).homeNavigationCustomersLabel,
+      Routes.houseCatalog => localization(context).homeNavigationCatalogLabel,
+      Routes.salesRecord => localization(
+        context,
+      ).homeNavigationSalesRecordLabel,
+      Routes.orderTracking => localization(
+        context,
+      ).homeNavigationOrderTrackLabel,
+      Routes.deliveryManagement => localization(
+        context,
+      ).homeNavigationDeliveryLabel,
+      Routes.finance => localization(context).homeNavigationFinanceLabel,
+      Routes.stock => localization(context).homeNavigationStockLabel,
+      Routes.settings => localization(context).homeNavigationSettingsLabel,
+    };
   }
 }

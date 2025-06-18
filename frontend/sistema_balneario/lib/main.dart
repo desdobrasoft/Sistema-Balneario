@@ -5,5 +5,5 @@ import 'package:sistema_balneario/src/services/env/env.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EnvManager.env.init();
-  runApp(const SistemaBalneario());
+  runApp(const CasaFacil());
 }

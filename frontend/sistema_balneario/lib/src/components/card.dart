@@ -50,7 +50,7 @@ class _AppCardState extends State<AppCard> {
                   ),
               ],
             ),
-            if (widget.content != null) widget.content!,
+            if (widget.content != null) Flexible(child: widget.content!),
           ],
         ),
       ),

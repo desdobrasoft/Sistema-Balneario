@@ -19,7 +19,7 @@ class Router {
   Router._();
 
   final _router = GoRouter(
-    navigatorKey: SistemaBalneario.appKey,
+    navigatorKey: CasaFacil.appKey,
     initialLocation: Routes.login.path,
     routes: [
       GoRoute(

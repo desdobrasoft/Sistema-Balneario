@@ -4,8 +4,8 @@ import 'package:sistema_balneario/src/constants/constants.dart'
 import 'package:sistema_balneario/src/localization/app_localizations.dart';
 import 'package:sistema_balneario/src/routes/router.dart' as router;
 
-class SistemaBalneario extends StatefulWidget {
-  const SistemaBalneario({super.key});
+class CasaFacil extends StatefulWidget {
+  const CasaFacil({super.key});
 
   // private:
   static final _key = GlobalKey<NavigatorState>();
@@ -14,10 +14,10 @@ class SistemaBalneario extends StatefulWidget {
   static GlobalKey<NavigatorState> get appKey => _key;
 
   @override
-  State<SistemaBalneario> createState() => _SistemaBalnearioState();
+  State<CasaFacil> createState() => _CasaFacilState();
 }
 
-class _SistemaBalnearioState extends State<SistemaBalneario> {
+class _CasaFacilState extends State<CasaFacil> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
