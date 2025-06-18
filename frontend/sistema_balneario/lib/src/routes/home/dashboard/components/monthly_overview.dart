@@ -2,10 +2,12 @@ import 'dart:math' show max;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:from_css_color/from_css_color.dart';
 import 'package:sistema_balneario/src/components/card.dart';
 import 'package:sistema_balneario/src/constants/constants.dart' show px4;
 import 'package:sistema_balneario/src/models/monthly_sales.dart';
 import 'package:sistema_balneario/src/utils/get_localization.dart';
+import 'package:sistema_balneario/src/utils/legible_color.dart';
 
 class MonthlyOverview extends StatelessWidget {
   const MonthlyOverview({super.key, required this.data});
@@ -21,6 +23,7 @@ class MonthlyOverview extends StatelessWidget {
     final maxY = dataMax * 1.1;
     final interval = maxY / _step;
 
+    final scheme = ColorScheme.of(context);
     final styles = TextTheme.of(context);
 
     return AppCard(
@@ -76,6 +79,10 @@ class MonthlyOverview extends StatelessWidget {
                         toY: data[i].sales,
                         borderRadius: BorderRadius.vertical(
                           top: Radius.circular(px4),
+                        ),
+                        color: legibleColor(
+                          backgroundColor: scheme.surfaceContainerLow,
+                          foregroundColor: fromCssColor(data[i].fill),
                         ),
                         width: 0.6 * constraints.maxWidth / data.length,
                       ),

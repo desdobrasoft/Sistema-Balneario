@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Balneário System';
+  String get appTitle => 'CasaFácil';
 
   @override
   String get loginUsernameLabel => 'User';
@@ -34,6 +34,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeNavigationDashboardLabel => 'Dashboard';
+
+  @override
+  String get homeNavigationCustomersLabel => 'Customers';
+
+  @override
+  String get homeNavigationCatalogLabel => 'House Catalog';
+
+  @override
+  String get homeNavigationSalesRecordLabel => 'SalesRecord';
+
+  @override
+  String get homeNavigationOrderTrackLabel => 'Order Tracking';
+
+  @override
+  String get homeNavigationDeliveryLabel => 'Delivery Management';
+
+  @override
+  String get homeNavigationFinanceLabel => 'Finance';
+
+  @override
+  String get homeNavigationStockLabel => 'Stock';
 
   @override
   String get homeNavigationSettingsLabel => 'Settings';
@@ -79,4 +100,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dashboardDeliveryTimeAnalysisCardSubtitle =>
       'Analysis of delivery time for each finished order';
+
+  @override
+  String get customersCardTitle => 'Customers Management';
+
+  @override
+  String get customersCardSubtitle =>
+      'View, add, edit or remove client records';
+
+  @override
+  String get customersAddButtonLabel => 'Add client';
 }

@@ -9,7 +9,7 @@ class AppLocalizationsPt extends AppLocalizations {
   AppLocalizationsPt([String locale = 'pt']) : super(locale);
 
   @override
-  String get appTitle => 'Sistema Balneário';
+  String get appTitle => 'CasaFácil';
 
   @override
   String get loginUsernameLabel => 'Usuário';
@@ -34,6 +34,27 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get homeNavigationDashboardLabel => 'Painel';
+
+  @override
+  String get homeNavigationCustomersLabel => 'Clientes';
+
+  @override
+  String get homeNavigationCatalogLabel => 'Catálogo de Modelos';
+
+  @override
+  String get homeNavigationSalesRecordLabel => 'Registro de Vendas';
+
+  @override
+  String get homeNavigationOrderTrackLabel => 'Rastreio de Produtos';
+
+  @override
+  String get homeNavigationDeliveryLabel => 'Gerenciamento de Entregas';
+
+  @override
+  String get homeNavigationFinanceLabel => 'Financeiro';
+
+  @override
+  String get homeNavigationStockLabel => 'Estoque';
 
   @override
   String get homeNavigationSettingsLabel => 'Configurações';
@@ -82,6 +103,16 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get dashboardDeliveryTimeAnalysisCardSubtitle =>
       'Distribuição das durações de entrega';
+
+  @override
+  String get customersCardTitle => 'Gerenciamento de Clientes';
+
+  @override
+  String get customersCardSubtitle =>
+      'Visualize, adicione, edite ou remova registros de clientes';
+
+  @override
+  String get customersAddButtonLabel => 'Adicionar cliente';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -89,7 +120,7 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   AppLocalizationsPtBr() : super('pt_BR');
 
   @override
-  String get appTitle => 'Sistema Balneário';
+  String get appTitle => 'CasaFácil';
 
   @override
   String get loginUsernameLabel => 'Usuário';
@@ -114,6 +145,27 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get homeNavigationDashboardLabel => 'Painel';
+
+  @override
+  String get homeNavigationCustomersLabel => 'Clientes';
+
+  @override
+  String get homeNavigationCatalogLabel => 'Catálogo de Modelos';
+
+  @override
+  String get homeNavigationSalesRecordLabel => 'Registro de Vendas';
+
+  @override
+  String get homeNavigationOrderTrackLabel => 'Rastreio de Produtos';
+
+  @override
+  String get homeNavigationDeliveryLabel => 'Gerenciamento de Entregas';
+
+  @override
+  String get homeNavigationFinanceLabel => 'Financeiro';
+
+  @override
+  String get homeNavigationStockLabel => 'Estoque';
 
   @override
   String get homeNavigationSettingsLabel => 'Configurações';
@@ -162,4 +214,14 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   @override
   String get dashboardDeliveryTimeAnalysisCardSubtitle =>
       'Distribuição das durações de entrega';
+
+  @override
+  String get customersCardTitle => 'Gerenciamento de Clientes';
+
+  @override
+  String get customersCardSubtitle =>
+      'Visualize, adicione, edite ou remova registros de clientes';
+
+  @override
+  String get customersAddButtonLabel => 'Adicionar cliente';
 }

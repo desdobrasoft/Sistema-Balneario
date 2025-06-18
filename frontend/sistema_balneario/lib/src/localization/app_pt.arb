@@ -1,7 +1,7 @@
 {
-  "appTitle": "Sistema Balneário",
+  "appTitle": "CasaFácil",
   "@appTitle": {
-    "description": "Sistema Balneário"
+    "description": "CasaFácil"
   },
   "loginUsernameLabel": "Usuário",
   "@loginUsernameLabel": {},
@@ -19,6 +19,20 @@
   "@loginSubmitButtonLabel": {},
   "homeNavigationDashboardLabel": "Painel",
   "@homeNavigationDashboardLabel": {},
+  "homeNavigationCustomersLabel": "Clientes",
+  "@homeNavigationCustomersLabel": {},
+  "homeNavigationCatalogLabel": "Catálogo de Modelos",
+  "@homeNavigationCatalogLabel": {},
+  "homeNavigationSalesRecordLabel": "Registro de Vendas",
+  "@homeNavigationSalesRecordLabel": {},
+  "homeNavigationOrderTrackLabel": "Rastreio de Produtos",
+  "@homeNavigationOrderTrackLabel": {},
+  "homeNavigationDeliveryLabel": "Gerenciamento de Entregas",
+  "@homeNavigationDeliveryLabel": {},
+  "homeNavigationFinanceLabel": "Financeiro",
+  "@homeNavigationFinanceLabel": {},
+  "homeNavigationStockLabel": "Estoque",
+  "@homeNavigationStockLabel": {},
   "homeNavigationSettingsLabel": "Configurações",
   "@homeNavigationSettingsLabel": {},
   "homePopupLogoutLabel": "Logout",
@@ -47,5 +61,11 @@
   "@dashboardDeliveryTimeAnalysisCardTitle": {},
   "dashboardDeliveryTimeAnalysisCardSubtitle": "Distribuição das durações de entrega",
   "@dashboardDeliveryTimeAnalysisCardSubtitle": {},
+  "customersCardTitle": "Gerenciamento de Clientes",
+  "@customersCardTitle": {},
+  "customersCardSubtitle": "Visualize, adicione, edite ou remova registros de clientes",
+  "@customersCardSubtitle": {},
+  "customersAddButtonLabel": "Adicionar cliente",
+  "@customersAddButtonLabel": {},
   "@@locale": "pt"
 }

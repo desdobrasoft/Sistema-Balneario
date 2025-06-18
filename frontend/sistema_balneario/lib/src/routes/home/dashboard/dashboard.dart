@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_balneario/src/constants/constants.dart' show px24;
+import 'package:sistema_balneario/src/constants/constants.dart' show px20, px24;
 import 'package:sistema_balneario/src/data/mock_data.dart'
     show monthlySales, productionStatusDistribution, deliveryTimeStats;
+import 'package:sistema_balneario/src/enums/window_class.dart';
 import 'package:sistema_balneario/src/routes/home/dashboard/components/active_prods.dart';
 import 'package:sistema_balneario/src/routes/home/dashboard/components/avg_delivery_time.dart';
 import 'package:sistema_balneario/src/routes/home/dashboard/components/delivery_time_analysis.dart';
@@ -17,32 +18,89 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+  static const _basicCardHeight = 180;
+  static const _chartCardHeight = 430;
+
+  WindowClass _windowClass = WindowClass.expanded;
+
   @override
   Widget build(BuildContext context) {
+    final newWC = WindowClass.fromWidth(MediaQuery.of(context).size.width);
+    if (newWC != _windowClass) {
+      setState(() => _windowClass = newWC);
+    }
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(px24).copyWith(top: 0),
-          child: Wrap(
-            runSpacing: px24,
-            spacing: px24,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: px20,
             children: [
-              TotalSales(
-                sales: monthlySales
-                    .map((item) => item.sales)
-                    .reduce((sum, item) => sum + item),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final count = switch (_windowClass) {
+                    WindowClass.compact => 1,
+                    WindowClass.medium => 2,
+                    WindowClass.expanded => 3,
+                  };
+                  final maxWidth = constraints.maxWidth / count;
+
+                  return GridView.extent(
+                    childAspectRatio: maxWidth / _basicCardHeight,
+                    crossAxisSpacing: px20,
+                    mainAxisSpacing: px20,
+                    maxCrossAxisExtent: maxWidth,
+                    physics: NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+
+                    children: [
+                      SizedBox(
+                        child: TotalSales(
+                          sales: monthlySales
+                              .map((item) => item.sales)
+                              .reduce((sum, item) => sum + item),
+                        ),
+                      ),
+                      ActiveProds(
+                        activeProds: productionStatusDistribution
+                            .singleWhere(
+                              (item) =>
+                                  item.status.toLowerCase() == 'em progresso',
+                            )
+                            .count,
+                      ),
+                      AvgDeliveryTime(data: '3,5 semanas'),
+                    ],
+                  );
+                },
               ),
-              ActiveProds(
-                activeProds: productionStatusDistribution
-                    .singleWhere(
-                      (item) => item.status.toLowerCase() == 'em progresso',
-                    )
-                    .count,
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final count = switch (_windowClass) {
+                    WindowClass.compact => 1,
+                    WindowClass.medium => 1,
+                    WindowClass.expanded => 2,
+                  };
+                  final maxWidth = constraints.maxWidth / count;
+
+                  return GridView.extent(
+                    childAspectRatio: maxWidth / _chartCardHeight,
+                    crossAxisSpacing: px24,
+                    mainAxisSpacing: px24,
+                    maxCrossAxisExtent: maxWidth,
+                    physics: NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+
+                    children: [
+                      MonthlyOverview(data: monthlySales),
+                      ProdStatus(data: productionStatusDistribution),
+                      DeliveryTimeAnalysis(data: deliveryTimeStats),
+                    ],
+                  );
+                },
               ),
-              AvgDeliveryTime(data: '3,5 semanas'),
-              MonthlyOverview(data: monthlySales),
-              ProdStatus(data: productionStatusDistribution),
-              DeliveryTimeAnalysis(data: deliveryTimeStats),
             ],
           ),
         ),

@@ -25,7 +25,7 @@ class DrawerTile extends StatelessWidget {
     final selected = path == currentPath;
     final scheme = ColorScheme.of(context);
 
-    return InkWell(
+    final child = InkWell(
       borderRadius: BorderRadius.circular(_tileHeight / 2),
 
       onTap: () {
@@ -58,6 +58,8 @@ class DrawerTile extends StatelessWidget {
               Expanded(
                 child: Text(
                   title!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextTheme.of(context).labelMedium?.copyWith(
                     color: selected
                         ? scheme.onSecondaryContainer
@@ -69,6 +71,10 @@ class DrawerTile extends StatelessWidget {
         ),
       ),
     );
+
+    if ((title ?? '').isEmpty) return child;
+
+    return Tooltip(message: title, child: child);
   }
 
   Widget _recolorIcon(Widget icon, Color color) {

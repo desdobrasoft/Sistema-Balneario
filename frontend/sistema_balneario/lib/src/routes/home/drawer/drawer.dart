@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mdi_icons/flutter_mdi_icons.dart';
 import 'package:sistema_balneario/src/constants/constants.dart' show px8;
 import 'package:sistema_balneario/src/routes/home/drawer/drawer_tile.dart';
 import 'package:sistema_balneario/src/routes/home/drawer/logo.dart';
@@ -45,10 +46,46 @@ class _HomeDrawerState extends State<HomeDrawer> {
         selectedIcon: Icon(Icons.dashboard),
       ),
       _Route(
-        path: Routes.settings.path,
-        label: localization(context).homeNavigationSettingsLabel,
-        icon: Icon(Icons.settings_outlined),
-        selectedIcon: Icon(Icons.settings),
+        path: Routes.customers.path,
+        label: localization(context).homeNavigationCustomersLabel,
+        icon: Icon(Icons.group_outlined),
+        selectedIcon: Icon(Icons.group),
+      ),
+      _Route(
+        path: Routes.houseCatalog.path,
+        label: localization(context).homeNavigationCatalogLabel,
+        icon: Icon(Icons.home_outlined),
+        selectedIcon: Icon(Icons.home),
+      ),
+      _Route(
+        path: Routes.salesRecord.path,
+        label: localization(context).homeNavigationSalesRecordLabel,
+        icon: Icon(Icons.shopping_cart_outlined),
+        selectedIcon: Icon(Icons.shopping_cart),
+      ),
+      _Route(
+        path: Routes.orderTracking.path,
+        label: localization(context).homeNavigationOrderTrackLabel,
+        icon: Icon(Icons.track_changes_outlined),
+        selectedIcon: Icon(Icons.track_changes),
+      ),
+      _Route(
+        path: Routes.deliveryManagement.path,
+        label: localization(context).homeNavigationDeliveryLabel,
+        icon: Icon(Mdi.truckOutline),
+        selectedIcon: Icon(Mdi.truck),
+      ),
+      _Route(
+        path: Routes.finance.path,
+        label: localization(context).homeNavigationFinanceLabel,
+        icon: Icon(Icons.payments_outlined),
+        selectedIcon: Icon(Icons.payments),
+      ),
+      _Route(
+        path: Routes.stock.path,
+        label: localization(context).homeNavigationStockLabel,
+        icon: Icon(Icons.inventory_2_outlined),
+        selectedIcon: Icon(Icons.inventory),
       ),
     ];
 

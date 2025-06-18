@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:sistema_balneario/src/constants/constants.dart' show px8;
+import 'package:sistema_balneario/src/utils/get_localization.dart';
 
 enum _Variant { normal, mini }
 
@@ -9,22 +12,30 @@ class DrawerLogo extends StatelessWidget {
 
   const DrawerLogo.mini({super.key}) : _variant = _Variant.mini;
 
+  static const double _size = 35;
+
   @override
   Widget build(BuildContext context) {
+    final scheme = ColorScheme.of(context);
+    final styles = TextTheme.of(context);
+
     return switch (_variant) {
-      _Variant.normal => SizedBox(
-        height: 80,
-        child: Placeholder(
-          child: Center(child: Text('Logo', textAlign: TextAlign.center)),
-        ),
-      ),
-      _Variant.mini => SizedBox(
-        height: 50,
-        child: Placeholder(
-          child: Center(
-            child: Text('Logo (mini)', textAlign: TextAlign.center),
+      _Variant.normal => Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: px8,
+        children: [
+          Icon(
+            LucideIcons.building,
+            color: scheme.onSurfaceVariant,
+            size: _size,
           ),
-        ),
+          Text(localization(context).appTitle, style: styles.titleLarge),
+        ],
+      ),
+      _Variant.mini => Icon(
+        LucideIcons.building,
+        color: scheme.onSurfaceVariant,
+        size: _size,
       ),
     };
   }

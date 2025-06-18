@@ -1,6 +1,35 @@
+import 'package:sistema_balneario/src/models/customer.dart';
 import 'package:sistema_balneario/src/models/delivery_time_stats.dart';
 import 'package:sistema_balneario/src/models/monthly_sales.dart';
 import 'package:sistema_balneario/src/models/production_status_distribution.dart';
+
+final customers = [
+  CustomerModel(
+    id: 'cust1',
+    name: 'Alice Silva',
+    email: 'alice@exemplo.com',
+    phone: '(11) 98765-4321',
+    address:
+        'Rua da Fantasia, 123, Bairro dos Sonhos, Contolândia - SP, 01234-567',
+    salesHistoryCount: 2,
+  ),
+  CustomerModel(
+    id: 'cust2',
+    name: 'Roberto Construtor',
+    email: 'roberto@construtoraex.com',
+    phone: '(21) 91234-5678',
+    address: 'Avenida da Construção, 456, Centro, Cidadela - RJ, 12345-000',
+    salesHistoryCount: 5,
+  ),
+  CustomerModel(
+    id: 'cust3',
+    name: 'Carlos Almeida Prado',
+    email: 'carlos.prado@email.com',
+    phone: '(31) 95678-1234',
+    address: 'Travessa da Comédia, 789, Vila Alegre, Alegria - MG, 23456-789',
+    salesHistoryCount: 1,
+  ),
+];
 
 final deliveryTimeStats = [
   DeliveryTimeStats(count: 18, range: '10-12 dias'),

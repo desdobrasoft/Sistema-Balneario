@@ -1,7 +1,7 @@
 {
-  "appTitle": "Balneário System",
+  "appTitle": "CasaFácil",
   "@appTitle": {
-    "description": "Balneário System"
+    "description": "CasaFácil"
   },
   "loginUsernameLabel": "User",
   "@loginUsernameLabel": {},
@@ -19,6 +19,20 @@
   "@loginSubmitButtonLabel": {},
   "homeNavigationDashboardLabel": "Dashboard",
   "@homeNavigationDashboardLabel": {},
+  "homeNavigationCustomersLabel": "Customers",
+  "@homeNavigationCustomersLabel": {},
+  "homeNavigationCatalogLabel": "House Catalog",
+  "@homeNavigationCatalogLabel": {},
+  "homeNavigationSalesRecordLabel": "SalesRecord",
+  "@homeNavigationSalesRecordLabel": {},
+  "homeNavigationOrderTrackLabel": "Order Tracking",
+  "@homeNavigationOrderTrackLabel": {},
+  "homeNavigationDeliveryLabel": "Delivery Management",
+  "@homeNavigationDeliveryLabel": {},
+  "homeNavigationFinanceLabel": "Finance",
+  "@homeNavigationFinanceLabel": {},
+  "homeNavigationStockLabel": "Stock",
+  "@homeNavigationStockLabel": {},
   "homeNavigationSettingsLabel": "Settings",
   "@homeNavigationSettingsLabel": {},
   "homePopupLogoutLabel": "Logout",
@@ -47,5 +61,11 @@
   "@dashboardDeliveryTimeAnalysisCardTitle": {},
   "dashboardDeliveryTimeAnalysisCardSubtitle": "Analysis of delivery time for each finished order",
   "@dashboardDeliveryTimeAnalysisCardSubtitle": {},
+  "customersCardTitle": "Customers Management",
+  "@customersCardTitle": {},
+  "customersCardSubtitle": "View, add, edit or remove client records",
+  "@customersCardSubtitle": {},
+  "customersAddButtonLabel": "Add client",
+  "@customersAddButtonLabel": {},
   "@@locale": "en"
 }

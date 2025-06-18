@@ -99,10 +99,10 @@ abstract class AppLocalizations {
     Locale('pt', 'BR'),
   ];
 
-  /// Balneário System
+  /// CasaFácil
   ///
   /// In en, this message translates to:
-  /// **'Balneário System'**
+  /// **'CasaFácil'**
   String get appTitle;
 
   /// No description provided for @loginUsernameLabel.
@@ -152,6 +152,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dashboard'**
   String get homeNavigationDashboardLabel;
+
+  /// No description provided for @homeNavigationCustomersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers'**
+  String get homeNavigationCustomersLabel;
+
+  /// No description provided for @homeNavigationCatalogLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'House Catalog'**
+  String get homeNavigationCatalogLabel;
+
+  /// No description provided for @homeNavigationSalesRecordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'SalesRecord'**
+  String get homeNavigationSalesRecordLabel;
+
+  /// No description provided for @homeNavigationOrderTrackLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Tracking'**
+  String get homeNavigationOrderTrackLabel;
+
+  /// No description provided for @homeNavigationDeliveryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery Management'**
+  String get homeNavigationDeliveryLabel;
+
+  /// No description provided for @homeNavigationFinanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Finance'**
+  String get homeNavigationFinanceLabel;
+
+  /// No description provided for @homeNavigationStockLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock'**
+  String get homeNavigationStockLabel;
 
   /// No description provided for @homeNavigationSettingsLabel.
   ///
@@ -236,6 +278,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Analysis of delivery time for each finished order'**
   String get dashboardDeliveryTimeAnalysisCardSubtitle;
+
+  /// No description provided for @customersCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers Management'**
+  String get customersCardTitle;
+
+  /// No description provided for @customersCardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View, add, edit or remove client records'**
+  String get customersCardSubtitle;
+
+  /// No description provided for @customersAddButtonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Add client'**
+  String get customersAddButtonLabel;
 }
 
 class _AppLocalizationsDelegate
