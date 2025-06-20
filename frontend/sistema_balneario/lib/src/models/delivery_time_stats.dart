@@ -19,7 +19,7 @@ class DeliveryTimeStats {
   final String fill;
   final String range; // ex: "10-12 dias", "13-15 dias"
 
-  DeliveryTimeStats({
+  const DeliveryTimeStats({
     required this.count,
     this.fill = _Defaults.fill,
     required this.range,

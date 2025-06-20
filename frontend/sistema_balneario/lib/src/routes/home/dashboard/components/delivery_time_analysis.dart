@@ -5,7 +5,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:from_css_color/from_css_color.dart';
 import 'package:sistema_balneario/src/components/card.dart';
-import 'package:sistema_balneario/src/constants/constants.dart' show px4, px8;
+import 'package:sistema_balneario/src/constants/constants.dart'
+    show gapxs, gapsm;
 import 'package:sistema_balneario/src/models/delivery_time_stats.dart';
 import 'package:sistema_balneario/src/utils/get_localization.dart';
 import 'package:sistema_balneario/src/utils/legible_color.dart';
@@ -61,7 +62,7 @@ class DeliveryTimeAnalysis extends StatelessWidget {
                           angle: -pi / 2,
                           child: Container(
                             alignment: Alignment.centerRight,
-                            padding: EdgeInsets.only(right: px8),
+                            padding: EdgeInsets.only(right: gapsm),
                             width: _sideLabelsSize,
                             child: AutoSizeText(
                               data[value.toInt()].range,
@@ -85,7 +86,7 @@ class DeliveryTimeAnalysis extends StatelessWidget {
                       BarChartRodData(
                         toY: data[i].count.toDouble(),
                         borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(px4),
+                          top: Radius.circular(gapxs),
                         ),
                         color: legibleColor(
                           backgroundColor: scheme.surfaceContainerLow,

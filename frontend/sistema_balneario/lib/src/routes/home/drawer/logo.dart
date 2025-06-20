@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:sistema_balneario/src/constants/constants.dart' show px8;
+import 'package:sistema_balneario/src/constants/constants.dart' show gapsm;
 import 'package:sistema_balneario/src/utils/get_localization.dart';
 
 enum _Variant { normal, mini }
@@ -22,7 +22,7 @@ class DrawerLogo extends StatelessWidget {
     return switch (_variant) {
       _Variant.normal => Row(
         mainAxisSize: MainAxisSize.min,
-        spacing: px8,
+        spacing: gapsm,
         children: [
           Icon(
             LucideIcons.building,

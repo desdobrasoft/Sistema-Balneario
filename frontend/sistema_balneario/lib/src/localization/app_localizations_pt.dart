@@ -63,6 +63,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get homePopupLogoutLabel => 'Logout';
 
   @override
+  String get tableActionsLabel => 'Ações';
+
+  @override
   String get dashboardTotalSalesCardTitle => 'Vendas Totais';
 
   @override
@@ -113,6 +116,40 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get customersAddButtonLabel => 'Adicionar cliente';
+
+  @override
+  String get customerTableNameLabel => 'Nome';
+
+  @override
+  String get customerTableEmailLabel => 'Email';
+
+  @override
+  String get customerTablePhoneLabel => 'Telefone';
+
+  @override
+  String get customerTableAddressLabel => 'Endereço';
+
+  @override
+  String get customerTableSalesLabel => 'Vendas';
+
+  @override
+  String get customerFilterLabel => 'Buscar cliente';
+
+  @override
+  String get customerFilterHint => 'João da Silva';
+
+  @override
+  String get catalogCardTitle => 'Catálogo de Modelos de Casas';
+
+  @override
+  String get catalogCardSubtitle =>
+      'Navegue pelos modelos de casas pré-fabricadas. A diferença principal é a área e os componentes do kit.';
+
+  @override
+  String get catalogAddButtonLabel => 'Adicionar modelo';
+
+  @override
+  String get catalogMaterialListLabel => 'Categorias de materiais do kit';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -174,6 +211,9 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get homePopupLogoutLabel => 'Logout';
 
   @override
+  String get tableActionsLabel => 'Ações';
+
+  @override
   String get dashboardTotalSalesCardTitle => 'Vendas Totais';
 
   @override
@@ -224,4 +264,38 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get customersAddButtonLabel => 'Adicionar cliente';
+
+  @override
+  String get customerTableNameLabel => 'Nome';
+
+  @override
+  String get customerTableEmailLabel => 'Email';
+
+  @override
+  String get customerTablePhoneLabel => 'Telefone';
+
+  @override
+  String get customerTableAddressLabel => 'Endereço';
+
+  @override
+  String get customerTableSalesLabel => 'Vendas';
+
+  @override
+  String get customerFilterLabel => 'Buscar cliente';
+
+  @override
+  String get customerFilterHint => 'João da Silva';
+
+  @override
+  String get catalogCardTitle => 'Catálogo de Modelos de Casas';
+
+  @override
+  String get catalogCardSubtitle =>
+      'Navegue pelos modelos de casas pré-fabricadas. A diferença principal é a área e os componentes do kit.';
+
+  @override
+  String get catalogAddButtonLabel => 'Adicionar modelo';
+
+  @override
+  String get catalogMaterialListLabel => 'Categorias de materiais do kit';
 }

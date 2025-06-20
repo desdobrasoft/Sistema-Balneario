@@ -63,51 +63,88 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homePopupLogoutLabel => 'Logout';
 
   @override
+  String get tableActionsLabel => 'Actions';
+
+  @override
   String get dashboardTotalSalesCardTitle => 'Total Sales';
 
   @override
   String get dashboardTotalSalesCardSubtitle =>
-      'Performance in the last 6 months';
+      'Performance in the last 6 months.';
 
   @override
   String get dashboardActiveProdsCardTitle => 'Active Productions';
 
   @override
-  String get dashboardActiveProdsCardSubtitle => 'Currently active projects';
+  String get dashboardActiveProdsCardSubtitle => 'Currently active projects.';
 
   @override
   String get dashboardAvgDeliveryTimeCardTitle => 'Average Delivery Time';
 
   @override
   String get dashboardAvgDeliveryTimeCardSubtitle =>
-      'Average for finished orders';
+      'Average for finished orders.';
 
   @override
   String get dashboardMonthlyOverviewCardTitle => 'Monthly Sales Overview';
 
   @override
-  String get dashboardMonthlyOverviewCardSubtitle => 'Monthly revenue';
+  String get dashboardMonthlyOverviewCardSubtitle => 'Monthly revenue.';
 
   @override
   String get dashboardProdStatusCardTitle => 'Order Status';
 
   @override
-  String get dashboardProdStatusCardSubtitle => 'Orders per stage';
+  String get dashboardProdStatusCardSubtitle => 'Orders per stage.';
 
   @override
   String get dashboardDeliveryTimeAnalysisCardTitle => 'Delivery Time Analysis';
 
   @override
   String get dashboardDeliveryTimeAnalysisCardSubtitle =>
-      'Analysis of delivery time for each finished order';
+      'Analysis of delivery time for each finished order.';
 
   @override
   String get customersCardTitle => 'Customers Management';
 
   @override
   String get customersCardSubtitle =>
-      'View, add, edit or remove client records';
+      'View, add, edit or remove client records.';
 
   @override
   String get customersAddButtonLabel => 'Add client';
+
+  @override
+  String get customerTableNameLabel => 'Name';
+
+  @override
+  String get customerTableEmailLabel => 'Email';
+
+  @override
+  String get customerTablePhoneLabel => 'Phone';
+
+  @override
+  String get customerTableAddressLabel => 'Address';
+
+  @override
+  String get customerTableSalesLabel => 'Sales';
+
+  @override
+  String get customerFilterLabel => 'Search customer';
+
+  @override
+  String get customerFilterHint => 'John Smith';
+
+  @override
+  String get catalogCardTitle => 'House Model Catalog';
+
+  @override
+  String get catalogCardSubtitle =>
+      'Browse premade house models. The main difference is the area and kit components.';
+
+  @override
+  String get catalogAddButtonLabel => 'Add model';
+
+  @override
+  String get catalogMaterialListLabel => 'Kit materials categories';
 }

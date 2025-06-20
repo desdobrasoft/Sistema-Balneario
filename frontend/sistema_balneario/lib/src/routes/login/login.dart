@@ -4,10 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:sistema_balneario/src/api/auth.dart';
 import 'package:sistema_balneario/src/components/button.dart';
 import 'package:sistema_balneario/src/constants/constants.dart'
-    show px20, px4, hintAlpha;
+    show gapxl, gapxs;
 import 'package:sistema_balneario/src/routes/login/logo.dart';
 import 'package:sistema_balneario/src/routes/routes.dart';
 import 'package:sistema_balneario/src/utils/get_localization.dart';
+import 'package:sistema_balneario/src/utils/hint_style.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -30,34 +31,32 @@ class _LoginState extends State<Login> {
   final _isSubmitting = ValueNotifier(false);
   final _isObscured = ValueNotifier(true);
 
-  late ColorScheme _scheme;
   late TextTheme _styles;
 
   @override
   Widget build(BuildContext context) {
-    _scheme = ColorScheme.of(context);
     _styles = TextTheme.of(context);
 
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
           child: Card(
-            margin: EdgeInsets.all(px20),
+            margin: EdgeInsets.all(gapxl),
             child: Container(
-              padding: EdgeInsets.all(px20),
+              padding: EdgeInsets.all(gapxl),
               width: _maxWidth,
               child: Form(
                 autovalidateMode: AutovalidateMode.onUnfocus,
                 key: _formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  spacing: px20,
+                  spacing: gapxl,
                   children: [
                     SizedBox(height: 120, child: Logo()),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
-                      spacing: px4,
+                      spacing: gapxs,
                       children: [
                         Text(
                           localization(context).loginUsernameLabel,
@@ -86,9 +85,7 @@ class _LoginState extends State<Login> {
                             border: OutlineInputBorder(),
                             filled: true,
                             hintText: localization(context).loginUsernameHint,
-                            hintStyle: TextStyle(
-                              color: _scheme.onSurface.withAlpha(hintAlpha),
-                            ),
+                            hintStyle: hintStyle(context),
                             isDense: true,
                             prefixIcon: Icon(Icons.person),
                           ),
@@ -98,7 +95,7 @@ class _LoginState extends State<Login> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
-                      spacing: px4,
+                      spacing: gapxs,
                       children: [
                         Text(
                           localization(context).loginPasswordLabel,
@@ -135,9 +132,7 @@ class _LoginState extends State<Login> {
                                 hintText: localization(
                                   context,
                                 ).loginPasswordHint,
-                                hintStyle: TextStyle(
-                                  color: _scheme.onSurface.withAlpha(hintAlpha),
-                                ),
+                                hintStyle: hintStyle(context),
                                 isDense: true,
                                 prefixIcon: Icon(Icons.password),
                                 suffixIcon: FocusScope(
@@ -171,7 +166,7 @@ class _LoginState extends State<Login> {
 
                           icon: Icon(Icons.login, size: _submitLabelFontSize),
                           child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: px4),
+                            padding: EdgeInsets.symmetric(vertical: gapxs),
                             child: Text(
                               localization(context).loginSubmitButtonLabel,
                               style: TextStyle(fontSize: _submitLabelFontSize),

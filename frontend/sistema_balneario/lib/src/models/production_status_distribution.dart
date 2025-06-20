@@ -13,7 +13,7 @@ class ProductionStatusDistribution {
   final String fill;
   final String status;
 
-  ProductionStatusDistribution({
+  const ProductionStatusDistribution({
     required this.count,
     required this.fill,
     required this.status,

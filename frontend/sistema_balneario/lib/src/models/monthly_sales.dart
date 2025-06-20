@@ -19,7 +19,7 @@ class MonthlySales {
   final String month;
   final double sales;
 
-  MonthlySales({
+  const MonthlySales({
     this.fill = _Defaults.fill,
     required this.month,
     required this.sales,

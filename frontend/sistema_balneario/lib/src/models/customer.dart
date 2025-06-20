@@ -19,7 +19,7 @@ class CustomerModel {
   final String address;
   final int salesHistoryCount;
 
-  CustomerModel({
+  const CustomerModel({
     required this.id,
     required this.name,
     required this.email,

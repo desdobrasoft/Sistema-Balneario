@@ -2,16 +2,16 @@ const String appRestorationScopeId = 'app';
 
 const int hintAlpha = 80;
 
-const double px2 = 2;
+const double gapxxs = 2;
 
-const double px4 = 4;
+const double gapxs = 4;
 
-const double px8 = 8;
+const double gapsm = 8;
 
-const double px12 = 12;
+const double gapmd = 12;
 
-const double px16 = 16;
+const double gaplg = 16;
 
-const double px20 = 20;
+const double gapxl = 20;
 
-const double px24 = 24;
+const double gapxxl = 24;

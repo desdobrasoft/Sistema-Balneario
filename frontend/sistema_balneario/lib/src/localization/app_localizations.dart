@@ -207,6 +207,12 @@ abstract class AppLocalizations {
   /// **'Logout'**
   String get homePopupLogoutLabel;
 
+  /// No description provided for @tableActionsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Actions'**
+  String get tableActionsLabel;
+
   /// No description provided for @dashboardTotalSalesCardTitle.
   ///
   /// In en, this message translates to:
@@ -216,7 +222,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardTotalSalesCardSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Performance in the last 6 months'**
+  /// **'Performance in the last 6 months.'**
   String get dashboardTotalSalesCardSubtitle;
 
   /// No description provided for @dashboardActiveProdsCardTitle.
@@ -228,7 +234,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardActiveProdsCardSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Currently active projects'**
+  /// **'Currently active projects.'**
   String get dashboardActiveProdsCardSubtitle;
 
   /// No description provided for @dashboardAvgDeliveryTimeCardTitle.
@@ -240,7 +246,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardAvgDeliveryTimeCardSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Average for finished orders'**
+  /// **'Average for finished orders.'**
   String get dashboardAvgDeliveryTimeCardSubtitle;
 
   /// No description provided for @dashboardMonthlyOverviewCardTitle.
@@ -252,7 +258,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardMonthlyOverviewCardSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Monthly revenue'**
+  /// **'Monthly revenue.'**
   String get dashboardMonthlyOverviewCardSubtitle;
 
   /// No description provided for @dashboardProdStatusCardTitle.
@@ -264,7 +270,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardProdStatusCardSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Orders per stage'**
+  /// **'Orders per stage.'**
   String get dashboardProdStatusCardSubtitle;
 
   /// No description provided for @dashboardDeliveryTimeAnalysisCardTitle.
@@ -276,7 +282,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardDeliveryTimeAnalysisCardSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Analysis of delivery time for each finished order'**
+  /// **'Analysis of delivery time for each finished order.'**
   String get dashboardDeliveryTimeAnalysisCardSubtitle;
 
   /// No description provided for @customersCardTitle.
@@ -288,7 +294,7 @@ abstract class AppLocalizations {
   /// No description provided for @customersCardSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'View, add, edit or remove client records'**
+  /// **'View, add, edit or remove client records.'**
   String get customersCardSubtitle;
 
   /// No description provided for @customersAddButtonLabel.
@@ -296,6 +302,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add client'**
   String get customersAddButtonLabel;
+
+  /// No description provided for @customerTableNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get customerTableNameLabel;
+
+  /// No description provided for @customerTableEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get customerTableEmailLabel;
+
+  /// No description provided for @customerTablePhoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get customerTablePhoneLabel;
+
+  /// No description provided for @customerTableAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get customerTableAddressLabel;
+
+  /// No description provided for @customerTableSalesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales'**
+  String get customerTableSalesLabel;
+
+  /// No description provided for @customerFilterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Search customer'**
+  String get customerFilterLabel;
+
+  /// No description provided for @customerFilterHint.
+  ///
+  /// In en, this message translates to:
+  /// **'John Smith'**
+  String get customerFilterHint;
+
+  /// No description provided for @catalogCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'House Model Catalog'**
+  String get catalogCardTitle;
+
+  /// No description provided for @catalogCardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse premade house models. The main difference is the area and kit components.'**
+  String get catalogCardSubtitle;
+
+  /// No description provided for @catalogAddButtonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Add model'**
+  String get catalogAddButtonLabel;
+
+  /// No description provided for @catalogMaterialListLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Kit materials categories'**
+  String get catalogMaterialListLabel;
 }
 
 class _AppLocalizationsDelegate

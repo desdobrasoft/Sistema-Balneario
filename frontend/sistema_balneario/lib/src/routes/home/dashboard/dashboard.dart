@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_balneario/src/constants/constants.dart' show px20, px24;
+import 'package:sistema_balneario/src/constants/constants.dart'
+    show gapxl, gapxxl;
 import 'package:sistema_balneario/src/data/mock_data.dart'
     show monthlySales, productionStatusDistribution, deliveryTimeStats;
 import 'package:sistema_balneario/src/enums/window_class.dart';
@@ -33,10 +34,10 @@ class _DashboardState extends State<Dashboard> {
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.all(px24).copyWith(top: 0),
+          padding: EdgeInsets.all(gapxxl).copyWith(top: 0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            spacing: px20,
+            spacing: gapxl,
             children: [
               LayoutBuilder(
                 builder: (context, constraints) {
@@ -49,8 +50,8 @@ class _DashboardState extends State<Dashboard> {
 
                   return GridView.extent(
                     childAspectRatio: maxWidth / _basicCardHeight,
-                    crossAxisSpacing: px20,
-                    mainAxisSpacing: px20,
+                    crossAxisSpacing: gapxl,
+                    mainAxisSpacing: gapxl,
                     maxCrossAxisExtent: maxWidth,
                     physics: NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
@@ -87,8 +88,8 @@ class _DashboardState extends State<Dashboard> {
 
                   return GridView.extent(
                     childAspectRatio: maxWidth / _chartCardHeight,
-                    crossAxisSpacing: px24,
-                    mainAxisSpacing: px24,
+                    crossAxisSpacing: gapxxl,
+                    mainAxisSpacing: gapxxl,
                     maxCrossAxisExtent: maxWidth,
                     physics: NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
