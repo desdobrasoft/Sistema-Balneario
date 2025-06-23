@@ -95,7 +95,11 @@ class DeliveryManagementTableState extends State<DeliveryManagementTable> {
       case 3:
         return compare(a.deliveryAddress, b.deliveryAddress, ascending);
       case 4:
-        return compare(a.scheduledDate, b.scheduledDate, ascending);
+        return compare(
+          DateTime.parse(a.scheduledDate),
+          DateTime.parse(b.scheduledDate),
+          ascending,
+        );
       case 5:
         return compare(a.transportCompany, b.transportCompany, ascending);
       case 6:

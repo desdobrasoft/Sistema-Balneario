@@ -7,6 +7,7 @@ enum _Variant { basic, filled, outlined }
 class AppCard extends StatefulWidget {
   final _Variant _variant;
 
+  final List<PopupMenuEntry>? actions;
   final Widget? image;
   final String? title;
   final String? subtitle;
@@ -14,6 +15,7 @@ class AppCard extends StatefulWidget {
 
   const AppCard({
     super.key,
+    this.actions,
     this.image,
     this.title,
     this.subtitle,
@@ -22,6 +24,7 @@ class AppCard extends StatefulWidget {
 
   const AppCard.filled({
     super.key,
+    this.actions,
     this.image,
     this.title,
     this.subtitle,
@@ -30,6 +33,7 @@ class AppCard extends StatefulWidget {
 
   const AppCard.outlined({
     super.key,
+    this.actions,
     this.image,
     this.title,
     this.subtitle,
@@ -64,27 +68,37 @@ class _AppCardState extends State<AppCard> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
+                Row(
                   children: [
-                    if (widget.title != null)
-                      AutoSizeText(
-                        widget.title!,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: styles.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (widget.title != null)
+                            AutoSizeText(
+                              widget.title!,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: styles.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          if (widget.subtitle != null)
+                            AutoSizeText(
+                              widget.subtitle!,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: styles.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w200,
+                              ),
+                            ),
+                        ],
                       ),
-                    if (widget.subtitle != null)
-                      AutoSizeText(
-                        widget.subtitle!,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: styles.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w200,
-                        ),
+                    ),
+                    if (widget.actions != null)
+                      PopupMenuButton(
+                        itemBuilder: (context) => widget.actions!,
                       ),
                   ],
                 ),

@@ -25,6 +25,7 @@ class _CasaFacilState extends State<CasaFacil> {
       /* Nenhum aqui */
 
       // opcionais
+      debugShowCheckedModeBanner: false,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       restorationScopeId: appRestorationScopeId,
       routerConfig: router.Router.instance.router,

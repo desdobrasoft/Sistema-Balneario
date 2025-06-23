@@ -78,7 +78,7 @@ class _ResponsiveTableState extends State<ResponsiveTable> {
           children: [
             if (columns != null)
               _buildHeader(columns, columnWidth, _headerStyle, headerHeight),
-            Expanded(
+            Flexible(
               child: ListView.builder(
                 itemCount: widget.rows.length,
                 shrinkWrap: true,
@@ -200,15 +200,17 @@ class _ResponsiveTableState extends State<ResponsiveTable> {
                       ? TextDirection.rtl
                       : TextDirection.ltr,
                   children: [
-                    Text(
-                      columns[i].label,
-                      style: style,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign:
-                          _isNumber(widget.rows.firstOrNull?.cells[i].data)
-                          ? TextAlign.right
-                          : TextAlign.left,
+                    Flexible(
+                      child: Text(
+                        columns[i].label,
+                        style: style,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign:
+                            _isNumber(widget.rows.firstOrNull?.cells[i].data)
+                            ? TextAlign.right
+                            : TextAlign.left,
+                      ),
                     ),
                     if (_sortIndex == i)
                       Icon(

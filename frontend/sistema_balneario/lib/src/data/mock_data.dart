@@ -1,8 +1,13 @@
+import 'package:sistema_balneario/src/models/account_entry_model.dart';
 import 'package:sistema_balneario/src/models/customer.dart';
 import 'package:sistema_balneario/src/models/delivery.dart';
 import 'package:sistema_balneario/src/models/delivery_status.dart';
 import 'package:sistema_balneario/src/models/delivery_time_stats.dart';
+import 'package:sistema_balneario/src/models/financial_transaction_type.dart';
 import 'package:sistema_balneario/src/models/house_model.dart';
+import 'package:sistema_balneario/src/models/invoice.dart';
+import 'package:sistema_balneario/src/models/invoice_item.dart';
+import 'package:sistema_balneario/src/models/invoice_type.dart';
 import 'package:sistema_balneario/src/models/missing_stock_item_info.dart';
 import 'package:sistema_balneario/src/models/model_material_item.dart';
 import 'package:sistema_balneario/src/models/monthly_sales.dart';
@@ -79,6 +84,76 @@ const _materialsModel56m = [
   ModelMaterialItem(id: 'janela-pvc-060x060', quantity: 1),
   ModelMaterialItem(id: 'porta-externa-pivotante', quantity: 1),
   ModelMaterialItem(id: 'porta-interna-laqueada', quantity: 3),
+];
+
+final accountEntries = [
+  AccountEntryModel(
+    id: 'ae1',
+    description: 'Recebimento Venda #sale1 (Alice Silva)',
+    type: FinancialTransactionType.fromDescription('Receita'),
+    amount: 68000,
+    dueDate: '2023-10-15',
+    paymentDate: '2023-10-14',
+    status: PaymentStatus.fromDescription('Pago'),
+    relatedSaleId: 'sale1',
+  ),
+  AccountEntryModel(
+    id: 'ae2',
+    description: 'Compra de Placas Cimentícias - Pedido #PC001',
+    type: FinancialTransactionType.fromDescription('Despesa'),
+    amount: 25000,
+    dueDate: '2023-11-10',
+    paymentDate: '2023-11-09',
+    status: PaymentStatus.fromDescription('Pago'),
+    relatedPurchaseOrderId: 'po001',
+    notes: 'Material para várias obras iniciais',
+  ),
+  AccountEntryModel(
+    id: 'ae3',
+    description: 'Recebimento Venda #sale2 (Roberto Construtor) - Entrada',
+    type: FinancialTransactionType.fromDescription('Receita'),
+    amount: 40000,
+    dueDate: '2023-11-01',
+    status: PaymentStatus.fromDescription('Pendente'),
+    relatedSaleId: 'sale2',
+  ),
+  AccountEntryModel(
+    id: 'ae4',
+    description: 'Compra de Perfis de Aço - Pedido #PA002',
+    type: FinancialTransactionType.fromDescription('Despesa'),
+    amount: 15000,
+    dueDate: '2023-11-20',
+    status: PaymentStatus.fromDescription('Pendente'),
+    relatedPurchaseOrderId: 'po002',
+  ),
+  AccountEntryModel(
+    id: 'ae5',
+    description: 'Recebimento Venda #sale3 (Alice Silva) - Sinal',
+    type: FinancialTransactionType.fromDescription('Receita'),
+    amount: 20000,
+    dueDate: '2024-01-20',
+    paymentDate: '2024-01-19',
+    status: PaymentStatus.fromDescription('Pago Parcialmente'),
+    relatedSaleId: 'sale3',
+  ),
+  AccountEntryModel(
+    id: 'ae6',
+    description: 'Recebimento Venda #sale4 (Carlos Prado)',
+    type: FinancialTransactionType.fromDescription('Receita'),
+    amount: 68000,
+    dueDate: '2024-03-10',
+    status: PaymentStatus.fromDescription('Pendente'),
+    relatedSaleId: 'sale4',
+  ),
+  AccountEntryModel(
+    id: 'ae7',
+    description: 'Aluguel Contêiner para Kit #sale2',
+    type: FinancialTransactionType.fromDescription('Despesa'),
+    amount: 800,
+    dueDate: '2023-11-05',
+    status: PaymentStatus.fromDescription('Pago'),
+    relatedPurchaseOrderId: 'po003',
+  ),
 ];
 
 const customers = [
@@ -194,6 +269,86 @@ const houseModels = [
     productionTime: standardProductionTime,
     imageUrl: 'https://placehold.co/600x400.png',
     price: 95000,
+  ),
+];
+
+final invoices = [
+  Invoice(
+    id: 'inv1',
+    invoiceNumber: 'NF-00001',
+    type: InvoiceType.fromDescription('Venda'),
+    issueDate: '2023-10-15',
+    customerName: 'Alice Silva',
+    relatedSaleId: 'sale1',
+    items: invoiceItemsSale1,
+    subtotal: 68000,
+    taxes: 0,
+    totalAmount: 68000,
+    status: PaymentStatus.fromDescription('Pago'),
+    notes: 'NF referente à venda do kit CasaFácil Compacta 44m².',
+  ),
+  Invoice(
+    id: 'inv2',
+    invoiceNumber: 'NF-E-12345',
+    type: InvoiceType.fromDescription('Compra'),
+    issueDate: '2023-11-09',
+    supplierName: 'Fornecedor de Aço XYZ',
+    relatedAccountEntryId: 'ae2',
+    items: invoiceItemsPurchase1,
+    subtotal: 25000,
+    taxes: 2500,
+    totalAmount: 27500,
+    status: PaymentStatus.fromDescription('Pago'),
+    notes: 'NF de compra de materiais para estoque.',
+  ),
+  Invoice(
+    id: 'inv3',
+    invoiceNumber: 'NF-00002',
+    type: InvoiceType.fromDescription('Venda'),
+    issueDate: '2024-03-10',
+    customerName: 'Carlos Almeida Prado',
+    relatedSaleId: 'sale4',
+    items: [
+      InvoiceItem(
+        id: 'item-s4-1',
+        description: 'Kit CasaFácil Compacta 44m²',
+        quantity: 1,
+        unitPrice: 68000,
+        totalPrice: 68000,
+      ),
+    ],
+    subtotal: 68000,
+    taxes: 0,
+    totalAmount: 68000,
+    status: PaymentStatus.fromDescription('Pendente'),
+    notes: 'NF emitida, aguardando pagamento.',
+  ),
+];
+
+const invoiceItemsPurchase1 = [
+  InvoiceItem(
+    id: 'item-p1-1',
+    description: 'Placa Cimentícia Estrutural 1.20x2.40x10mm',
+    quantity: 200,
+    unitPrice: 100,
+    totalPrice: 20000,
+  ),
+  InvoiceItem(
+    id: 'item-p1-2',
+    description: 'Perfil Montante Aço Galvanizado 90mm (barra 3m)',
+    quantity: 50,
+    unitPrice: 100,
+    totalPrice: 5000,
+  ),
+];
+
+const invoiceItemsSale1 = [
+  InvoiceItem(
+    id: 'item-s1-1',
+    description: 'Kit CasaFácil Compacta 44m²',
+    quantity: 1,
+    unitPrice: 68000,
+    totalPrice: 68000,
   ),
 ];
 
