@@ -8,7 +8,7 @@ import 'package:sistema_balneario/src/routes/home/delivery_management/delivery_m
 import 'package:sistema_balneario/src/routes/home/finance/finance.dart';
 import 'package:sistema_balneario/src/routes/home/home.dart';
 import 'package:sistema_balneario/src/routes/home/house_catalog/house_catalog.dart';
-import 'package:sistema_balneario/src/routes/home/order_tracking/order_tracking.dart';
+import 'package:sistema_balneario/src/routes/home/progress/progress.dart';
 import 'package:sistema_balneario/src/routes/home/sales_record/sales_record.dart';
 import 'package:sistema_balneario/src/routes/home/stock/stock.dart';
 import 'package:sistema_balneario/src/routes/login/login.dart';
@@ -86,10 +86,10 @@ class Router {
             },
           ),
           GoRoute(
-            path: Routes.orderTracking.name,
-            name: Routes.orderTracking.name,
+            path: Routes.progress.name,
+            name: Routes.progress.name,
             pageBuilder: (context, state) {
-              return NoTransitionPage(child: Home(child: OrderTracking()));
+              return NoTransitionPage(child: Home(child: Progress()));
             },
           ),
           GoRoute(

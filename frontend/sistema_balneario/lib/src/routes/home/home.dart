@@ -89,9 +89,7 @@ class _HomeState extends State<Home> {
       Routes.salesRecord => localization(
         context,
       ).homeNavigationSalesRecordLabel,
-      Routes.orderTracking => localization(
-        context,
-      ).homeNavigationOrderTrackLabel,
+      Routes.progress => localization(context).homeNavigationProgressLabel,
       Routes.deliveryManagement => localization(
         context,
       ).homeNavigationDeliveryLabel,

@@ -16,12 +16,15 @@ class AvgDeliveryTime extends StatelessWidget {
     return AppCard(
       title: localization(context).dashboardAvgDeliveryTimeCardTitle,
       subtitle: localization(context).dashboardAvgDeliveryTimeCardSubtitle,
-      content: AutoSizeText(
-        data,
-        maxLines: 1,
-        minFontSize: styles.titleLarge?.fontSize ?? 12,
-        overflow: TextOverflow.ellipsis,
-        style: styles.headlineLarge?.copyWith(color: scheme.primary),
+      content: Align(
+        alignment: Alignment.bottomLeft,
+        child: AutoSizeText(
+          data,
+          maxLines: 1,
+          minFontSize: styles.titleLarge?.fontSize ?? 12,
+          overflow: TextOverflow.ellipsis,
+          style: styles.headlineLarge?.copyWith(color: scheme.primary),
+        ),
       ),
     );
   }

@@ -4,7 +4,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:from_css_color/from_css_color.dart';
 import 'package:sistema_balneario/src/components/card.dart';
-import 'package:sistema_balneario/src/constants/constants.dart' show gapxs;
+import 'package:sistema_balneario/src/constants/constants.dart'
+    show gapxs, gapmd;
 import 'package:sistema_balneario/src/models/monthly_sales.dart';
 import 'package:sistema_balneario/src/utils/get_localization.dart';
 import 'package:sistema_balneario/src/utils/legible_color.dart';
@@ -31,8 +32,9 @@ class MonthlyOverview extends StatelessWidget {
       subtitle: localization(context).dashboardMonthlyOverviewCardSubtitle,
       content: LayoutBuilder(
         builder: (context, constraints) {
-          return SizedBox(
+          return Container(
             height: MediaQuery.of(context).size.height * 0.4,
+            padding: EdgeInsets.only(top: gapmd),
             child: BarChart(
               BarChartData(
                 maxY: maxY,

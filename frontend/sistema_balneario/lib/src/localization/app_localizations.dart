@@ -168,14 +168,14 @@ abstract class AppLocalizations {
   /// No description provided for @homeNavigationSalesRecordLabel.
   ///
   /// In en, this message translates to:
-  /// **'SalesRecord'**
+  /// **'Sales Record'**
   String get homeNavigationSalesRecordLabel;
 
-  /// No description provided for @homeNavigationOrderTrackLabel.
+  /// No description provided for @homeNavigationProgressLabel.
   ///
   /// In en, this message translates to:
-  /// **'Order Tracking'**
-  String get homeNavigationOrderTrackLabel;
+  /// **'Assembly Progress'**
+  String get homeNavigationProgressLabel;
 
   /// No description provided for @homeNavigationDeliveryLabel.
   ///
@@ -368,6 +368,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Kit materials categories'**
   String get catalogMaterialListLabel;
+
+  /// No description provided for @catalogBuildTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Kit setup'**
+  String get catalogBuildTimeLabel;
 }
 
 class _AppLocalizationsDelegate

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sistema_balneario/src/components/responsive_grid.dart';
 import 'package:sistema_balneario/src/constants/constants.dart'
     show gapxl, gapxxl;
 import 'package:sistema_balneario/src/data/mock_data.dart'
@@ -19,8 +20,8 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  static const _basicCardHeight = 180;
-  static const _chartCardHeight = 430;
+  static const double _basicCardHeight = 180;
+  static const double _chartCardHeight = 430;
 
   WindowClass _windowClass = WindowClass.expanded;
 
@@ -31,6 +32,18 @@ class _DashboardState extends State<Dashboard> {
       setState(() => _windowClass = newWC);
     }
 
+    final basicCount = switch (_windowClass) {
+      WindowClass.compact => 1,
+      WindowClass.medium => 2,
+      WindowClass.expanded => 3,
+    };
+
+    final chartCount = switch (_windowClass) {
+      WindowClass.compact => 1,
+      WindowClass.medium => 1,
+      WindowClass.expanded => 2,
+    };
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
@@ -39,68 +52,54 @@ class _DashboardState extends State<Dashboard> {
             mainAxisSize: MainAxisSize.min,
             spacing: gapxl,
             children: [
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final count = switch (_windowClass) {
-                    WindowClass.compact => 1,
-                    WindowClass.medium => 2,
-                    WindowClass.expanded => 3,
-                  };
-                  final maxWidth = constraints.maxWidth / count;
-
-                  return GridView.extent(
-                    childAspectRatio: maxWidth / _basicCardHeight,
-                    crossAxisSpacing: gapxl,
-                    mainAxisSpacing: gapxl,
-                    maxCrossAxisExtent: maxWidth,
-                    physics: NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-
-                    children: [
-                      SizedBox(
-                        child: TotalSales(
-                          sales: monthlySales
-                              .map((item) => item.sales)
-                              .reduce((sum, item) => sum + item),
-                        ),
-                      ),
-                      ActiveProds(
-                        activeProds: productionStatusDistribution
-                            .singleWhere(
-                              (item) =>
-                                  item.status.toLowerCase() == 'em progresso',
-                            )
-                            .count,
-                      ),
-                      AvgDeliveryTime(data: '3,5 semanas'),
-                    ],
-                  );
-                },
+              ResponsiveGrid(
+                crossAxisCount: basicCount,
+                runSpacing: gapxl,
+                spacing: gapxl,
+                children: [
+                  SizedBox(
+                    height: _basicCardHeight,
+                    child: TotalSales(
+                      sales: monthlySales
+                          .map((item) => item.sales)
+                          .reduce((sum, item) => sum + item),
+                    ),
+                  ),
+                  SizedBox(
+                    height: _basicCardHeight,
+                    child: ActiveProds(
+                      activeProds: productionStatusDistribution
+                          .singleWhere(
+                            (item) =>
+                                item.status.toLowerCase() == 'em progresso',
+                          )
+                          .count,
+                    ),
+                  ),
+                  SizedBox(
+                    height: _basicCardHeight,
+                    child: AvgDeliveryTime(data: '3,5 semanas'),
+                  ),
+                ],
               ),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final count = switch (_windowClass) {
-                    WindowClass.compact => 1,
-                    WindowClass.medium => 1,
-                    WindowClass.expanded => 2,
-                  };
-                  final maxWidth = constraints.maxWidth / count;
-
-                  return GridView.extent(
-                    childAspectRatio: maxWidth / _chartCardHeight,
-                    crossAxisSpacing: gapxxl,
-                    mainAxisSpacing: gapxxl,
-                    maxCrossAxisExtent: maxWidth,
-                    physics: NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-
-                    children: [
-                      MonthlyOverview(data: monthlySales),
-                      ProdStatus(data: productionStatusDistribution),
-                      DeliveryTimeAnalysis(data: deliveryTimeStats),
-                    ],
-                  );
-                },
+              ResponsiveGrid(
+                crossAxisCount: chartCount,
+                runSpacing: gapxxl,
+                spacing: gapxxl,
+                children: [
+                  SizedBox(
+                    height: _chartCardHeight,
+                    child: MonthlyOverview(data: monthlySales),
+                  ),
+                  SizedBox(
+                    height: _chartCardHeight,
+                    child: ProdStatus(data: productionStatusDistribution),
+                  ),
+                  SizedBox(
+                    height: _chartCardHeight,
+                    child: DeliveryTimeAnalysis(data: deliveryTimeStats),
+                  ),
+                ],
               ),
             ],
           ),

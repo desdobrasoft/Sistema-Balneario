@@ -45,7 +45,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get homeNavigationSalesRecordLabel => 'Registro de Vendas';
 
   @override
-  String get homeNavigationOrderTrackLabel => 'Rastreio de Produtos';
+  String get homeNavigationProgressLabel => 'Progresso de Montagem';
 
   @override
   String get homeNavigationDeliveryLabel => 'Gerenciamento de Entregas';
@@ -150,6 +150,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get catalogMaterialListLabel => 'Categorias de materiais do kit';
+
+  @override
+  String get catalogBuildTimeLabel => 'Preparo do Kit';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -193,7 +196,7 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get homeNavigationSalesRecordLabel => 'Registro de Vendas';
 
   @override
-  String get homeNavigationOrderTrackLabel => 'Rastreio de Produtos';
+  String get homeNavigationProgressLabel => 'Progresso de Montagem';
 
   @override
   String get homeNavigationDeliveryLabel => 'Gerenciamento de Entregas';
@@ -298,4 +301,7 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get catalogMaterialListLabel => 'Categorias de materiais do kit';
+
+  @override
+  String get catalogBuildTimeLabel => 'Preparo do Kit';
 }

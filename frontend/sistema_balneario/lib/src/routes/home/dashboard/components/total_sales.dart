@@ -21,12 +21,15 @@ class TotalSales extends StatelessWidget {
     return AppCard(
       title: localization(context).dashboardTotalSalesCardTitle,
       subtitle: localization(context).dashboardTotalSalesCardSubtitle,
-      content: AutoSizeText(
-        currencyFormatter.format(sales),
-        maxLines: 1,
-        minFontSize: styles.titleLarge?.fontSize ?? 12,
-        overflow: TextOverflow.ellipsis,
-        style: styles.headlineLarge?.copyWith(color: scheme.primary),
+      content: Align(
+        alignment: Alignment.bottomLeft,
+        child: AutoSizeText(
+          currencyFormatter.format(sales),
+          maxLines: 1,
+          minFontSize: styles.titleLarge?.fontSize ?? 12,
+          overflow: TextOverflow.ellipsis,
+          style: styles.headlineLarge?.copyWith(color: scheme.primary),
+        ),
       ),
     );
   }

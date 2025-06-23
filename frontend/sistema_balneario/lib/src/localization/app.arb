@@ -23,10 +23,10 @@
   "@homeNavigationCustomersLabel": {},
   "homeNavigationCatalogLabel": "House Catalog",
   "@homeNavigationCatalogLabel": {},
-  "homeNavigationSalesRecordLabel": "SalesRecord",
+  "homeNavigationSalesRecordLabel": "Sales Record",
   "@homeNavigationSalesRecordLabel": {},
-  "homeNavigationOrderTrackLabel": "Order Tracking",
-  "@homeNavigationOrderTrackLabel": {},
+  "homeNavigationProgressLabel": "Assembly Progress",
+  "@homeNavigationProgressLabel": {},
   "homeNavigationDeliveryLabel": "Delivery Management",
   "@homeNavigationDeliveryLabel": {},
   "homeNavigationFinanceLabel": "Finance",
@@ -91,5 +91,7 @@
   "@catalogAddButtonLabel": {},
   "catalogMaterialListLabel": "Kit materials categories",
   "@catalogMaterialListLabel": {},
+  "catalogBuildTimeLabel": "Kit setup",
+  "@catalogBuildTimeLabel": {},
   "@@locale": "en"
 }

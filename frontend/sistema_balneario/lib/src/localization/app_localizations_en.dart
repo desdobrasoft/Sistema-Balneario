@@ -42,10 +42,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeNavigationCatalogLabel => 'House Catalog';
 
   @override
-  String get homeNavigationSalesRecordLabel => 'SalesRecord';
+  String get homeNavigationSalesRecordLabel => 'Sales Record';
 
   @override
-  String get homeNavigationOrderTrackLabel => 'Order Tracking';
+  String get homeNavigationProgressLabel => 'Assembly Progress';
 
   @override
   String get homeNavigationDeliveryLabel => 'Delivery Management';
@@ -147,4 +147,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get catalogMaterialListLabel => 'Kit materials categories';
+
+  @override
+  String get catalogBuildTimeLabel => 'Kit setup';
 }

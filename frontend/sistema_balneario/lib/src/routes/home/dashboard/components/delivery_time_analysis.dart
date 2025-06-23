@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:from_css_color/from_css_color.dart';
 import 'package:sistema_balneario/src/components/card.dart';
 import 'package:sistema_balneario/src/constants/constants.dart'
-    show gapxs, gapsm;
+    show gapxs, gapsm, gapmd;
 import 'package:sistema_balneario/src/models/delivery_time_stats.dart';
 import 'package:sistema_balneario/src/utils/get_localization.dart';
 import 'package:sistema_balneario/src/utils/legible_color.dart';
@@ -32,8 +32,9 @@ class DeliveryTimeAnalysis extends StatelessWidget {
     return AppCard(
       title: localization(context).dashboardDeliveryTimeAnalysisCardTitle,
       subtitle: localization(context).dashboardDeliveryTimeAnalysisCardSubtitle,
-      content: SizedBox(
+      content: Container(
         height: MediaQuery.of(context).size.height * 0.4,
+        padding: EdgeInsets.only(top: gapmd),
         child: LayoutBuilder(
           builder: (context, constraints) {
             return BarChart(

@@ -64,10 +64,10 @@ class _HomeDrawerState extends State<HomeDrawer> {
         selectedIcon: Icon(Icons.shopping_cart),
       ),
       _Route(
-        path: Routes.orderTracking.path,
-        label: localization(context).homeNavigationOrderTrackLabel,
-        icon: Icon(Icons.track_changes_outlined),
-        selectedIcon: Icon(Icons.track_changes),
+        path: Routes.progress.path,
+        label: localization(context).homeNavigationProgressLabel,
+        icon: Icon(Mdi.cogs),
+        selectedIcon: Icon(Mdi.cogs),
       ),
       _Route(
         path: Routes.deliveryManagement.path,

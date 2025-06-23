@@ -47,7 +47,7 @@ class _AppCardState extends State<AppCard> {
 
     final child = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.max,
+      mainAxisSize: MainAxisSize.min,
       children: [
         if (widget.image != null)
           ClipRRect(
@@ -62,7 +62,7 @@ class _AppCardState extends State<AppCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              mainAxisSize: MainAxisSize.max,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,7 +80,7 @@ class _AppCardState extends State<AppCard> {
                     if (widget.subtitle != null)
                       AutoSizeText(
                         widget.subtitle!,
-                        maxLines: 2,
+                        maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         style: styles.titleSmall?.copyWith(
                           fontWeight: FontWeight.w200,

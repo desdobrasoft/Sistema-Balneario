@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:sistema_balneario/src/components/button.dart';
 import 'package:sistema_balneario/src/components/card.dart';
+import 'package:sistema_balneario/src/components/limited_wrap.dart';
+import 'package:sistema_balneario/src/components/responsive_grid.dart';
 import 'package:sistema_balneario/src/constants/constants.dart'
     show gaplg, gapmd, gapsm, gapxxl;
 import 'package:sistema_balneario/src/data/mock_data.dart';
 import 'package:sistema_balneario/src/enums/window_class.dart';
+import 'package:sistema_balneario/src/models/house_model.dart';
 import 'package:sistema_balneario/src/utils/get_localization.dart';
 import 'package:sistema_balneario/src/utils/hint_style.dart';
 
@@ -16,8 +19,6 @@ class HouseCatalog extends StatefulWidget {
 }
 
 class _HouseCatalogState extends State<HouseCatalog> {
-  static const _chartCardHeight = 600;
-
   final _controller = TextEditingController();
 
   WindowClass _windowClass = WindowClass.expanded;
@@ -29,6 +30,12 @@ class _HouseCatalogState extends State<HouseCatalog> {
       setState(() => _windowClass = newWC);
     }
 
+    final count = switch (_windowClass) {
+      WindowClass.compact => 1,
+      WindowClass.medium => 2,
+      WindowClass.expanded => 3,
+    };
+
     return Scaffold(
       body: Padding(
         padding: EdgeInsets.all(gapxxl).copyWith(top: 0),
@@ -39,6 +46,7 @@ class _HouseCatalogState extends State<HouseCatalog> {
             padding: EdgeInsets.only(top: gapmd),
             width: double.maxFinite,
             child: Column(
+              mainAxisSize: MainAxisSize.max,
               spacing: gapmd,
               children: [
                 Row(
@@ -50,83 +58,107 @@ class _HouseCatalogState extends State<HouseCatalog> {
                         decoration: InputDecoration(
                           filled: true,
                           hintStyle: hintStyle(context),
-                          hintText: localization(context).customerFilterHint,
-                          labelText: localization(context).customerFilterLabel,
+                          hintText: 'Compacta',
+                          labelText: 'Buscar modelo',
                           prefixIcon: Icon(Icons.search),
                         ),
                       ),
                     ),
                     AppButton(
-                      label: localization(context).catalogAddButtonLabel,
+                      label: 'Adicionar modelo',
                       onPressed: () {},
 
                       icon: Icon(Icons.add_circle_outline),
                     ),
                   ],
                 ),
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final count = switch (_windowClass) {
-                        WindowClass.compact => 1,
-                        WindowClass.medium => 1,
-                        WindowClass.expanded => 2,
-                      };
-                      final maxWidth = constraints.maxWidth / count;
-
-                      return GridView.builder(
-                        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                          childAspectRatio: maxWidth / _chartCardHeight,
-                          crossAxisSpacing: gapxxl,
-                          mainAxisSpacing: gapxxl,
-                          maxCrossAxisExtent: maxWidth,
-                        ),
-
-                        itemCount: houseModels.length,
-
-                        itemBuilder: (context, i) {
-                          final model = houseModels[i];
-
-                          return AppCard.outlined(
-                            image: AspectRatio(
-                              aspectRatio: 600 / 400,
-                              child: Placeholder(),
-                            ),
-                            title: model.name,
-                            subtitle: model.description,
-                            content: Padding(
-                              padding: const EdgeInsets.only(top: gapsm),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      Icon(Icons.checklist),
-                                      Text(
-                                        localization(
-                                          context,
-                                        ).catalogMaterialListLabel,
-                                      ),
-                                    ],
-                                  ),
-                                  Wrap(
-                                    children: model.materials.map((material) {
-                                      return FilterChip(
-                                        onSelected: (value) {},
-                                        label: Text(material.id),
-                                      );
-                                    }).toList(),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
+                Flexible(
+                  child: ResponsiveGrid(
+                    crossAxisCount: count,
+                    runSpacing: gapmd,
+                    spacing: gapmd,
+                    children: [
+                      for (int i = 0; i < houseModels.length; i++)
+                        _buildCard(houseModels[i]),
+                    ],
                   ),
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCard(HouseModel model) {
+    final cats = model.materials
+        .map((mat) => stockItems.firstWhere((item) => mat.id == item.id))
+        .map((item) => item.category)
+        .toSet();
+    final categories = [...cats, ...cats];
+
+    return AppCard.outlined(
+      image: AspectRatio(
+        aspectRatio: 600 / 400,
+        child: Placeholder(
+          child: Center(
+            child: Text('400 x 600', style: TextTheme.of(context).displaySmall),
+          ),
+        ),
+      ),
+      title: model.name,
+      subtitle: model.description,
+      content: Padding(
+        padding: const EdgeInsets.only(top: gapsm),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: gapsm,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: gapsm,
+                children: [
+                  Icon(Icons.checklist),
+                  Flexible(
+                    child: Text(
+                      '${localization(context).catalogMaterialListLabel}:',
+                    ),
+                  ),
+                ],
+              ),
+              LimitedWrap(
+                runSpacing: gapsm,
+                spacing: gapsm,
+                chips: categories.map((cat) {
+                  if ((cat ?? '').isNotEmpty) {
+                    return FilterChip(onSelected: (_) {}, label: Text(cat!));
+                  }
+                  return const SizedBox();
+                }).toList(),
+              ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: gapsm,
+                children: [
+                  Icon(Icons.schedule),
+                  Flexible(
+                    child: Text(
+                      '${localization(context).catalogBuildTimeLabel}: ${model.productionTime}',
+                    ),
+                  ),
+                ],
+              ),
+              Align(
+                alignment: Alignment.bottomRight,
+                child: AppButton.outlined(
+                  onPressed: () {},
+                  label: 'Ver detalhes',
+                  icon: Icon(Icons.visibility),
+                ),
+              ),
+            ],
           ),
         ),
       ),

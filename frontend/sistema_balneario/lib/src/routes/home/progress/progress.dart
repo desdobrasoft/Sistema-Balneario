@@ -1,37 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_balneario/src/components/button.dart';
 import 'package:sistema_balneario/src/components/card.dart';
 import 'package:sistema_balneario/src/constants/constants.dart'
     show gaplg, gapmd, gapxxl;
-import 'package:sistema_balneario/src/data/mock_data.dart'
-    show sales, customers, houseModels;
-import 'package:sistema_balneario/src/models/sale.dart';
-import 'package:sistema_balneario/src/routes/home/sales_record/components/table.dart';
+import 'package:sistema_balneario/src/data/mock_data.dart';
+import 'package:sistema_balneario/src/models/production_order.dart';
+import 'package:sistema_balneario/src/routes/home/progress/components/table.dart';
 import 'package:sistema_balneario/src/utils/get_localization.dart';
 import 'package:sistema_balneario/src/utils/hint_style.dart';
 
-class SalesRecord extends StatefulWidget {
-  const SalesRecord({super.key});
+class Progress extends StatefulWidget {
+  const Progress({super.key});
 
   @override
-  State<SalesRecord> createState() => _SalesRecordState();
+  State<Progress> createState() => _ProgressState();
 }
 
-class _SalesRecordState extends State<SalesRecord> {
+class _ProgressState extends State<Progress> {
   final _controller = TextEditingController();
-  final _origin = List<Sale>.from(sales, growable: false);
 
-  List<Sale> _filteredData = [];
+  List<ProductionOrder> _filteredData = List.from(productionOrders);
 
   @override
   void initState() {
     super.initState();
-    _filteredData = _origin;
-    for (var sale in _filteredData) {
-      sale.customer = customers.singleWhere(
-        (customer) => customer.id == sale.customerId,
+    for (var order in _filteredData) {
+      order.customer = customers.singleWhere(
+        (customer) => customer.id == order.customerId,
       );
-      sale.model = houseModels.singleWhere((model) => model.id == sale.modelId);
+      order.model = houseModels.singleWhere(
+        (model) => model.id == order.modelId,
+      );
     }
     _controller.addListener(_listener);
   }
@@ -49,8 +47,9 @@ class _SalesRecordState extends State<SalesRecord> {
         padding: EdgeInsets.all(gapxxl).copyWith(top: 0),
         child: AppCard(
           // TODO: .arb
-          title: 'Vendas Recentes',
-          subtitle: 'Lista de transações de vendas registradas recentemente',
+          title: 'Acompanhamento de Preparo de Kits',
+          subtitle:
+              'Monitore e atualize o status do preparo dos kits de casas em contêineres. Aloque materiais do estoque',
           content: Padding(
             padding: const EdgeInsets.only(top: gapmd),
             child: Column(
@@ -66,20 +65,14 @@ class _SalesRecordState extends State<SalesRecord> {
                           filled: true,
                           hintStyle: hintStyle(context),
                           hintText: localization(context).customerFilterHint,
-                          labelText: 'Buscar venda',
+                          labelText: 'Buscar produto',
                           prefixIcon: Icon(Icons.search),
                         ),
                       ),
                     ),
-                    AppButton(
-                      label: 'Registrar nova',
-                      onPressed: () {},
-
-                      icon: Icon(Icons.add_circle_outline),
-                    ),
                   ],
                 ),
-                Expanded(child: SalesRecordTable(data: _filteredData)),
+                Expanded(child: ProgressTable(data: _filteredData)),
               ],
             ),
           ),
@@ -92,20 +85,20 @@ class _SalesRecordState extends State<SalesRecord> {
     final text = _controller.text.toLowerCase();
     if (text.isEmpty) {
       setState(() {
-        _filteredData = _origin;
+        _filteredData = productionOrders;
       });
       return;
     }
     setState(() {
-      _filteredData = _origin
+      _filteredData = productionOrders
           .where(
-            (sale) =>
-                sale.id.toLowerCase().contains(text) ||
-                sale.model?.name.toLowerCase().contains(text) == true ||
-                sale.customer?.name.toLowerCase().contains(text) == true ||
-                sale.saleDate.toLowerCase().contains(text) ||
-                sale.status.description.toLowerCase().contains(text) ||
-                sale.price.toString().toLowerCase().contains(text),
+            (order) =>
+                order.saleId.toLowerCase().contains(text) ||
+                order.model?.name.toLowerCase().contains(text) == true ||
+                order.customer?.name.toLowerCase().contains(text) == true ||
+                order.scheduledDate.toLowerCase().contains(text) ||
+                order.status.description.toLowerCase().contains(text) ||
+                order.notes.toLowerCase().contains(text),
           )
           .toList();
     });

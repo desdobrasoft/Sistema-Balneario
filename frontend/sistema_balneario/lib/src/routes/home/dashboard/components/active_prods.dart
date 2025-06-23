@@ -16,12 +16,15 @@ class ActiveProds extends StatelessWidget {
     return AppCard(
       title: localization(context).dashboardActiveProdsCardTitle,
       subtitle: localization(context).dashboardActiveProdsCardSubtitle,
-      content: AutoSizeText(
-        '$activeProds',
-        maxLines: 1,
-        minFontSize: styles.titleLarge?.fontSize ?? 12,
-        overflow: TextOverflow.ellipsis,
-        style: styles.headlineLarge?.copyWith(color: scheme.primary),
+      content: Align(
+        alignment: Alignment.bottomLeft,
+        child: AutoSizeText(
+          '$activeProds',
+          maxLines: 1,
+          minFontSize: styles.titleLarge?.fontSize ?? 12,
+          overflow: TextOverflow.ellipsis,
+          style: styles.headlineLarge?.copyWith(color: scheme.primary),
+        ),
       ),
     );
   }

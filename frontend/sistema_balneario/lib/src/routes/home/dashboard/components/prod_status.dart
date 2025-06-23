@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:from_css_color/from_css_color.dart' show fromCssColor;
 import 'package:sistema_balneario/src/components/card.dart';
+import 'package:sistema_balneario/src/constants/constants.dart' show gapmd;
 import 'package:sistema_balneario/src/models/production_status_distribution.dart';
 import 'package:sistema_balneario/src/utils/get_localization.dart';
 import 'package:sistema_balneario/src/utils/legible_color.dart';
@@ -28,8 +29,9 @@ class _ProdStatusState extends State<ProdStatus> {
     return AppCard(
       title: localization(context).dashboardProdStatusCardTitle,
       subtitle: localization(context).dashboardProdStatusCardSubtitle,
-      content: SizedBox(
+      content: Container(
         height: MediaQuery.of(context).size.height * 0.4,
+        padding: EdgeInsets.only(top: gapmd),
         child: LayoutBuilder(
           builder: (context, constraints) {
             return PieChart(

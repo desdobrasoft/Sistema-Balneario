@@ -25,8 +25,8 @@
   "@homeNavigationCatalogLabel": {},
   "homeNavigationSalesRecordLabel": "Registro de Vendas",
   "@homeNavigationSalesRecordLabel": {},
-  "homeNavigationOrderTrackLabel": "Rastreio de Produtos",
-  "@homeNavigationOrderTrackLabel": {},
+  "homeNavigationProgressLabel": "Progresso de Montagem",
+  "@homeNavigationProgressLabel": {},
   "homeNavigationDeliveryLabel": "Gerenciamento de Entregas",
   "@homeNavigationDeliveryLabel": {},
   "homeNavigationFinanceLabel": "Financeiro",
@@ -91,5 +91,7 @@
   "@catalogAddButtonLabel": {},
   "catalogMaterialListLabel": "Categorias de materiais do kit",
   "@catalogMaterialListLabel": {},
+  "catalogBuildTimeLabel": "Preparo do Kit",
+  "@catalogBuildTimeLabel": {},
   "@@locale": "pt_BR"
 }

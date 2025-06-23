@@ -8,7 +8,7 @@ enum Routes {
   customers(_customersName, _customersPath),
   houseCatalog(_houseCatalogName, _houseCatalogPath),
   salesRecord(_salesRecordName, _salesRecordPath),
-  orderTracking(_orderTrackingName, _orderTrackingPath),
+  progress(_progressName, _progressPath),
   deliveryManagement(_deliveryManagementName, _deliveryManagementPath),
   finance(_financeName, _financePath),
   stock(_stockName, _stockPath),
@@ -21,7 +21,7 @@ enum Routes {
   static const _customersName = 'usuarios';
   static const _houseCatalogName = 'catalogo';
   static const _salesRecordName = 'registro-vendas';
-  static const _orderTrackingName = 'rastreio-produto';
+  static const _progressName = 'progresso-montagem';
   static const _deliveryManagementName = 'gerenciamento-entrega';
   static const _financeName = 'financeiro';
   static const _stockName = 'estoque';
@@ -33,7 +33,7 @@ enum Routes {
   static const _customersPath = '/$_customersName';
   static const _houseCatalogPath = '/$_houseCatalogName';
   static const _salesRecordPath = '/$_salesRecordName';
-  static const _orderTrackingPath = '/$_orderTrackingName';
+  static const _progressPath = '/$_progressName';
   static const _deliveryManagementPath = '/$_deliveryManagementName';
   static const _financePath = '/$_financeName';
   static const _stockPath = '/$_stockName';
@@ -58,8 +58,8 @@ enum Routes {
         return Routes.houseCatalog;
       case _salesRecordPath:
         return Routes.salesRecord;
-      case _orderTrackingPath:
-        return Routes.orderTracking;
+      case _progressPath:
+        return Routes.progress;
       case _deliveryManagementPath:
         return Routes.deliveryManagement;
       case _financePath:
@@ -80,7 +80,7 @@ enum Routes {
     customers.name: customers.path,
     houseCatalog.name: houseCatalog.path,
     salesRecord.name: salesRecord.path,
-    orderTracking.name: orderTracking.path,
+    progress.name: progress.path,
     deliveryManagement.name: deliveryManagement.path,
     finance.name: finance.path,
     stock.name: stock.path,
