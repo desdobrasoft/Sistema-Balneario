@@ -1,5 +1,7 @@
 const String appRestorationScopeId = 'app';
 
+const String defaultErrorMessage = 'Ocorreu um problema inesperado.';
+
 const int hintAlpha = 80;
 
 const double gapxxs = 2;

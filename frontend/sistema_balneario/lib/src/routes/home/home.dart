@@ -96,6 +96,7 @@ class _HomeState extends State<Home> {
       Routes.finance => localization(context).homeNavigationFinanceLabel,
       Routes.stock => localization(context).homeNavigationStockLabel,
       Routes.settings => localization(context).homeNavigationSettingsLabel,
+      Routes.users => 'Usuários',
     };
   }
 }

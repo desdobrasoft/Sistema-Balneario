@@ -5,33 +5,42 @@ import 'package:flutter_dotenv/flutter_dotenv.dart' show dotenv;
 class _Keys {
   const _Keys._();
 
-  static const adminUser = 'ADMIN_USER';
-  static const adminPwrd = 'ADMIN_PWRD';
+  static const backendHost = 'BACKEND_HOST';
+  static const backendPort = 'BACKEND_PORT';
+  static const apiAutenticacao = 'API_AUTENTICACAO';
+  static const login = 'LOGIN';
+  static const users = 'USERS';
 }
 
 class EnvManager {
   EnvManager._();
 
-  late String? _adminUser;
-  late String? _adminPwrd;
-
   static final env = EnvManager._();
 
-  String? get adminUser => _adminUser;
-  String? get adminPwrd => _adminPwrd;
+  late final String backendHost;
+  late final int backendPort;
+  late final String apiAutenticacao;
+  late final String login;
+  late final String users;
 
   Future<void> init() async {
     await dotenv.load(fileName: '.env');
 
-    _adminUser = dotenv.maybeGet(_Keys.adminUser);
-    _adminPwrd = dotenv.maybeGet(_Keys.adminPwrd);
+    backendHost = dotenv.get(_Keys.backendHost);
+    backendPort = dotenv.getInt(_Keys.backendPort);
+    apiAutenticacao = dotenv.get(_Keys.apiAutenticacao);
+    login = dotenv.get(_Keys.login);
+    users = dotenv.get(_Keys.users);
   }
 
-  Map<String, Object?> get json => {
-    _Keys.adminUser: adminUser,
-    _Keys.adminPwrd: adminPwrd,
+  Map<String, Object?> toMap() => {
+    _Keys.backendHost: backendHost,
+    _Keys.backendPort: backendPort,
+    _Keys.apiAutenticacao: apiAutenticacao,
+    _Keys.login: login,
+    _Keys.users: users,
   };
 
   @override
-  String toString() => jsonEncode(json);
+  String toString() => jsonEncode(toMap());
 }

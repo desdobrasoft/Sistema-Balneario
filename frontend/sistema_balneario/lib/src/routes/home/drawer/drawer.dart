@@ -46,6 +46,12 @@ class _HomeDrawerState extends State<HomeDrawer> {
         selectedIcon: Icon(Icons.dashboard),
       ),
       _Route(
+        path: Routes.users.path,
+        label: 'Usuários',
+        icon: Icon(Icons.group_outlined),
+        selectedIcon: Icon(Icons.group),
+      ),
+      _Route(
         path: Routes.customers.path,
         label: localization(context).homeNavigationCustomersLabel,
         icon: Icon(Icons.group_outlined),

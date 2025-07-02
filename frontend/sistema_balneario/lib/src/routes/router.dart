@@ -11,6 +11,7 @@ import 'package:sistema_balneario/src/routes/home/house_catalog/house_catalog.da
 import 'package:sistema_balneario/src/routes/home/progress/progress.dart';
 import 'package:sistema_balneario/src/routes/home/sales_record/sales_record.dart';
 import 'package:sistema_balneario/src/routes/home/stock/stock.dart';
+import 'package:sistema_balneario/src/routes/home/users/users.dart';
 import 'package:sistema_balneario/src/routes/login/login.dart';
 import 'package:sistema_balneario/src/routes/routes.dart';
 
@@ -62,6 +63,13 @@ class Router {
             name: Routes.dashboard.name,
             pageBuilder: (context, state) {
               return NoTransitionPage(child: Home(child: Dashboard()));
+            },
+          ),
+          GoRoute(
+            path: Routes.users.name,
+            name: Routes.users.name,
+            pageBuilder: (context, state) {
+              return NoTransitionPage(child: Home(child: Users()));
             },
           ),
           GoRoute(
