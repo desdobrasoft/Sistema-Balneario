@@ -5,7 +5,13 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // remove propriedades não esperadas
+      forbidNonWhitelisted: true, // erro se enviar campos extras
+      transform: true, // transforma payloads para os DTOs
+    }),
+  );
 
   // TODO: Alterar ou remover isso em produção.
   app.enableCors({

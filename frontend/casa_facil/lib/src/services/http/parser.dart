@@ -23,6 +23,7 @@ class HttpParser {
     Response response;
     try {
       if (body?.isEmpty == false) {
+        print(body);
         response = await post(
           Uri.parse(url),
           headers: headers,

@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "windows"]
 }
 
@@ -32,5 +32,6 @@ model users {
   is_active     Boolean?     @default(true)
   created_at    DateTime?    @default(now()) @db.Timestamp(6)
   updated_at    DateTime?    @default(now()) @db.Timestamp(6)
+  full_name     String?      @db.VarChar(255)
   user_roles    user_roles[]
 }

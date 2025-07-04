@@ -31,7 +31,7 @@ class _UsersTableState extends State<UsersTable> {
       columns: [
         ResponsiveColumn(label: 'Usuário', onSort: _sort),
         ResponsiveColumn(label: 'Email', onSort: _sort),
-        ResponsiveColumn(label: 'Ativo', onSort: _sort),
+        ResponsiveColumn(label: 'Funções', onSort: _sort),
         ResponsiveColumn(label: 'Criado em', onSort: _sort),
         ResponsiveColumn(label: 'Última atualização', onSort: _sort),
       ],
@@ -46,7 +46,7 @@ class _UsersTableState extends State<UsersTable> {
           cells: [
             ResponsiveCell(user.username),
             ResponsiveCell(user.email),
-            ResponsiveCell(user.isActive),
+            ResponsiveCell(user.roles.map((r) => r.readable).join(', ')),
             ResponsiveCell(user.createdAt),
             ResponsiveCell(user.updatedAt),
           ],

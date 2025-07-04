@@ -1,10 +1,12 @@
 import 'package:casa_facil/src/api/users.dart';
 import 'package:casa_facil/src/components/button.dart';
 import 'package:casa_facil/src/components/card.dart';
+import 'package:casa_facil/src/components/dialogs/add_user.dart';
 import 'package:casa_facil/src/constants/constants.dart'
     show gaplg, gapmd, gapxxl;
 import 'package:casa_facil/src/models/user.dart';
 import 'package:casa_facil/src/routes/home/users/components/table.dart';
+import 'package:casa_facil/src/services/dialog/dialog.dart';
 import 'package:casa_facil/src/utils/get_localization.dart';
 import 'package:casa_facil/src/utils/hint_style.dart';
 import 'package:flutter/material.dart';
@@ -20,37 +22,16 @@ class Users extends StatefulWidget {
 class _UsersState extends State<Users> {
   final _controller = TextEditingController();
 
-  late final List<UserModel> _origin;
-
   final _notifier = ValueNotifier(false);
 
   List<UserModel> _filteredData = [];
+  List<UserModel> _origin = [];
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final formatter = DateFormat.yMd(
-        localization(context).localeName,
-      ).add_Hms();
-      _origin = (await UsersApi.listAll()).map((user) {
-        final createdDate = DateTime.tryParse(user.createdAt.toString());
-        final updatedDate = DateTime.tryParse(user.updatedAt.toString());
-
-        return UserModel(
-          createdAt: createdDate == null
-              ? 'N/A'
-              : formatter.format(createdDate),
-          email: user.email ?? 'N/A',
-          id: user.id,
-          isActive: user.isActive,
-          updatedAt: updatedDate == null
-              ? 'N/A'
-              : formatter.format(updatedDate),
-          username: user.username ?? 'N/A',
-        );
-      }).toList();
-      _filteredData = List.from(_origin);
+      await _genData();
       _notifier.value = !_notifier.value;
     });
     _controller.addListener(_listener);
@@ -68,8 +49,9 @@ class _UsersState extends State<Users> {
       body: Padding(
         padding: EdgeInsets.all(gapxxl).copyWith(top: 0),
         child: AppCard(
-          title: localization(context).customersCardTitle,
-          subtitle: localization(context).customersCardSubtitle,
+          title: 'Gerenciamento de Usuários',
+          subtitle:
+              'Visualize, adicione, edite ou remova registros de usuários',
           content: Padding(
             padding: const EdgeInsets.only(top: gapmd),
             child: Column(
@@ -84,15 +66,15 @@ class _UsersState extends State<Users> {
                         decoration: InputDecoration(
                           filled: true,
                           hintStyle: hintStyle(context),
-                          hintText: localization(context).customerFilterHint,
-                          labelText: localization(context).customerFilterLabel,
+                          hintText: 'João da Silva',
+                          labelText: 'Buscar usuários',
                           prefixIcon: Icon(Icons.search),
                         ),
                       ),
                     ),
                     AppButton(
-                      label: localization(context).customersAddButtonLabel,
-                      onPressed: () {},
+                      label: 'Adicionar usuário',
+                      onPressed: _addUser,
 
                       icon: Icon(Icons.add_circle_outline),
                     ),
@@ -112,6 +94,33 @@ class _UsersState extends State<Users> {
         ),
       ),
     );
+  }
+
+  Future<void> _addUser() async {
+    await DialogService.instance.showDialog(AddUser());
+    await _genData();
+    _notifier.value = !_notifier.value;
+  }
+
+  Future<void> _genData() async {
+    final formatter = DateFormat.yMd(
+      localization(context).localeName,
+    ).add_Hms();
+    _origin = (await UsersApi.listAll()).map((user) {
+      final createdDate = DateTime.tryParse(user.createdAt.toString());
+      final updatedDate = DateTime.tryParse(user.updatedAt.toString());
+
+      return UserModel(
+        createdAt: createdDate == null ? 'N/A' : formatter.format(createdDate),
+        email: user.email ?? 'N/A',
+        id: user.id,
+        isActive: user.isActive,
+        roles: user.roles,
+        updatedAt: updatedDate == null ? 'N/A' : formatter.format(updatedDate),
+        username: user.username ?? 'N/A',
+      );
+    }).toList();
+    _filteredData = List.from(_origin);
   }
 
   void _listener() {
