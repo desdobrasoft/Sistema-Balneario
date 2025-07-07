@@ -1,13 +1,20 @@
+import 'dart:async' show FutureOr;
+
+import 'package:casa_facil/src/api/users.dart';
+import 'package:casa_facil/src/components/dialogs/boolean.dart';
+import 'package:casa_facil/src/components/dialogs/edit_user.dart';
 import 'package:casa_facil/src/components/responsive_table.dart';
 import 'package:casa_facil/src/models/user.dart';
+import 'package:casa_facil/src/services/dialog/dialog.dart';
 import 'package:casa_facil/src/utils/compare.dart';
 import 'package:casa_facil/src/utils/get_localization.dart';
 import 'package:flutter/material.dart';
 
 class UsersTable extends StatefulWidget {
-  const UsersTable({super.key, required this.data});
+  const UsersTable({super.key, required this.data, this.onDataChange});
 
   final List<UserModel> data;
+  final FutureOr<void> Function()? onDataChange;
 
   @override
   State<UsersTable> createState() => _UsersTableState();
@@ -29,7 +36,7 @@ class _UsersTableState extends State<UsersTable> {
     return ResponsiveTable(
       actionsLabel: localization(context).tableActionsLabel,
       columns: [
-        ResponsiveColumn(label: 'Usuário', onSort: _sort),
+        ResponsiveColumn(label: 'Nome', onSort: _sort),
         ResponsiveColumn(label: 'Email', onSort: _sort),
         ResponsiveColumn(label: 'Funções', onSort: _sort),
         ResponsiveColumn(label: 'Criado em', onSort: _sort),
@@ -44,7 +51,7 @@ class _UsersTableState extends State<UsersTable> {
         return ResponsiveRow(
           color: rowColor,
           cells: [
-            ResponsiveCell(user.username),
+            ResponsiveCell(user.fullName),
             ResponsiveCell(user.email),
             ResponsiveCell(user.roles.map((r) => r.readable).join(', ')),
             ResponsiveCell(user.createdAt),
@@ -54,21 +61,49 @@ class _UsersTableState extends State<UsersTable> {
             PopupMenuItem(
               child: ListTile(
                 leading: const Icon(Icons.edit),
-                title: const Text("Editar"),
-                onTap: () {},
+                title: const Text('Editar'),
+                onTap: () => _onPressedEditar(user),
               ),
             ),
             PopupMenuItem(
               child: ListTile(
                 leading: const Icon(Icons.delete),
-                title: const Text("Excluir"),
-                onTap: () {},
+                title: const Text('Excluir'),
+                onTap: () => _onPressedExcluir(user),
               ),
             ),
           ],
         );
       }),
     );
+  }
+
+  Future<void> _onPressedEditar(UserModel user) async {
+    final success = await DialogService.instance.showDialog(
+      EditUser(id: user.id),
+    );
+
+    if (success == true) {
+      widget.onDataChange?.call();
+    }
+  }
+
+  Future<void> _onPressedExcluir(UserModel user) async {
+    final accept = await DialogService.instance.showDialog(
+      BooleanDialog(
+        title: 'Remover',
+        content:
+            'Realmente deseja remover o usuário ${user.fullName ?? user.username ?? user.email}?',
+      ),
+    );
+
+    if (accept != true) return;
+
+    final success = await UsersApi.removeUser(user);
+
+    if (success) {
+      widget.onDataChange?.call();
+    }
   }
 
   int _compare(UserModel a, UserModel b, bool ascending, int index) {

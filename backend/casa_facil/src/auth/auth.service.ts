@@ -27,7 +27,9 @@ export class AuthService {
   async login(user: any) {
     const payload = {
       sub: user.id,
-      roles: user.user_roles.map((ur) => ur.roles.role),
+      roles: user.user_roles.map(
+        (ur: { roles: { role: any } }) => ur.roles.role,
+      ),
     };
 
     return {

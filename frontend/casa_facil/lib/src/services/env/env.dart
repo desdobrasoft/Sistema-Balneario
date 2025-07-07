@@ -10,6 +10,7 @@ class _Keys {
   static const apiAutenticacao = 'API_AUTENTICACAO';
   static const login = 'LOGIN';
   static const users = 'USERS';
+  static const currentUser = 'CURRENT_USER';
 }
 
 class EnvManager {
@@ -22,6 +23,7 @@ class EnvManager {
   late final String apiAutenticacao;
   late final String login;
   late final String users;
+  late final String currentUser;
 
   Future<void> init() async {
     await dotenv.load(fileName: '.env');
@@ -31,6 +33,7 @@ class EnvManager {
     apiAutenticacao = dotenv.get(_Keys.apiAutenticacao);
     login = dotenv.get(_Keys.login);
     users = dotenv.get(_Keys.users);
+    currentUser = dotenv.get(_Keys.currentUser);
   }
 
   Map<String, Object?> toMap() => {
@@ -39,6 +42,7 @@ class EnvManager {
     _Keys.apiAutenticacao: apiAutenticacao,
     _Keys.login: login,
     _Keys.users: users,
+    _Keys.currentUser: currentUser,
   };
 
   @override

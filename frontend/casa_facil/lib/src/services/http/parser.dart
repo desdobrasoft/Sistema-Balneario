@@ -4,7 +4,7 @@ import 'dart:convert' show Utf8Encoder;
 import 'package:casa_facil/src/constants/constants.dart'
     show defaultErrorMessage;
 import 'package:casa_facil/src/services/log/log.dart';
-import 'package:http/http.dart' show Response, post, get;
+import 'package:http/http.dart' show Response, delete, get, patch, post;
 
 class HttpParser {
   const HttpParser._();
@@ -15,25 +15,41 @@ class HttpParser {
   static final _log = LogService.log;
 
   static Future<Response> parse({
+    HttpMethod method = HttpMethod.get,
     required String url,
     Map<String, String>? headers,
     String? body,
-    bool ignoreEmptyBody = false,
   }) async {
     Response response;
     try {
-      if (body?.isEmpty == false) {
-        print(body);
-        response = await post(
-          Uri.parse(url),
-          headers: headers,
-          body: body,
-        ).timeout(Duration(seconds: _requestTimeout));
-      } else {
-        response = await get(
-          Uri.parse(url),
-          headers: headers,
-        ).timeout(Duration(seconds: _requestTimeout));
+      switch (method) {
+        case HttpMethod.delete:
+          response = await delete(
+            Uri.parse(url),
+            headers: headers,
+            body: body,
+          ).timeout(Duration(seconds: _requestTimeout));
+          break;
+        case HttpMethod.get:
+          response = await get(
+            Uri.parse(url),
+            headers: headers,
+          ).timeout(Duration(seconds: _requestTimeout));
+          break;
+        case HttpMethod.patch:
+          response = await patch(
+            Uri.parse(url),
+            headers: headers,
+            body: body,
+          ).timeout(Duration(seconds: _requestTimeout));
+          break;
+        case HttpMethod.post:
+          response = await post(
+            Uri.parse(url),
+            headers: headers,
+            body: body,
+          ).timeout(Duration(seconds: _requestTimeout));
+          break;
       }
     } catch (e) {
       _log.e(tag: _logTag, subTag: 'parse', e: e);
@@ -66,3 +82,5 @@ class HttpParser {
     return response;
   }
 }
+
+enum HttpMethod { delete, get, patch, post }

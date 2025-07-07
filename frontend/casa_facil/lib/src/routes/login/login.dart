@@ -1,5 +1,5 @@
 import 'package:casa_facil/src/api/auth.dart';
-import 'package:casa_facil/src/components/button.dart';
+import 'package:casa_facil/src/components/app_button.dart';
 import 'package:casa_facil/src/constants/constants.dart' show gapxl, gapxs;
 import 'package:casa_facil/src/routes/login/logo.dart';
 import 'package:casa_facil/src/routes/routes.dart';

@@ -11,12 +11,17 @@ export class RolesGuard implements CanActivate {
       ROLES_KEY,
       [context.getHandler(), context.getClass()],
     );
+
     if (!requiredRoles) {
       return true; // Sem roles exigidas, libera acesso
     }
+
+    console.log(requiredRoles); // <-- this logs `[ 'admin' ]`
+
     const { user } = context.switchToHttp().getRequest();
 
-    // user.roles deve estar preenchido pelo JwtStrategy (veja nota abaixo)
+    console.log(user); // <-- this logs `undefined`
+
     if (!user || !user.roles) return false;
 
     return requiredRoles.some((role) => user.roles.includes(role));

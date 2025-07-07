@@ -8,15 +8,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:multi_dropdown/multi_dropdown.dart';
 
-class AddUser extends StatefulWidget implements DialogInterface {
-  const AddUser({super.key});
+class EditUser extends StatefulWidget implements DialogInterface {
+  const EditUser({super.key, this.id, this.isOwner = false});
+
+  final int? id;
+  final bool isOwner;
 
   @override
-  State<AddUser> createState() => _AddUserState();
+  State<EditUser> createState() => _EditUserState();
 }
 
-class _AddUserState extends State<AddUser> {
+class _EditUserState extends State<EditUser> {
   static const double _maxWidth = 500;
+
+  late final bool _owner;
 
   final _formKey = GlobalKey<FormState>();
   final _isPressed = ValueNotifier(false);
@@ -28,6 +33,12 @@ class _AddUserState extends State<AddUser> {
   final _emailController = TextEditingController();
   final _passController = TextEditingController();
   final _rolesController = MultiSelectController<RoleType>();
+
+  @override
+  void initState() {
+    super.initState();
+    _owner = widget.isOwner;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,13 +85,6 @@ class _AddUserState extends State<AddUser> {
                   textInputAction: TextInputAction.next,
 
                   errorBuilder: (context, errorText) => SizedBox(),
-                  validator: (value) {
-                    if (value?.isNotEmpty == true ||
-                        _emailController.text.isNotEmpty) {
-                      return null;
-                    }
-                    return 'Pelo menos um dos campos deve estar preenchido';
-                  },
                 ),
                 TextFormField(
                   controller: _emailController,
@@ -94,14 +98,6 @@ class _AddUserState extends State<AddUser> {
                   maxLength: 100,
                   maxLengthEnforcement: MaxLengthEnforcement.enforced,
                   textInputAction: TextInputAction.next,
-
-                  validator: (value) {
-                    if (value?.isNotEmpty == true ||
-                        _userController.text.isNotEmpty) {
-                      return null;
-                    }
-                    return 'Pelo menos um dos campos deve estar preenchido';
-                  },
                 ),
                 ValueListenableBuilder(
                   valueListenable: _isPasswordVisible,
@@ -127,13 +123,6 @@ class _AddUserState extends State<AddUser> {
                       keyboardType: TextInputType.visiblePassword,
                       obscureText: !visible,
                       textInputAction: TextInputAction.next,
-
-                      validator: (value) {
-                        if (value?.isNotEmpty == true) {
-                          return null;
-                        }
-                        return 'A senha é obrigatória';
-                      },
                     );
                   },
                 ),
@@ -163,6 +152,7 @@ class _AddUserState extends State<AddUser> {
 
                       onFieldSubmitted: (_) => _rolesController.openDropdown(),
                       validator: (value) {
+                        if (_passController.text.isEmpty) return null;
                         if (value == null || value.isEmpty) {
                           return 'A senha é obrigatória';
                         }
@@ -174,37 +164,38 @@ class _AddUserState extends State<AddUser> {
                     );
                   },
                 ),
-                MultiDropdown(
-                  controller: _rolesController,
-                  searchEnabled: true,
+                if (!_owner)
+                  MultiDropdown(
+                    controller: _rolesController,
+                    searchEnabled: true,
 
-                  chipDecoration: ChipDecoration(
-                    backgroundColor: scheme.primaryContainer,
-                    labelStyle: TextTheme.of(context).labelLarge,
-                  ),
-                  dropdownDecoration: DropdownDecoration(
-                    backgroundColor: scheme.surfaceContainerHighest,
-                  ),
-                  dropdownItemDecoration: DropdownItemDecoration(
-                    selectedBackgroundColor: scheme.primaryContainer,
-                    selectedTextColor: scheme.onPrimaryContainer,
-                    textColor: scheme.onSurface,
-                  ),
-                  fieldDecoration: FieldDecoration(
-                    backgroundColor: scheme.surfaceContainerHighest,
-                    border: UnderlineInputBorder(
-                      borderSide: BorderSide(color: scheme.onSurfaceVariant),
+                    chipDecoration: ChipDecoration(
+                      backgroundColor: scheme.primaryContainer,
+                      labelStyle: TextTheme.of(context).labelLarge,
                     ),
-                    borderRadius: 0,
-                    labelText: 'Funções',
-                    hintText: RoleType.values.first.readable,
-                    hintStyle: hintStyle(context),
-                  ),
+                    dropdownDecoration: DropdownDecoration(
+                      backgroundColor: scheme.surfaceContainerHighest,
+                    ),
+                    dropdownItemDecoration: DropdownItemDecoration(
+                      selectedBackgroundColor: scheme.primaryContainer,
+                      selectedTextColor: scheme.onPrimaryContainer,
+                      textColor: scheme.onSurface,
+                    ),
+                    fieldDecoration: FieldDecoration(
+                      backgroundColor: scheme.surfaceContainerHighest,
+                      border: UnderlineInputBorder(
+                        borderSide: BorderSide(color: scheme.onSurfaceVariant),
+                      ),
+                      borderRadius: 0,
+                      labelText: 'Funções',
+                      hintText: RoleType.values.first.readable,
+                      hintStyle: hintStyle(context),
+                    ),
 
-                  items: RoleType.values.map((role) {
-                    return DropdownItem(label: role.readable, value: role);
-                  }).toList(),
-                ),
+                    items: RoleType.values.map((role) {
+                      return DropdownItem(label: role.readable, value: role);
+                    }).toList(),
+                  ),
               ],
             ),
           ),
@@ -217,8 +208,8 @@ class _AddUserState extends State<AddUser> {
           builder: (context, pressed, _) {
             return AppButton(
               isLoading: pressed,
-              label: 'Adicionar',
-              onPressed: _onPressedAdicionar,
+              label: 'Confirmar',
+              onPressed: _onPressedConfirmar,
               loadingWidget: CircularProgressIndicator.adaptive(strokeWidth: 2),
             );
           },
@@ -227,24 +218,36 @@ class _AddUserState extends State<AddUser> {
     );
   }
 
-  Future<void> _onPressedAdicionar() async {
+  Future<void> _onPressedConfirmar() async {
     if (_formKey.currentState?.validate() != true) return;
 
     if (_isPressed.value) return;
     _isPressed.value = true;
 
-    await UsersApi.addUser(
-      fullName: _nameController.text,
-      username: _userController.text,
-      email: _emailController.text,
-      password: _passController.text,
-      roles: _rolesController.selectedItems
-          .map((item) => item.value.name)
-          .toList(),
-    );
+    final bool success;
+
+    if (_owner) {
+      success = await UsersApi.editCurrent(
+        fullName: _nameController.text,
+        username: _userController.text,
+        email: _emailController.text,
+        password: _passController.text,
+      );
+    } else {
+      success = await UsersApi.editUser(
+        id: widget.id ?? -1,
+        fullName: _nameController.text,
+        username: _userController.text,
+        email: _emailController.text,
+        password: _passController.text,
+        roles: _rolesController.selectedItems
+            .map((item) => item.value.name)
+            .toList(),
+      );
+    }
 
     _isPressed.value = false;
-    if (mounted) Navigator.of(context).pop();
+    if (success && mounted) Navigator.of(context).pop(success);
   }
 
   Future<void> _onPressedCancelar() async {

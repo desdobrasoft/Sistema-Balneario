@@ -56,6 +56,18 @@ class UserModel {
 
   @override
   String toString() => jsonEncode(toMap());
+
+  @override
+  int get hashCode => Object.hashAll([id, runtimeType]);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+
+    if (other.runtimeType != runtimeType) return false;
+
+    return other is UserModel && other.id == id;
+  }
 }
 
 class _Keys {

@@ -1,5 +1,5 @@
 import 'package:casa_facil/src/api/users.dart';
-import 'package:casa_facil/src/components/button.dart';
+import 'package:casa_facil/src/components/app_button.dart';
 import 'package:casa_facil/src/components/card.dart';
 import 'package:casa_facil/src/components/dialogs/add_user.dart';
 import 'package:casa_facil/src/constants/constants.dart'
@@ -84,7 +84,13 @@ class _UsersState extends State<Users> {
                   child: ListenableBuilder(
                     listenable: _notifier,
                     builder: (context, _) {
-                      return UsersTable(data: _filteredData);
+                      return UsersTable(
+                        data: _filteredData,
+                        onDataChange: () async {
+                          await _genData();
+                          _notifier.value = !_notifier.value;
+                        },
+                      );
                     },
                   ),
                 ),
@@ -113,6 +119,7 @@ class _UsersState extends State<Users> {
       return UserModel(
         createdAt: createdDate == null ? 'N/A' : formatter.format(createdDate),
         email: user.email ?? 'N/A',
+        fullName: user.fullName ?? 'N/A',
         id: user.id,
         isActive: user.isActive,
         roles: user.roles,

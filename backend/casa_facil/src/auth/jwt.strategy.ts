@@ -7,19 +7,25 @@ import { UsersService } from 'src/users/users.service';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    private readonly usersService: UsersService,
     config: ConfigService,
+    private readonly usersService: UsersService,
   ) {
+    const secret = config.get<string>('JWT_SECRET');
+    if (!secret) {
+      throw new Error('JWT_SECRET is not defined in environment variables.');
+    }
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: config.get<string>('JWT_SECRET'),
+      secretOrKey: secret,
     });
   }
 
   async validate(payload: any) {
     // Busque o usuário e roles do banco para o payload.sub (user id)
     const user = await this.usersService.findByIdWithRoles(payload.sub);
+    console.log(user);
 
     if (!user) {
       throw new UnauthorizedException();

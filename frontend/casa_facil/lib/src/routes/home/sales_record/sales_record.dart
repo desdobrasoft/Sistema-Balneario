@@ -1,4 +1,4 @@
-import 'package:casa_facil/src/components/button.dart';
+import 'package:casa_facil/src/components/app_button.dart';
 import 'package:casa_facil/src/components/card.dart';
 import 'package:casa_facil/src/constants/constants.dart'
     show gaplg, gapmd, gapxxl;

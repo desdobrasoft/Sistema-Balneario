@@ -10,7 +10,6 @@ class Preferences with ChangeNotifier {
   static const _key = 'casa_facil_prefs';
   static const _logTag = 'Preferences';
 
-  static const _macOsOptions = MacOsOptions(groupId: 'casa_facil_prefs');
   static const _webOptions = WebOptions(
     dbName: 'casa_facil_prefs',
     publicKey: 'casa_facil_storage',
@@ -22,11 +21,7 @@ class Preferences with ChangeNotifier {
   String? _authToken = _Defaults.authToken;
 
   static final instance = Preferences._(
-    FlutterSecureStorage(
-      mOptions: _macOsOptions,
-      webOptions: _webOptions,
-      wOptions: _windowsOptions,
-    ),
+    FlutterSecureStorage(webOptions: _webOptions, wOptions: _windowsOptions),
   );
 
   String? get authToken => _authToken;

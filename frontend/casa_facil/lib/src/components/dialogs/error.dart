@@ -1,4 +1,4 @@
-import 'package:casa_facil/src/components/button.dart';
+import 'package:casa_facil/src/components/app_button.dart';
 import 'package:casa_facil/src/components/dialogs/interface.dart';
 import 'package:casa_facil/src/components/dialogs/utils/get_content_style.dart';
 import 'package:casa_facil/src/constants/constants.dart'
@@ -64,7 +64,6 @@ class _ErrorDialogState extends State<ErrorDialog> {
                             ),
                             margin: EdgeInsets.only(top: gapmd),
                             padding: EdgeInsets.all(gapmd),
-                            width: double.maxFinite,
                             child: Text(widget.detalhes ?? '', style: _style),
                           );
                         }

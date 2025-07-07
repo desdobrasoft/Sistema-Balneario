@@ -1,12 +1,12 @@
 import {
   ArrayUnique,
   IsArray,
-  IsNotEmpty,
+  IsEmail,
   IsOptional,
   IsString,
 } from 'class-validator';
 
-export default class CreateUserDto {
+export default class UpdateUserDto {
   @IsOptional()
   @IsString()
   full_name?: string;
@@ -16,12 +16,12 @@ export default class CreateUserDto {
   username?: string;
 
   @IsOptional()
-  @IsString()
+  @IsEmail()
   email?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  password: string;
+  password?: string;
 
   @IsOptional()
   @IsArray()
