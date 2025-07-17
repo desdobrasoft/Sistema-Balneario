@@ -1,8 +1,8 @@
 import 'dart:convert' show jsonEncode;
 
 import 'package:casa_facil/src/models/financial_transaction_type.dart';
-import 'package:casa_facil/src/models/payment_status.dart';
-import 'package:casa_facil/src/models/sale.dart';
+import 'package:casa_facil/src/models/status_pagamento.dart';
+import 'package:casa_facil/src/models/venda.dart';
 
 class _Keys {
   const _Keys._();
@@ -26,12 +26,12 @@ class AccountEntryModel {
   final double amount;
   final String dueDate;
   final String? paymentDate;
-  final PaymentStatus status;
-  final String? relatedSaleId;
+  final StatusPagamento status;
+  final int? relatedSaleId;
   final String? relatedPurchaseOrderId;
   final String? notes;
 
-  Sale? sale;
+  VendaModel? sale;
 
   AccountEntryModel({
     required this.id,

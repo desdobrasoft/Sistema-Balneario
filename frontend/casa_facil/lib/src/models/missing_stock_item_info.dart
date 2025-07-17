@@ -1,6 +1,6 @@
 import 'dart:convert' show jsonEncode;
 
-import 'package:casa_facil/src/models/stock_item.dart';
+import 'package:casa_facil/src/models/materiais_estoque.dart';
 
 class _Keys {
   const _Keys._();
@@ -20,7 +20,7 @@ class MissingStockItemInfo {
   final int inStock;
   final String unit;
 
-  StockItem? material;
+  MateriaisEstoque? material;
 
   MissingStockItemInfo({
     required this.materialId,

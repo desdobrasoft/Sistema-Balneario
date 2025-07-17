@@ -1,3 +1,5 @@
+import 'package:casa_facil/src/api/clientes.dart';
+import 'package:casa_facil/src/api/modelos_casas_api.dart';
 import 'package:casa_facil/src/components/card.dart';
 import 'package:casa_facil/src/constants/constants.dart'
     show gaplg, gapmd, gapxxl;
@@ -17,20 +19,26 @@ class Progress extends StatefulWidget {
 
 class _ProgressState extends State<Progress> {
   final _controller = TextEditingController();
+  final _notifier = ValueNotifier(false);
 
   List<ProductionOrder> _filteredData = List.from(productionOrders);
 
   @override
   void initState() {
     super.initState();
-    for (var order in _filteredData) {
-      order.customer = customers.singleWhere(
-        (customer) => customer.id == order.customerId,
-      );
-      order.model = houseModels.singleWhere(
-        (model) => model.id == order.modelId,
-      );
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final clientes = await ClientesApi.listAll();
+      final modelos = await ModelosCasasApi.listAll();
+
+      for (var order in _filteredData) {
+        order.customer = clientes.singleWhere(
+          (customer) => customer.id == order.customerId,
+        );
+        order.model = modelos.singleWhere((model) => model.id == order.modelId);
+      }
+      _notifier.value = !_notifier.value;
+    });
+
     _controller.addListener(_listener);
   }
 
@@ -72,7 +80,14 @@ class _ProgressState extends State<Progress> {
                     ),
                   ],
                 ),
-                Expanded(child: ProgressTable(data: _filteredData)),
+                Expanded(
+                  child: ListenableBuilder(
+                    listenable: _notifier,
+                    builder: (context, _) {
+                      return ProgressTable(data: _filteredData);
+                    },
+                  ),
+                ),
               ],
             ),
           ),
@@ -93,9 +108,8 @@ class _ProgressState extends State<Progress> {
       _filteredData = productionOrders
           .where(
             (order) =>
-                order.saleId.toLowerCase().contains(text) ||
-                order.model?.name.toLowerCase().contains(text) == true ||
-                order.customer?.name.toLowerCase().contains(text) == true ||
+                order.model?.nome.toLowerCase().contains(text) == true ||
+                order.customer?.nome.toLowerCase().contains(text) == true ||
                 order.scheduledDate.toLowerCase().contains(text) ||
                 order.status.description.toLowerCase().contains(text) ||
                 order.notes.toLowerCase().contains(text),

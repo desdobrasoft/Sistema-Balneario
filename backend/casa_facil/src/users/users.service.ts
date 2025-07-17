@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { PrismaService } from '../prisma/prisma.service'; // veja observação abaixo
+import { PrismaService } from '../prisma/prisma.service';
 import CreateUserDto from './dto/create-user.dto';
 import UpdateUserDto from './dto/update-user.dto';
 
@@ -9,6 +9,7 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createUser(dto: CreateUserDto) {
+    // Criptografa a senha.
     const password_hash = await bcrypt.hash(dto.password, 12);
 
     const user = await this.prisma.users.create({
@@ -17,6 +18,7 @@ export class UsersService {
         username: dto.username,
         email: dto.email,
         password_hash,
+        // Mapeia as roles para inserir em sua respectiva tabela.
         user_roles: dto.roles
           ? {
               create: dto.roles.map((roleName) => ({
@@ -34,9 +36,10 @@ export class UsersService {
       },
     });
 
-    // Remove o hash antes de retornar
+    // Remove o hash antes de retornar.
     const { password_hash: _, ...safeUser } = user;
 
+    // Retorna o usuário criado com suas roles.
     return {
       ...safeUser,
       roles: user.user_roles.map((ur) => ur.roles.role),
@@ -44,11 +47,14 @@ export class UsersService {
   }
 
   async deleteUser(id: number) {
+    // Remove o usuário pelo ID.
     await this.prisma.users.delete({ where: { id } });
+    // Retorna uma mensagem de sucesso.
     return { message: 'Usuário removido com sucesso' };
   }
 
   async findAllWithRoles() {
+    // Lista todos os usuários e sua funções.
     return this.prisma.users.findMany({
       include: {
         user_roles: {
@@ -64,6 +70,7 @@ export class UsersService {
   }
 
   async findByIdWithRoles(id: number) {
+    // Lista um único usuário e suas funções.
     return this.prisma.users.findUnique({
       where: { id },
       include: {
@@ -125,43 +132,53 @@ export class UsersService {
   }
 
   async updateUser(id: number, dto: UpdateUserDto) {
-    const data: any = {
-      full_name: dto.full_name,
-      username: dto.username,
-      email: dto.email,
-      updated_at: new Date(),
-    };
+    return this.prisma.$transaction(async (tx) => {
+      // Atualiza os dados do usuário
+      const userData: any = {
+        full_name: dto.full_name,
+        username: dto.username,
+        email: dto.email,
+        updated_at: new Date(),
+      };
 
-    if (dto.password) {
-      data.password_hash = await bcrypt.hash(dto.password, 12);
-    }
+      if (dto.password) {
+        userData.password_hash = await bcrypt.hash(dto.password, 12);
+      }
 
-    // Atualiza o usuário
-    await this.prisma.users.update({
-      where: { id },
-      data,
-    });
+      await tx.users.update({
+        where: { id },
+        data: userData,
+      });
 
-    // Atualiza roles, se necessário
-    if (dto.roles) {
-      await this.prisma.user_roles.deleteMany({ where: { user_id: id } });
+      // Sincroniza as roles
+      if (dto.roles) {
+        // Deleta as roles antigas
+        await tx.user_roles.deleteMany({ where: { user_id: id } });
 
-      for (const roleName of dto.roles) {
-        const role = await this.prisma.roles.findUnique({
-          where: { role: roleName },
+        // Adiciona as novas roles
+        const rolesToConnect = await tx.roles.findMany({
+          where: { role: { in: dto.roles } },
         });
 
-        if (role) {
-          await this.prisma.user_roles.create({
-            data: {
+        if (rolesToConnect.length > 0) {
+          await tx.user_roles.createMany({
+            data: rolesToConnect.map((role) => ({
               user_id: id,
               role_id: role.id,
-            },
+            })),
           });
         }
       }
-    }
 
-    return this.findByIdWithRoles(id);
+      // Retorna o usuário atualizado com as novas roles
+      return tx.users.findUnique({
+        where: { id },
+        include: {
+          user_roles: {
+            include: { roles: true },
+          },
+        },
+      });
+    });
   }
 }

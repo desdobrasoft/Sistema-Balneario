@@ -1,10 +1,12 @@
+import 'package:casa_facil/src/api/clientes.dart';
 import 'package:casa_facil/src/components/app_button.dart';
 import 'package:casa_facil/src/components/card.dart';
+import 'package:casa_facil/src/components/dialogs/add_cliente.dart';
 import 'package:casa_facil/src/constants/constants.dart'
     show gaplg, gapmd, gapxxl;
-import 'package:casa_facil/src/data/mock_data.dart' show customers;
-import 'package:casa_facil/src/models/customer.dart';
+import 'package:casa_facil/src/models/cliente.dart';
 import 'package:casa_facil/src/routes/home/customers/components/table.dart';
+import 'package:casa_facil/src/services/dialog/dialog.dart';
 import 'package:casa_facil/src/utils/get_localization.dart';
 import 'package:casa_facil/src/utils/hint_style.dart';
 import 'package:flutter/material.dart';
@@ -18,12 +20,18 @@ class Customers extends StatefulWidget {
 
 class _CustomersState extends State<Customers> {
   final _controller = TextEditingController();
+  final _notifier = ValueNotifier(false);
 
-  List<CustomerModel> _filteredData = List.from(customers);
+  List<Cliente> _filteredData = [];
+  List<Cliente> _origin = [];
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _genData();
+      _notifier.value = !_notifier.value;
+    });
     _controller.addListener(_listener);
   }
 
@@ -63,13 +71,20 @@ class _CustomersState extends State<Customers> {
                     ),
                     AppButton(
                       label: localization(context).customersAddButtonLabel,
-                      onPressed: () {},
+                      onPressed: _addCliente,
 
                       icon: Icon(Icons.add_circle_outline),
                     ),
                   ],
                 ),
-                Expanded(child: CustomersTable(data: _filteredData)),
+                Expanded(
+                  child: ListenableBuilder(
+                    listenable: _notifier,
+                    builder: (context, _) {
+                      return ClientesTable(data: _filteredData);
+                    },
+                  ),
+                ),
               ],
             ),
           ),
@@ -78,23 +93,34 @@ class _CustomersState extends State<Customers> {
     );
   }
 
+  Future<void> _addCliente() async {
+    await DialogService.instance.showDialog(AddCliente());
+    await _genData();
+    _notifier.value = !_notifier.value;
+  }
+
+  Future<void> _genData() async {
+    _origin = await ClientesApi.listAll();
+    _filteredData = List.from(_origin);
+  }
+
   void _listener() {
     final text = _controller.text;
     if (text.isEmpty) {
       setState(() {
-        _filteredData = customers;
+        _filteredData = _origin;
       });
       return;
     }
     setState(() {
-      _filteredData = customers
+      _filteredData = _origin
           .where(
             (customer) =>
-                customer.address.contains(text) ||
-                customer.email.contains(text) ||
-                customer.name.contains(text) ||
-                customer.phone.contains(text) ||
-                customer.salesHistoryCount.toString().contains(text),
+                customer.nome.toLowerCase().contains(text.toLowerCase()) ||
+                customer.email.toLowerCase().contains(text.toLowerCase()) ||
+                customer.nroContato.toString().toLowerCase().contains(
+                  text.toLowerCase(),
+                ),
           )
           .toList();
     });

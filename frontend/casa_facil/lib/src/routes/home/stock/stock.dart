@@ -1,8 +1,7 @@
 import 'package:casa_facil/src/components/card.dart';
 import 'package:casa_facil/src/constants/constants.dart'
     show gapxxl, gapsm, gapmd;
-import 'package:casa_facil/src/data/mock_data.dart' show stockItems;
-import 'package:casa_facil/src/models/stock_item.dart';
+import 'package:casa_facil/src/models/materiais_estoque.dart';
 import 'package:casa_facil/src/routes/home/stock/components/dashboard.dart';
 import 'package:casa_facil/src/routes/home/stock/components/table.dart';
 import 'package:casa_facil/src/utils/hint_style.dart';
@@ -22,8 +21,8 @@ class _StockState extends State<Stock> with SingleTickerProviderStateMixin {
 
   late TabController _tabController;
 
-  List<StockItem> _filteredData = List.from(stockItems);
-
+  List<MateriaisEstoque> _filteredData = [];
+  // TODO: Terminar API de materiais de estoque.
   @override
   void initState() {
     super.initState();
@@ -71,7 +70,7 @@ class _StockState extends State<Stock> with SingleTickerProviderStateMixin {
                   child: ListenableBuilder(
                     listenable: _tabController,
                     builder: (context, _) => switch (_tabController.index) {
-                      0 => InventoryDashboard(data: stockItems),
+                      0 => InventoryDashboard(data: []),
                       1 => Column(
                         children: [
                           TextField(
@@ -87,7 +86,7 @@ class _StockState extends State<Stock> with SingleTickerProviderStateMixin {
                           Flexible(child: InventoryTable(data: _filteredData)),
                         ],
                       ),
-                      _ => InventoryDashboard(data: stockItems),
+                      _ => InventoryDashboard(data: []),
                     },
                   ),
                 ),
@@ -103,17 +102,17 @@ class _StockState extends State<Stock> with SingleTickerProviderStateMixin {
     final text = _controller.text.toLowerCase();
     if (text.isEmpty) {
       setState(() {
-        _filteredData = List.from(stockItems);
+        _filteredData = List.from([]);
       });
       return;
     }
     setState(() {
       _filteredData = List.from(
-        stockItems.where(
+        [].where(
           (item) =>
-              item.name.toLowerCase().contains(text) ||
+              item.nome.toLowerCase().contains(text) ||
               item.unit.toLowerCase().contains(text) ||
-              item.quantityInStock.toString().toLowerCase().contains(text) ||
+              item.qtEstoque.toString().toLowerCase().contains(text) ||
               item.lowStockThreshold.toString().toLowerCase().contains(text),
         ),
       );

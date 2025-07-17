@@ -5,7 +5,7 @@ import 'package:casa_facil/src/constants/constants.dart' show gaplg;
 import 'package:casa_facil/src/enums/window_class.dart';
 import 'package:casa_facil/src/models/account_entry_model.dart';
 import 'package:casa_facil/src/models/financial_transaction_type.dart';
-import 'package:casa_facil/src/models/payment_status.dart';
+import 'package:casa_facil/src/models/status_pagamento.dart';
 import 'package:casa_facil/src/utils/get_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -54,7 +54,7 @@ class _FinanceDashboardState extends State<FinanceDashboard> {
         .where(
           (entry) =>
               entry.type == FinancialTransactionType.revenue &&
-              entry.status == PaymentStatus.paid,
+              entry.status == StatusPagamento.paid,
         )
         .map((e) => e.amount)
         .reduce((sum, e) => sum + e);
@@ -63,7 +63,7 @@ class _FinanceDashboardState extends State<FinanceDashboard> {
         .where(
           (entry) =>
               entry.type == FinancialTransactionType.expenses &&
-              entry.status == PaymentStatus.paid,
+              entry.status == StatusPagamento.paid,
         )
         .map((e) => e.amount)
         .reduce((sum, e) => sum + e);
@@ -72,7 +72,7 @@ class _FinanceDashboardState extends State<FinanceDashboard> {
         .where(
           (entry) =>
               entry.type == FinancialTransactionType.revenue &&
-              entry.status == PaymentStatus.pending,
+              entry.status == StatusPagamento.pending,
         )
         .map((e) => e.amount)
         .reduce((sum, e) => sum + e);
@@ -81,7 +81,7 @@ class _FinanceDashboardState extends State<FinanceDashboard> {
         .where(
           (entry) =>
               entry.type == FinancialTransactionType.expenses &&
-              entry.status == PaymentStatus.pending,
+              entry.status == StatusPagamento.pending,
         )
         .map((e) => e.amount)
         .reduce((sum, e) => sum + e);

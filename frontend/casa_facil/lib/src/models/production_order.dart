@@ -1,7 +1,7 @@
 import 'dart:convert' show jsonEncode;
 
-import 'package:casa_facil/src/models/customer.dart';
-import 'package:casa_facil/src/models/house_model.dart';
+import 'package:casa_facil/src/models/cliente.dart';
+import 'package:casa_facil/src/models/modelo_casa.dart';
 
 class _Keys {
   const _Keys._();
@@ -46,16 +46,16 @@ enum ProductionOrderStatus {
 
 class ProductionOrder {
   final String id;
-  final String saleId;
-  final String modelId;
-  final String customerId;
+  final int saleId;
+  final int modelId;
+  final int customerId;
   final String scheduledDate;
   final ProductionOrderStatus status;
   final String notes;
   final bool? materialsAllocated;
 
-  CustomerModel? customer;
-  HouseModel? model;
+  Cliente? customer;
+  ModeloCasaModel? model;
 
   ProductionOrder({
     required this.id,

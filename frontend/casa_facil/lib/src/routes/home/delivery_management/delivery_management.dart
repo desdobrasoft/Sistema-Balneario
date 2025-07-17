@@ -1,8 +1,10 @@
+import 'package:casa_facil/src/api/clientes.dart';
+import 'package:casa_facil/src/api/modelos_casas_api.dart';
+import 'package:casa_facil/src/api/vendas.dart';
 import 'package:casa_facil/src/components/card.dart';
 import 'package:casa_facil/src/constants/constants.dart'
     show gaplg, gapmd, gapxxl;
-import 'package:casa_facil/src/data/mock_data.dart'
-    show customers, deliveries, houseModels, sales;
+import 'package:casa_facil/src/data/mock_data.dart' show deliveries;
 import 'package:casa_facil/src/models/delivery.dart';
 import 'package:casa_facil/src/routes/home/delivery_management/components/table.dart';
 import 'package:casa_facil/src/utils/get_localization.dart';
@@ -18,6 +20,8 @@ class DeliveryManagement extends StatefulWidget {
 
 class _DeliveryManagementState extends State<DeliveryManagement> {
   final _controller = TextEditingController();
+  final _notifier = ValueNotifier(false);
+
   final _origin = List<Delivery>.from(deliveries, growable: false);
 
   List<Delivery> _filteredData = [];
@@ -25,25 +29,35 @@ class _DeliveryManagementState extends State<DeliveryManagement> {
   @override
   void initState() {
     super.initState();
-    _filteredData = _origin;
-    for (var del in _filteredData) {
-      var index = customers.indexWhere(
-        (customer) => customer.id == del.customerId,
-      );
-      if (index >= 0) {
-        del.customer = customers[index];
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final clientes = await ClientesApi.listAll();
+      final modelosCasas = await ModelosCasasApi.listAll();
+      final vendas = await VendasApi.listAll();
+
+      _filteredData = _origin;
+      for (var del in _filteredData) {
+        var index = clientes.indexWhere(
+          (customer) => customer.id == del.customerId,
+        );
+        if (index >= 0) {
+          del.customer = clientes[index];
+        }
+
+        index = modelosCasas.indexWhere((model) => model.id == del.modelId);
+        if (index >= 0) {
+          del.model = modelosCasas[index];
+        }
+
+        index = vendas.indexWhere((sale) => sale.id == del.saleId);
+        if (index >= 0) {
+          del.sale = vendas[index];
+        }
       }
 
-      index = houseModels.indexWhere((model) => model.id == del.modelId);
-      if (index >= 0) {
-        del.model = houseModels[index];
-      }
+      _notifier.value = !_notifier.value;
+    });
 
-      index = sales.indexWhere((sale) => sale.id == del.saleId);
-      if (index >= 0) {
-        del.sale = sales[index];
-      }
-    }
     _controller.addListener(_listener);
   }
 
@@ -85,7 +99,14 @@ class _DeliveryManagementState extends State<DeliveryManagement> {
                     ),
                   ],
                 ),
-                Expanded(child: DeliveryManagementTable(data: _filteredData)),
+                Expanded(
+                  child: ListenableBuilder(
+                    listenable: _notifier,
+                    builder: (context, _) {
+                      return DeliveryManagementTable(data: _filteredData);
+                    },
+                  ),
+                ),
               ],
             ),
           ),
@@ -107,9 +128,8 @@ class _DeliveryManagementState extends State<DeliveryManagement> {
           .where(
             (del) =>
                 del.id.toLowerCase().contains(text) ||
-                del.saleId.toLowerCase().contains(text) ||
-                del.customer?.name.toLowerCase().contains(text) == true ||
-                del.model?.name.toLowerCase().contains(text) == true ||
+                del.customer?.nome.toLowerCase().contains(text) == true ||
+                del.model?.nome.toLowerCase().contains(text) == true ||
                 del.deliveryAddress.toLowerCase().contains(text) == true ||
                 del.scheduledDate.toLowerCase().contains(text) ||
                 del.transportCompany?.toLowerCase().contains(text) == true ||

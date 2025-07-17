@@ -1,5 +1,5 @@
 import 'package:casa_facil/src/components/responsive_table.dart';
-import 'package:casa_facil/src/models/stock_item.dart';
+import 'package:casa_facil/src/models/materiais_estoque.dart';
 import 'package:casa_facil/src/utils/compare.dart';
 import 'package:casa_facil/src/utils/get_localization.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 class InventoryTable extends StatefulWidget {
   const InventoryTable({super.key, required this.data});
 
-  final List<StockItem> data;
+  final List<MateriaisEstoque> data;
 
   @override
   State<InventoryTable> createState() => InventoryTableState();
@@ -39,14 +39,12 @@ class InventoryTableState extends State<InventoryTable> {
         return ResponsiveRow(
           color: rowColor,
           cells: [
-            ResponsiveCell(item.name),
-            ResponsiveCell(item.unit),
-            ResponsiveCell(item.quantityInStock),
-            ResponsiveCell(item.lowStockThreshold),
+            ResponsiveCell(item.nome),
+            ResponsiveCell(''),
+            ResponsiveCell(item.qtEstoque),
+            ResponsiveCell(item.limBaixoEstoque),
             ResponsiveCell(
-              item.quantityInStock >= item.lowStockThreshold
-                  ? 'OK'
-                  : 'Sem estoque',
+              item.qtEstoque >= item.limBaixoEstoque ? 'OK' : 'Sem estoque',
             ),
           ],
           actions: [
@@ -70,20 +68,25 @@ class InventoryTableState extends State<InventoryTable> {
     );
   }
 
-  int _compare(StockItem a, StockItem b, bool ascending, int index) {
+  int _compare(
+    MateriaisEstoque a,
+    MateriaisEstoque b,
+    bool ascending,
+    int index,
+  ) {
     switch (index) {
       case 0:
-        return compare(a.name, b.name, ascending);
+        return compare(a.nome, b.nome, ascending);
       case 1:
-        return compare(a.unit, b.unit, ascending);
+        return compare('', '', ascending);
       case 2:
-        return compare(a.quantityInStock, b.quantityInStock, ascending);
+        return compare(a.qtEstoque, b.qtEstoque, ascending);
       case 3:
-        return compare(a.lowStockThreshold, b.lowStockThreshold, ascending);
+        return compare(a.limBaixoEstoque, b.limBaixoEstoque, ascending);
       case 4:
         return compare(
-          a.quantityInStock >= a.lowStockThreshold,
-          b.quantityInStock >= b.lowStockThreshold,
+          a.qtEstoque >= a.limBaixoEstoque,
+          b.qtEstoque >= b.limBaixoEstoque,
           ascending,
         );
       default:

@@ -1,3 +1,4 @@
+import 'package:casa_facil/src/api/vendas.dart';
 import 'package:casa_facil/src/components/card.dart';
 import 'package:casa_facil/src/constants/constants.dart'
     show gapmd, gapsm, gapxxl;
@@ -28,12 +29,18 @@ class _FinanceState extends State<Finance> with SingleTickerProviderStateMixin {
 
     _tabController = TabController(length: 3, vsync: this);
 
-    for (var entry in _data) {
-      final index = sales.indexWhere((sale) => sale.id == entry.relatedSaleId);
-      if (index >= 0) {
-        entry.sale = sales[index];
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final vendas = await VendasApi.listAll();
+
+      for (var entry in _data) {
+        final index = vendas.indexWhere(
+          (sale) => sale.id == entry.relatedSaleId,
+        );
+        if (index >= 0) {
+          entry.sale = vendas[index];
+        }
       }
-    }
+    });
   }
 
   @override

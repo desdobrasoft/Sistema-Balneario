@@ -5,7 +5,7 @@ import 'package:casa_facil/src/components/card.dart';
 import 'package:casa_facil/src/components/responsive_grid.dart';
 import 'package:casa_facil/src/constants/constants.dart' show gaplg;
 import 'package:casa_facil/src/enums/window_class.dart';
-import 'package:casa_facil/src/models/stock_item.dart';
+import 'package:casa_facil/src/models/materiais_estoque.dart';
 import 'package:casa_facil/src/utils/get_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -14,7 +14,7 @@ import 'package:material_symbols_icons/symbols.dart';
 class InventoryDashboard extends StatefulWidget {
   const InventoryDashboard({super.key, required this.data});
 
-  final List<StockItem> data;
+  final List<MateriaisEstoque> data;
 
   @override
   State<InventoryDashboard> createState() => InventoryDashboardState();
@@ -44,18 +44,18 @@ class InventoryDashboardState extends State<InventoryDashboard> {
     final itensDistintos = widget.data.length;
 
     final estoqueBaixo = widget.data
-        .where((item) => item.quantityInStock < item.lowStockThreshold)
+        .where((item) => item.qtEstoque < item.limBaixoEstoque)
         .length;
 
     final entryDates = widget.data
-        .map((item) => DateTime.tryParse('${item.lastEntryDate}'))
+        .map((item) => DateTime.tryParse('${item.ultimaEntrada}'))
         .where((date) => date != null)
         .toList();
     entryDates.sort();
     final ultimaEntrada = entryDates.lastOrNull;
 
     final exitDates = widget.data
-        .map((item) => DateTime.tryParse('${item.lastExitDate}'))
+        .map((item) => DateTime.tryParse('${item.ultimaSaida}'))
         .where((date) => date != null)
         .toList();
     exitDates.sort();

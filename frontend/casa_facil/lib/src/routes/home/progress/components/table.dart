@@ -55,8 +55,8 @@ class ProgressTableState extends State<ProgressTable> {
           color: rowColor,
           cells: [
             ResponsiveCell(order.saleId),
-            ResponsiveCell(order.model?.name),
-            ResponsiveCell(order.customer?.name),
+            ResponsiveCell(order.model?.nome),
+            ResponsiveCell(order.customer?.nome),
             ResponsiveCell(date),
             ResponsiveCell(order.status.description),
             ResponsiveCell(
@@ -95,9 +95,9 @@ class ProgressTableState extends State<ProgressTable> {
       case 0:
         return compare(a.saleId, b.saleId, ascending);
       case 1:
-        return compare(a.model?.name, b.model?.name, ascending);
+        return compare(a.model?.nome, b.model?.nome, ascending);
       case 2:
-        return compare(a.customer?.name, b.customer?.name, ascending);
+        return compare(a.customer?.nome, b.customer?.nome, ascending);
       case 3:
         return compare(a.scheduledDate, b.scheduledDate, ascending);
       case 4:

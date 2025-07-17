@@ -1,12 +1,11 @@
+import 'package:casa_facil/src/api/modelos_casas_api.dart';
 import 'package:casa_facil/src/components/app_button.dart';
 import 'package:casa_facil/src/components/card.dart';
-import 'package:casa_facil/src/components/limited_wrap.dart';
 import 'package:casa_facil/src/components/responsive_grid.dart';
 import 'package:casa_facil/src/constants/constants.dart'
     show gaplg, gapmd, gapsm, gapxxl;
-import 'package:casa_facil/src/data/mock_data.dart';
 import 'package:casa_facil/src/enums/window_class.dart';
-import 'package:casa_facil/src/models/house_model.dart';
+import 'package:casa_facil/src/models/modelo_casa.dart';
 import 'package:casa_facil/src/utils/get_localization.dart';
 import 'package:casa_facil/src/utils/hint_style.dart';
 import 'package:flutter/material.dart';
@@ -20,8 +19,23 @@ class HouseCatalog extends StatefulWidget {
 
 class _HouseCatalogState extends State<HouseCatalog> {
   final _controller = TextEditingController();
+  final _notifier = ValueNotifier(false);
+
+  List<ModeloCasaModel> modelosCasa = [];
 
   WindowClass _windowClass = WindowClass.expanded;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      ModelosCasasApi.listAll().then((modelos) {
+        modelosCasa = modelos;
+        _notifier.value = !_notifier.value;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,14 +87,19 @@ class _HouseCatalogState extends State<HouseCatalog> {
                   ],
                 ),
                 Flexible(
-                  child: ResponsiveGrid(
-                    crossAxisCount: count,
-                    runSpacing: gapmd,
-                    spacing: gapmd,
-                    children: [
-                      for (int i = 0; i < houseModels.length; i++)
-                        _buildCard(houseModels[i]),
-                    ],
+                  child: ListenableBuilder(
+                    listenable: _notifier,
+                    builder: (context, _) {
+                      return ResponsiveGrid(
+                        crossAxisCount: count,
+                        runSpacing: gapmd,
+                        spacing: gapmd,
+                        children: [
+                          for (int i = 0; i < modelosCasa.length; i++)
+                            _buildCard(modelosCasa[i]),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ],
@@ -91,13 +110,7 @@ class _HouseCatalogState extends State<HouseCatalog> {
     );
   }
 
-  Widget _buildCard(HouseModel model) {
-    final cats = model.materials
-        .map((mat) => stockItems.firstWhere((item) => mat.id == item.id))
-        .map((item) => item.category)
-        .toSet();
-    final categories = [...cats, ...cats];
-
+  Widget _buildCard(ModeloCasaModel model) {
     return AppCard.outlined(
       image: AspectRatio(
         aspectRatio: 600 / 400,
@@ -107,8 +120,8 @@ class _HouseCatalogState extends State<HouseCatalog> {
           ),
         ),
       ),
-      title: model.name,
-      subtitle: model.description,
+      title: model.nome,
+      subtitle: model.descricao,
       content: Padding(
         padding: const EdgeInsets.only(top: gapsm),
         child: SingleChildScrollView(
@@ -128,16 +141,6 @@ class _HouseCatalogState extends State<HouseCatalog> {
                   ),
                 ],
               ),
-              LimitedWrap(
-                runSpacing: gapsm,
-                spacing: gapsm,
-                chips: categories.map((cat) {
-                  if ((cat ?? '').isNotEmpty) {
-                    return FilterChip(onSelected: (_) {}, label: Text(cat!));
-                  }
-                  return const SizedBox();
-                }).toList(),
-              ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: gapsm,
@@ -145,7 +148,7 @@ class _HouseCatalogState extends State<HouseCatalog> {
                   Icon(Icons.schedule),
                   Flexible(
                     child: Text(
-                      '${localization(context).catalogBuildTimeLabel}: ${model.productionTime}',
+                      '${localization(context).catalogBuildTimeLabel}: ${model.tempoFabricacao}',
                     ),
                   ),
                 ],

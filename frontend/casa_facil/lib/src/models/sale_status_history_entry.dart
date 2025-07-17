@@ -1,6 +1,6 @@
 import 'dart:convert' show jsonEncode;
 
-import 'package:casa_facil/src/models/sale_status.dart';
+import 'package:casa_facil/src/models/status_venda.dart';
 
 class _Keys {
   const _Keys._();
@@ -11,7 +11,7 @@ class _Keys {
 }
 
 class SaleStatusHistoryEntry {
-  final SaleStatus status;
+  final StatusVenda status;
   final String date;
   final String? notes;
 

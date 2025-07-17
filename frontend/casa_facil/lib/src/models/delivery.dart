@@ -1,9 +1,9 @@
 import 'dart:convert' show jsonEncode;
 
-import 'package:casa_facil/src/models/customer.dart';
+import 'package:casa_facil/src/models/cliente.dart';
 import 'package:casa_facil/src/models/delivery_status.dart';
-import 'package:casa_facil/src/models/house_model.dart';
-import 'package:casa_facil/src/models/sale.dart';
+import 'package:casa_facil/src/models/modelo_casa.dart';
+import 'package:casa_facil/src/models/venda.dart';
 
 class _Keys {
   const _Keys._();
@@ -21,17 +21,17 @@ class _Keys {
 
 class Delivery {
   final String id;
-  final String saleId;
-  final String customerId;
-  final String modelId;
+  final int saleId;
+  final int customerId;
+  final int modelId;
   final String deliveryAddress;
   final String scheduledDate;
   final String? transportCompany;
   final DeliveryStatus status;
 
-  CustomerModel? customer;
-  HouseModel? model;
-  Sale? sale;
+  Cliente? customer;
+  ModeloCasaModel? model;
+  VendaModel? sale;
 
   Delivery({
     required this.id,

@@ -2,7 +2,7 @@ import 'dart:convert' show jsonEncode;
 
 import 'package:casa_facil/src/models/invoice_item.dart';
 import 'package:casa_facil/src/models/invoice_type.dart';
-import 'package:casa_facil/src/models/payment_status.dart';
+import 'package:casa_facil/src/models/status_pagamento.dart';
 
 class _Keys {
   const _Keys._();
@@ -38,7 +38,7 @@ class Invoice {
   final double subtotal;
   final double taxes;
   final double totalAmount;
-  final PaymentStatus status;
+  final StatusPagamento status;
   final String? notes;
 
   Invoice({

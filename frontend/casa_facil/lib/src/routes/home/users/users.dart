@@ -21,7 +21,6 @@ class Users extends StatefulWidget {
 
 class _UsersState extends State<Users> {
   final _controller = TextEditingController();
-
   final _notifier = ValueNotifier(false);
 
   List<UserModel> _filteredData = [];

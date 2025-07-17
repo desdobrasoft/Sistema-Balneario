@@ -1,6 +1,6 @@
 import 'package:casa_facil/src/components/responsive_table.dart';
 import 'package:casa_facil/src/localization/app_localizations.dart';
-import 'package:casa_facil/src/models/sale.dart';
+import 'package:casa_facil/src/models/venda.dart';
 import 'package:casa_facil/src/utils/compare.dart';
 import 'package:casa_facil/src/utils/get_localization.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +9,7 @@ import 'package:intl/intl.dart';
 class SalesRecordTable extends StatefulWidget {
   const SalesRecordTable({super.key, required this.data});
 
-  final List<Sale> data;
+  final List<VendaModel> data;
 
   @override
   State<SalesRecordTable> createState() => SalesRecordTableState();
@@ -45,7 +45,7 @@ class SalesRecordTableState extends State<SalesRecordTable> {
             ? _scheme.surfaceContainerHigh
             : _scheme.surfaceContainerLow;
 
-        final dateTime = DateTime.tryParse(sale.saleDate);
+        final dateTime = DateTime.tryParse(sale.dataVenda);
         final date = DateFormat.yMd(
           AppLocalizations.of(context)!.localeName,
         ).format(dateTime ?? DateTime(2000, 1, 1));
@@ -54,17 +54,17 @@ class SalesRecordTableState extends State<SalesRecordTable> {
           locale: localization(context).localeName,
           symbol: 'R\$',
         );
-        final price = currencyFormatter.format(sale.price);
+        final price = currencyFormatter.format(sale.preco);
 
         return ResponsiveRow(
           color: rowColor,
           cells: [
             ResponsiveCell(sale.id),
-            ResponsiveCell(sale.model?.name),
-            ResponsiveCell(sale.customer?.name),
+            ResponsiveCell(sale.modelo?.nome),
+            ResponsiveCell(sale.cliente?.nome),
             ResponsiveCell(date),
             ResponsiveCell(price),
-            ResponsiveCell(sale.status.description),
+            ResponsiveCell(sale.statusVenda.description),
           ],
           actions: [
             PopupMenuItem(
@@ -87,20 +87,24 @@ class SalesRecordTableState extends State<SalesRecordTable> {
     );
   }
 
-  int _compare(Sale a, Sale b, bool ascending, int index) {
+  int _compare(VendaModel a, VendaModel b, bool ascending, int index) {
     switch (index) {
       case 0:
         return compare(a.id, b.id, ascending);
       case 1:
-        return compare(a.model?.name, b.model?.name, ascending);
+        return compare(a.modelo?.nome, b.modelo?.nome, ascending);
       case 2:
-        return compare(a.customer?.name, b.customer?.name, ascending);
+        return compare(a.cliente?.nome, b.cliente?.nome, ascending);
       case 3:
-        return compare(a.saleDate, b.saleDate, ascending);
+        return compare(a.dataVenda, b.dataVenda, ascending);
       case 4:
-        return compare(a.price, b.price, ascending);
+        return compare(a.preco, b.preco, ascending);
       case 5:
-        return compare(a.status.description, b.status.description, ascending);
+        return compare(
+          a.statusVenda.description,
+          b.statusVenda.description,
+          ascending,
+        );
       default:
         return 0;
     }

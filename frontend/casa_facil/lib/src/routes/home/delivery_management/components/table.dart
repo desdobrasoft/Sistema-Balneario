@@ -56,8 +56,8 @@ class DeliveryManagementTableState extends State<DeliveryManagementTable> {
           color: rowColor,
           cells: [
             ResponsiveCell(delivery.saleId),
-            ResponsiveCell(delivery.customer?.name),
-            ResponsiveCell(delivery.model?.name),
+            ResponsiveCell(delivery.customer?.nome),
+            ResponsiveCell(delivery.model?.nome),
             ResponsiveCell(delivery.deliveryAddress),
             ResponsiveCell(date),
             ResponsiveCell(delivery.transportCompany ?? 'N/A'),
@@ -89,9 +89,9 @@ class DeliveryManagementTableState extends State<DeliveryManagementTable> {
       case 0:
         return compare(a.saleId, b.saleId, ascending);
       case 1:
-        return compare(a.customer?.name, b.customer?.name, ascending);
+        return compare(a.customer?.nome, b.customer?.nome, ascending);
       case 2:
-        return compare(a.model?.name, b.model?.name, ascending);
+        return compare(a.model?.nome, b.model?.nome, ascending);
       case 3:
         return compare(a.deliveryAddress, b.deliveryAddress, ascending);
       case 4:
