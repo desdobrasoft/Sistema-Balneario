@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RolesGuard } from './auth/roles.guard';
 import { ClientesModule } from './clientes/clientes.module';
+import { MateriaisEstoqueModule } from './materiais-estoque/materiais-estoque.module';
 import { ModeloCasaModule } from './modelo_casa/modelo-casa.module';
 import { MovimentacaoModule } from './movimentacao_materiais/movimentacao.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -23,6 +24,7 @@ import { VendasModule } from './vendas/vendas.module';
     ModeloCasaModule,
     VendasModule,
     MovimentacaoModule,
+    MateriaisEstoqueModule,
   ],
   controllers: [AppController],
   providers: [

@@ -5,22 +5,22 @@ import 'package:casa_facil/src/models/material_necessario_modelo.dart';
 class ModeloCasaModel {
   final int id;
   final String nome;
-  final String descricao;
-  final String tempoFabricacao;
+  final String? descricao;
+  final int tempoFabricacao;
   final String? urlImagem;
-  final List<MaterialNecessarioModelo> materiais;
   final double preco;
   final int qtVendido;
+  final List<MaterialNecessarioModelo> materiais;
 
   const ModeloCasaModel({
-    required this.descricao,
     required this.id,
-    this.urlImagem,
-    required this.materiais,
     required this.nome,
-    required this.preco,
+    this.descricao,
     required this.tempoFabricacao,
+    this.urlImagem,
+    required this.preco,
     required this.qtVendido,
+    required this.materiais,
   });
 
   factory ModeloCasaModel.fromJson(Map? json) {
@@ -29,15 +29,23 @@ class ModeloCasaModel {
       (parser as List).map((l) => MaterialNecessarioModelo.fromJson(l)),
     );
 
+    final int id = json?[_Keys.id];
+    final String nome = json?[_Keys.nome];
+    final String? descricao = json?[_Keys.descricao];
+    final int tempoFabricacao = json?[_Keys.tempoFabricacao];
+    final String? urlImagem = json?[_Keys.urlImagem];
+    final double preco = double.parse('${json?[_Keys.preco]}');
+    final int qtVendido = json?[_Keys.qtVendido];
+
     return ModeloCasaModel(
-      descricao: json?[_Keys.descricao],
-      id: json?[_Keys.id],
-      urlImagem: json?[_Keys.urlImagem],
+      id: id,
+      nome: nome,
+      descricao: descricao,
+      tempoFabricacao: tempoFabricacao,
+      urlImagem: urlImagem,
+      preco: preco,
+      qtVendido: qtVendido,
       materiais: materiais,
-      nome: json?[_Keys.nome],
-      preco: json?[_Keys.preco],
-      tempoFabricacao: json?[_Keys.tempoFabricacao],
-      qtVendido: json?[_Keys.qtVendido],
     );
   }
 

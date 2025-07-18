@@ -1,9 +1,10 @@
 enum RoleType {
-  admin('Administrador'),
+  admin('Administração'),
   financeiro('Financeiro'),
   estoque('Estoque'),
-  vendas('Vendas'),
-  suporte('Suporte');
+  producao('Produção'),
+  patio('Pátio'),
+  entrega('Entrega');
 
   final String readable;
 

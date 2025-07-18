@@ -1,5 +1,5 @@
 import 'package:casa_facil/src/api/clientes.dart';
-import 'package:casa_facil/src/api/modelos_casas_api.dart';
+import 'package:casa_facil/src/api/modelos_casas/modelos_casas.dart';
 import 'package:casa_facil/src/api/vendas.dart';
 import 'package:casa_facil/src/components/app_button.dart';
 import 'package:casa_facil/src/components/card.dart';

@@ -1,5 +1,6 @@
 import 'dart:convert' show jsonDecode, jsonEncode;
 
+import 'package:casa_facil/src/api/modelos_casas/dto.dart';
 import 'package:casa_facil/src/api/utils/is_ok.dart';
 import 'package:casa_facil/src/components/dialogs/boolean.dart';
 import 'package:casa_facil/src/components/dialogs/error.dart';
@@ -18,14 +19,7 @@ class ModelosCasasApi {
   static final _env = EnvManager.env;
   static final _url = _env.modeloCasa;
 
-  static Future<void> addModeloCasa({
-    required String nome,
-    String? descricao,
-    required int tempoFabricacao,
-    String? urlImagem,
-    required double preco,
-    required List<Map<String, dynamic>> materiais,
-  }) async {
+  static Future<void> addModeloCasa(CreateModeloCasaDto dto) async {
     final res = await HttpParser.parse(
       method: HttpMethod.post,
       url: buildUrl(_url),
@@ -33,14 +27,7 @@ class ModelosCasasApi {
         'Authorization': 'Bearer ${Preferences.instance.authToken}',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({
-        'nome': nome,
-        'descricao': descricao,
-        'tempo_fabricacao': tempoFabricacao,
-        'url_imagem': urlImagem,
-        'preco': preco,
-        'materiais': materiais,
-      }),
+      body: dto.toString(),
     );
 
     if (!isOk(res)) {
@@ -51,30 +38,15 @@ class ModelosCasasApi {
     }
   }
 
-  static Future<bool> editModeloCasa({
-    required int id,
-    String? nome,
-    String? descricao,
-    int? tempoFabricacao,
-    String? urlImagem,
-    double? preco,
-    List<Map<String, dynamic>>? materiais,
-  }) async {
+  static Future<bool> editModeloCasa(EditModeloCasaDto dto) async {
     final res = await HttpParser.parse(
       method: HttpMethod.patch,
-      url: buildUrl('$_url/$id'),
+      url: buildUrl('$_url/${dto.id}'),
       headers: {
         'Authorization': 'Bearer ${Preferences.instance.authToken}',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({
-        if (nome != null) 'nome': nome,
-        if (descricao != null) 'descricao': descricao,
-        if (tempoFabricacao != null) 'tempo_fabricacao': tempoFabricacao,
-        if (urlImagem != null) 'url_imagem': urlImagem,
-        if (preco != null) 'preco': preco,
-        if (materiais != null) 'materiais': materiais,
-      }),
+      body: jsonEncode(dto.toMap()),
     );
 
     if (!isOk(res)) {

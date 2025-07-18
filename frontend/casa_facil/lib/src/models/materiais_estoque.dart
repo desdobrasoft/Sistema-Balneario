@@ -17,13 +17,16 @@ class MateriaisEstoque {
     this.ultimaSaida,
   });
 
-  MateriaisEstoque.fromJson(Map? json)
-    : id = json?[_Keys.id],
-      nome = json?[_Keys.nome],
-      qtEstoque = json?[_Keys.qtEstoque],
-      limBaixoEstoque = json?[_Keys.limBaixoEstoque],
-      ultimaEntrada = json?[_Keys.ultimaEntrada],
-      ultimaSaida = json?[_Keys.ultimaSaida];
+  factory MateriaisEstoque.fromJson(Map? json) {
+    return MateriaisEstoque(
+      id: json?[_Keys.id],
+      nome: json?[_Keys.nome],
+      qtEstoque: json?[_Keys.qtEstoque],
+      limBaixoEstoque: json?[_Keys.limBaixoEstoque],
+      ultimaEntrada: json?[_Keys.ultimaEntrada],
+      ultimaSaida: json?[_Keys.ultimaSaida],
+    );
+  }
 
   Map<String, Object?> toMap() => {
     _Keys.id: id,

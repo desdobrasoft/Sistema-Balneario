@@ -1,40 +1,33 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Prisma, PrismaClient } from '@prisma/client';
 
 @Injectable()
-export class PrismaService
-  extends PrismaClient
-  implements OnModuleInit, OnModuleDestroy
-{
+export class PrismaService extends PrismaClient implements OnModuleInit {
   constructor() {
     super();
 
-    this.$extends({
-      model: {
-        // Aplica a extensão especificamente para o modelo 'modelo_casa'
-        modelo_casa: {
-          // Sobrescreve o método 'delete'
-          async delete(args: any) {
-            const ctx = Prisma.getExtensionContext(this);
-            // Chama o método 'update' original para fazer o soft delete
-            return (ctx as any).update({
-              where: args.where,
-              data: {
-                deleted_at: new Date(),
-              },
-            });
-          },
-        },
+    // 1. Defina a lógica de soft delete UMA VEZ em uma constante.
+    // Ela será aplicada a qualquer modelo que precisarmos.
+    const softDeleteActions = {
+      async delete(args: any) {
+        const ctx = Prisma.getExtensionContext(this);
+        // A lógica agora é reutilizável e usa o contexto correto
+        return (ctx as any).update({
+          ...args,
+          data: { deleted_at: new Date() },
+        });
       },
-      // Adiciona um query block para filtrar as buscas
+    };
+
+    this.$extends({
       query: {
-        modelo_casa: {
-          // Filtra todas as operações de busca
-          async findUnique({ args, query }) {
+        $allModels: {
+          // Filtra as buscas para todos os modelos que tiverem 'deleted_at'
+          async findMany({ args, query }) {
             args.where = { ...args.where, deleted_at: null };
             return query(args);
           },
-          async findMany({ args, query }) {
+          async findUnique({ args, query }) {
             args.where = { ...args.where, deleted_at: null };
             return query(args);
           },
@@ -43,6 +36,11 @@ export class PrismaService
             return query(args);
           },
         },
+      },
+      model: {
+        // 2. Aplique a lógica de soft delete aos modelos desejados
+        modelo_casa: softDeleteActions,
+        materiais_estoque: softDeleteActions,
       },
     });
   }

@@ -10,6 +10,7 @@ class _Keys {
   static const apiAutenticacao = 'API_AUTENTICACAO';
   static const login = 'LOGIN';
   static const clientes = 'CLIENTES';
+  static const materiais = 'MATERIAIS';
   static const modeloCasa = 'MODELO_CASA';
   static const users = 'USERS';
   static const vendas = 'VENDAS';
@@ -25,6 +26,7 @@ class EnvManager {
   late final int backendPort;
   late final String apiAutenticacao;
   late final String login;
+  late final String materiais;
   late final String modeloCasa;
   late final String clientes;
   late final String users;
@@ -39,6 +41,7 @@ class EnvManager {
     apiAutenticacao = dotenv.get(_Keys.apiAutenticacao);
     login = dotenv.get(_Keys.login);
     clientes = dotenv.get(_Keys.clientes);
+    materiais = dotenv.get(_Keys.materiais);
     modeloCasa = dotenv.get(_Keys.modeloCasa);
     users = dotenv.get(_Keys.users);
     vendas = dotenv.get(_Keys.vendas);
@@ -51,6 +54,7 @@ class EnvManager {
     _Keys.apiAutenticacao: apiAutenticacao,
     _Keys.login: login,
     _Keys.clientes: clientes,
+    _Keys.materiais: materiais,
     _Keys.modeloCasa: modeloCasa,
     _Keys.users: users,
     _Keys.currentUser: currentUser,
