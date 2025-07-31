@@ -16,7 +16,6 @@ import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
 
 @Controller('clientes')
-// Você pode exigir um role específico, como 'admin' ou 'vendedor'
 @Roles('admin')
 export class ClientesController {
   constructor(private readonly clientesService: ClientesService) {}

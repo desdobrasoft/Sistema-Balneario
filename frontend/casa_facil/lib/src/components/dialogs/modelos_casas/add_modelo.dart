@@ -1,4 +1,4 @@
-import 'package:casa_facil/src/api/materiais_estoque.dart';
+import 'package:casa_facil/src/api/materiais_estoque/materiais_estoque.dart';
 import 'package:casa_facil/src/api/modelos_casas/dto.dart';
 import 'package:casa_facil/src/api/modelos_casas/modelos_casas.dart';
 import 'package:casa_facil/src/components/app_button.dart';

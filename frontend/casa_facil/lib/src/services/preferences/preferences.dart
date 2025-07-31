@@ -2,40 +2,35 @@ import 'dart:convert' show jsonDecode, jsonEncode;
 
 import 'package:casa_facil/src/services/log/log.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Preferences with ChangeNotifier {
   Preferences._(this._storage);
 
-  static const _key = 'casa_facil_prefs';
+  static const _key = 'tech_wall_prefs';
   static const _logTag = 'Preferences';
 
-  static const _webOptions = WebOptions(
-    dbName: 'casa_facil_prefs',
-    publicKey: 'casa_facil_storage',
-  );
-  static const _windowsOptions = WindowsOptions();
+  final SharedPreferencesAsync _storage;
 
-  final FlutterSecureStorage _storage;
+  String? _authToken = PrefEntry.authToken.dflt;
+  String? _refreshToken = PrefEntry.refreshToken.dflt;
 
-  String? _authToken = _Defaults.authToken;
-
-  static final instance = Preferences._(
-    FlutterSecureStorage(webOptions: _webOptions, wOptions: _windowsOptions),
-  );
+  static final instance = Preferences._(SharedPreferencesAsync());
 
   String? get authToken => _authToken;
+  String? get refreshToken => _refreshToken;
 
   Future<void> load() async {
     try {
-      if (!(await _storage.containsKey(key: _key))) return;
+      if (!(await _storage.containsKey(_key))) return;
 
-      final prefs = await _storage.read(key: _key);
+      final prefs = await _storage.getString(_key);
       if (prefs == null) return;
 
       final json = jsonDecode(prefs);
 
       _authToken = json[PrefEntry.authToken.key] ?? _authToken;
+      _refreshToken = json[PrefEntry.refreshToken.key] ?? _refreshToken;
 
       notifyListeners();
     } catch (e) {
@@ -43,15 +38,20 @@ class Preferences with ChangeNotifier {
     }
   }
 
-  Future<void> save({String? authToken}) async {
+  Future<void> save({String? authToken, String? refreshToken}) async {
     try {
       authToken ??= _authToken;
+      refreshToken ??= _refreshToken;
 
-      final prefs = jsonEncode({PrefEntry.authToken.key: authToken});
+      final prefs = jsonEncode({
+        PrefEntry.authToken.key: authToken,
+        PrefEntry.refreshToken.key: refreshToken,
+      });
 
-      await _storage.write(key: _key, value: prefs);
+      await _storage.setString(_key, prefs);
 
       _authToken = authToken;
+      _refreshToken = refreshToken;
 
       notifyListeners();
     } catch (e) {
@@ -60,25 +60,48 @@ class Preferences with ChangeNotifier {
   }
 
   Future<void> remove(PrefEntry entry) async {
-    await _storage.delete(key: entry.key);
+    try {
+      if (!(await _storage.containsKey(_key))) return;
 
-    switch (entry) {
-      case PrefEntry.authToken:
-        _authToken = _Defaults.authToken;
+      final prefs = await _storage.getString(_key);
+      if (prefs == null) return;
+
+      final json = jsonDecode(prefs);
+
+      json[entry.key] = entry.dflt;
+
+      await _storage.setString(_key, jsonEncode(json));
+
+      switch (entry) {
+        case PrefEntry.authToken:
+          _authToken = json[PrefEntry.authToken.key];
+          break;
+        case PrefEntry.refreshToken:
+          _refreshToken = json[PrefEntry.refreshToken.key];
+          break;
+      }
+
+      notifyListeners();
+    } catch (e) {
+      LogService.log.e(tag: _logTag, subTag: 'remove', e: e);
+    }
+  }
+
+  Future<void> clear() async {
+    try {
+      await _storage.clear(allowList: {_key});
+    } catch (e) {
+      LogService.log.e(tag: _logTag, subTag: 'clear', e: e);
     }
   }
 }
 
 enum PrefEntry {
-  authToken('access_token');
+  authToken('access_token', null),
+  refreshToken('refresh_token', null);
 
   final String key;
+  final dynamic dflt;
 
-  const PrefEntry(this.key);
-}
-
-class _Defaults {
-  const _Defaults._();
-
-  static const authToken = null;
+  const PrefEntry(this.key, this.dflt);
 }

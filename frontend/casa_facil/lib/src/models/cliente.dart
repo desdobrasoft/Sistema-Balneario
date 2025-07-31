@@ -1,13 +1,13 @@
 import 'dart:convert' show jsonEncode;
 
-class Cliente {
+class ClienteModel {
   final int id;
   final String nome;
   final String email;
   final String nroContato;
   final int historicoVendas;
 
-  const Cliente({
+  const ClienteModel({
     required this.id,
     required this.nome,
     required this.email,
@@ -15,7 +15,7 @@ class Cliente {
     required this.historicoVendas,
   });
 
-  Cliente.fromJson(Map? json)
+  ClienteModel.fromJson(Map? json)
     : id = json?[_Keys.id],
       nome = json?[_Keys.nome],
       email = json?[_Keys.email],

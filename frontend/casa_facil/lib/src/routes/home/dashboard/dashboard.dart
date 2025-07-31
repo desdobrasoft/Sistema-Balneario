@@ -1,8 +1,13 @@
+import 'package:casa_facil/src/api/producao/producao.dart';
+import 'package:casa_facil/src/api/vendas/vendas.dart';
 import 'package:casa_facil/src/components/responsive_grid.dart';
 import 'package:casa_facil/src/constants/constants.dart' show gapxl, gapxxl;
-import 'package:casa_facil/src/data/mock_data.dart'
-    show monthlySales, productionStatusDistribution, deliveryTimeStats;
 import 'package:casa_facil/src/enums/window_class.dart';
+import 'package:casa_facil/src/models/monthly_sales.dart';
+import 'package:casa_facil/src/models/ordem_producao.dart';
+import 'package:casa_facil/src/models/production_status_distribution.dart';
+import 'package:casa_facil/src/models/status_producao.dart';
+import 'package:casa_facil/src/models/venda.dart';
 import 'package:casa_facil/src/routes/home/dashboard/components/active_prods.dart';
 import 'package:casa_facil/src/routes/home/dashboard/components/avg_delivery_time.dart';
 import 'package:casa_facil/src/routes/home/dashboard/components/delivery_time_analysis.dart';
@@ -10,6 +15,7 @@ import 'package:casa_facil/src/routes/home/dashboard/components/monthly_overview
 import 'package:casa_facil/src/routes/home/dashboard/components/prod_status.dart';
 import 'package:casa_facil/src/routes/home/dashboard/components/total_sales.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -22,26 +28,135 @@ class _DashboardState extends State<Dashboard> {
   static const double _basicCardHeight = 180;
   static const double _chartCardHeight = 430;
 
-  WindowClass _windowClass = WindowClass.expanded;
+  // Variáveis de estado para os dados processados
+  bool _isLoading = true;
+  double _totalSalesValue = 0.0;
+  int _activeProdsCount = 0;
+  List<MonthlySales> _monthlySalesData = [];
+  List<ProductionStatusDistribution> _prodStatusData = [];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fetchAndProcessData());
+  }
+
+  Future<void> _fetchAndProcessData() async {
+    setState(() => _isLoading = true);
+
+    // Busca os dados brutos das APIs em paralelo
+    final responses = await Future.wait([
+      VendasApi.listAll(),
+      ProducaoApi.listAll(),
+    ]);
+
+    final vendas = responses[0] as List<VendaModel>;
+    final ordensProducao = responses[1] as List<OrdemProducaoModel>;
+
+    // Processa os dados brutos e atualiza o estado
+    setState(() {
+      _totalSalesValue = _calculateTotalSales(vendas);
+      _activeProdsCount = _calculateActiveProds(ordensProducao);
+      _monthlySalesData = _processMonthlyOverview(vendas);
+      _prodStatusData = _processProdStatus(ordensProducao);
+      _isLoading = false;
+    });
+  }
+
+  double _calculateTotalSales(List<VendaModel> vendas) {
+    if (vendas.isEmpty) return 0.0;
+    return vendas.map((v) => v.preco).fold(0.0, (sum, preco) => sum + preco);
+  }
+
+  int _calculateActiveProds(List<OrdemProducaoModel> ordens) {
+    // Considera "ativas" todas que não estão em um estado final
+    final finalStates = [StatusProducao.prontoEnvio];
+    return ordens.where((o) => !finalStates.contains(o.status)).length;
+  }
+
+  List<MonthlySales> _processMonthlyOverview(List<VendaModel> vendas) {
+    if (vendas.isEmpty) return [];
+
+    final Map<String, double> salesByMonth = {};
+    final monthFormat = DateFormat('yyyy-MM'); // Para agrupar por ano/mês
+    final labelFormat = DateFormat('MMM/yy'); // Para exibir (ex: Jul/25)
+
+    for (final venda in vendas) {
+      final date = DateTime.tryParse(venda.dataVenda);
+      if (date == null) continue;
+
+      final monthKey = monthFormat.format(date);
+      salesByMonth.update(
+        monthKey,
+        (value) => value + venda.preco,
+        ifAbsent: () => venda.preco,
+      );
+    }
+
+    // Converte o mapa para a lista que o gráfico espera
+    return salesByMonth.entries
+        .map(
+          (entry) => MonthlySales(
+            month: labelFormat.format(monthFormat.parse(entry.key)),
+            sales: entry.value,
+            fill: '#8884d8', // Cor padrão
+          ),
+        )
+        .toList()
+      ..sort((a, b) => a.month.compareTo(b.month));
+  }
+
+  List<ProductionStatusDistribution> _processProdStatus(
+    List<OrdemProducaoModel> ordens,
+  ) {
+    if (ordens.isEmpty) return [];
+
+    final Map<StatusProducao, int> statusCount = {};
+    for (final ordem in ordens) {
+      statusCount.update(ordem.status, (value) => value + 1, ifAbsent: () => 1);
+    }
+
+    // Mapeia o enum para a cor (você pode customizar)
+    final colors = {
+      StatusProducao.agendado: '#0088FE',
+      StatusProducao.materiaisPendentes: '#FFBB28',
+      StatusProducao.preparando: '#00C49F',
+      StatusProducao.montando: '#FF8042',
+      StatusProducao.prontoEnvio: '#A2E8A5',
+      StatusProducao.emEspera: '#FF0000',
+    };
+
+    return statusCount.entries
+        .map(
+          (entry) => ProductionStatusDistribution(
+            status: entry.key.description,
+            count: entry.value,
+            fill: colors[entry.key] ?? '#CCCCCC',
+          ),
+        )
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final newWC = WindowClass.fromWidth(MediaQuery.of(context).size.width);
-    if (newWC != _windowClass) {
-      setState(() => _windowClass = newWC);
-    }
-
-    final basicCount = switch (_windowClass) {
+    final windowClass = WindowClass.fromWidth(
+      MediaQuery.of(context).size.width,
+    );
+    final basicCount = switch (windowClass) {
       WindowClass.compact => 1,
       WindowClass.medium => 2,
       WindowClass.expanded => 3,
     };
 
-    final chartCount = switch (_windowClass) {
+    final chartCount = switch (windowClass) {
       WindowClass.compact => 1,
       WindowClass.medium => 1,
       WindowClass.expanded => 2,
     };
+
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -58,26 +173,16 @@ class _DashboardState extends State<Dashboard> {
                 children: [
                   SizedBox(
                     height: _basicCardHeight,
-                    child: TotalSales(
-                      sales: monthlySales
-                          .map((item) => item.sales)
-                          .reduce((sum, item) => sum + item),
-                    ),
+                    child: TotalSales(sales: _totalSalesValue),
                   ),
                   SizedBox(
                     height: _basicCardHeight,
-                    child: ActiveProds(
-                      activeProds: productionStatusDistribution
-                          .singleWhere(
-                            (item) =>
-                                item.status.toLowerCase() == 'em progresso',
-                          )
-                          .count,
-                    ),
+                    child: ActiveProds(activeProds: _activeProdsCount),
                   ),
                   SizedBox(
                     height: _basicCardHeight,
-                    child: AvgDeliveryTime(data: '3,5 semanas'),
+                    // TODO: Como discutido, este card precisaria de um endpoint dedicado no futuro.
+                    child: AvgDeliveryTime(data: 'N/A'),
                   ),
                 ],
               ),
@@ -88,15 +193,16 @@ class _DashboardState extends State<Dashboard> {
                 children: [
                   SizedBox(
                     height: _chartCardHeight,
-                    child: MonthlyOverview(data: monthlySales),
+                    child: MonthlyOverview(data: _monthlySalesData),
                   ),
                   SizedBox(
                     height: _chartCardHeight,
-                    child: ProdStatus(data: productionStatusDistribution),
+                    child: ProdStatus(data: _prodStatusData),
                   ),
                   SizedBox(
                     height: _chartCardHeight,
-                    child: DeliveryTimeAnalysis(data: deliveryTimeStats),
+                    // TODO: Como discutido, este gráfico precisaria de um endpoint dedicado no futuro.
+                    child: DeliveryTimeAnalysis(data: []),
                   ),
                 ],
               ),

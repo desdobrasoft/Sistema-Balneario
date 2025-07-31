@@ -4,6 +4,7 @@ import {
   IsNotEmpty,
   IsNumber,
   IsPositive,
+  IsString,
 } from 'class-validator';
 
 export class CreateVendaDto {
@@ -22,4 +23,8 @@ export class CreateVendaDto {
   @IsNumber()
   @IsPositive()
   preco: number;
+
+  @IsString()
+  @IsNotEmpty()
+  endereco_entrega: string;
 }

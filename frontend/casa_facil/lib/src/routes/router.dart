@@ -1,15 +1,15 @@
 import 'package:casa_facil/src/api/auth.dart';
 import 'package:casa_facil/src/app.dart';
-import 'package:casa_facil/src/routes/home/customers/customers.dart';
+import 'package:casa_facil/src/routes/home/clientes/clientes.dart';
 import 'package:casa_facil/src/routes/home/dashboard/dashboard.dart';
-import 'package:casa_facil/src/routes/home/delivery_management/delivery_management.dart';
-import 'package:casa_facil/src/routes/home/finance/finance.dart';
+import 'package:casa_facil/src/routes/home/entregas/entregas.dart';
+import 'package:casa_facil/src/routes/home/estoque/estoque.dart';
+import 'package:casa_facil/src/routes/home/financeiro/financeiro.dart';
 import 'package:casa_facil/src/routes/home/home.dart';
-import 'package:casa_facil/src/routes/home/house_catalog/house_catalog.dart';
-import 'package:casa_facil/src/routes/home/progress/progress.dart';
-import 'package:casa_facil/src/routes/home/sales_record/sales_record.dart';
-import 'package:casa_facil/src/routes/home/stock/stock.dart';
-import 'package:casa_facil/src/routes/home/users/users.dart';
+import 'package:casa_facil/src/routes/home/modelos/modelos.dart';
+import 'package:casa_facil/src/routes/home/producao/producao.dart';
+import 'package:casa_facil/src/routes/home/usuarios/usuarios.dart';
+import 'package:casa_facil/src/routes/home/vendas/vendas.dart';
 import 'package:casa_facil/src/routes/login/login.dart';
 import 'package:casa_facil/src/routes/routes.dart';
 import 'package:flutter/widgets.dart' show BackButtonListener, PopScope;
@@ -97,14 +97,14 @@ class Router {
             path: Routes.progress.name,
             name: Routes.progress.name,
             pageBuilder: (context, state) {
-              return NoTransitionPage(child: Home(child: Progress()));
+              return NoTransitionPage(child: Home(child: Producao()));
             },
           ),
           GoRoute(
             path: Routes.deliveryManagement.name,
             name: Routes.deliveryManagement.name,
             pageBuilder: (context, state) {
-              return NoTransitionPage(child: Home(child: DeliveryManagement()));
+              return NoTransitionPage(child: Home(child: Entregas()));
             },
           ),
           GoRoute(

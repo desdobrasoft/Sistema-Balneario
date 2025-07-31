@@ -99,10 +99,10 @@ abstract class AppLocalizations {
     Locale('pt', 'BR'),
   ];
 
-  /// CasaFácil
+  /// TechWall
   ///
   /// In en, this message translates to:
-  /// **'CasaFácil'**
+  /// **'TechWall'**
   String get appTitle;
 
   /// No description provided for @loginUsernameLabel.

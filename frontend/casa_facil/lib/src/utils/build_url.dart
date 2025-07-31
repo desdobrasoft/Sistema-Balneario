@@ -1,6 +1,6 @@
 import 'package:casa_facil/src/services/env/env.dart';
 
-String buildUrl(String? endpoint) {
+String buildUrl([String? endpoint]) {
   final env = EnvManager.env;
   final aux = endpoint ?? '';
 

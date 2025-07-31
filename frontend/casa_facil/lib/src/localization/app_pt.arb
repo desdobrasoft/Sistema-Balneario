@@ -1,7 +1,7 @@
 {
-  "appTitle": "CasaFácil",
+  "appTitle": "TechWall",
   "@appTitle": {
-    "description": "CasaFácil"
+    "description": "TechWall"
   },
   "loginUsernameLabel": "Usuário",
   "@loginUsernameLabel": {},

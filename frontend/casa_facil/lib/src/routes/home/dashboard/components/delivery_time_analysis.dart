@@ -21,6 +21,14 @@ class DeliveryTimeAnalysis extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (data.isEmpty) {
+      return AppCard(
+        title: localization(context).dashboardMonthlyOverviewCardTitle,
+        subtitle: localization(context).dashboardMonthlyOverviewCardSubtitle,
+        content: const Center(child: Text('Nenhuma entrega agendada.')),
+      );
+    }
+
     final dataMax = data.map((item) => item.count).reduce(max);
     // Pequeno adicional para descolar a maior barra do topo.
     final maxY = dataMax * 1.1;

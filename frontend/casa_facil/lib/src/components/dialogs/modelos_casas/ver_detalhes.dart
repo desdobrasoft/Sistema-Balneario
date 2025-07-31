@@ -1,4 +1,4 @@
-import 'package:casa_facil/src/api/materiais_estoque.dart';
+import 'package:casa_facil/src/api/materiais_estoque/materiais_estoque.dart';
 import 'package:casa_facil/src/api/modelos_casas/dto.dart';
 import 'package:casa_facil/src/api/modelos_casas/modelos_casas.dart';
 import 'package:casa_facil/src/components/app_button.dart';
@@ -480,8 +480,8 @@ class _VerDetalhesDialogState extends State<VerDetalhesDialog> {
     _isSubmitting.value = true;
 
     await ModelosCasasApi.editModeloCasa(
-      EditModeloCasaDto(
-        id: _modelo.id,
+      id: _modelo.id,
+      dto: UpdateModeloCasaDto(
         nome: _controllerNome.text,
         descricao: _controllerDescricao.text.isEmpty
             ? null

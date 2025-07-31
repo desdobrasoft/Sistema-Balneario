@@ -47,4 +47,10 @@ export class VendasController {
   ) {
     return this.service.update(id, dto);
   }
+
+  @Post(':id/estornar')
+  @Roles('admin')
+  estornar(@Param('id', ParseIntPipe) id: number) {
+    return this.service.estornar(id);
+  }
 }

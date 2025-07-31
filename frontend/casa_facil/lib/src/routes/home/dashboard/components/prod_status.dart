@@ -26,6 +26,14 @@ class _ProdStatusState extends State<ProdStatus> {
     final scheme = ColorScheme.of(context);
     final styles = TextTheme.of(context);
 
+    if (widget.data.isEmpty) {
+      return AppCard(
+        title: localization(context).dashboardProdStatusCardTitle,
+        subtitle: localization(context).dashboardProdStatusCardSubtitle,
+        content: const Center(child: Text('Nenhuma ordem de produção gerada.')),
+      );
+    }
+
     return AppCard(
       title: localization(context).dashboardProdStatusCardTitle,
       subtitle: localization(context).dashboardProdStatusCardSubtitle,

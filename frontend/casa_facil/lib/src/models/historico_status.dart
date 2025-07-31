@@ -1,3 +1,5 @@
+import 'dart:convert' show jsonEncode;
+
 import 'package:casa_facil/src/models/status_venda.dart';
 
 class HistoricoStatusModel {
@@ -37,6 +39,9 @@ class HistoricoStatusModel {
     _Keys.statusNovo: statusNovo.description,
     _Keys.dataAlteracao: dataAlteracao,
   };
+
+  @override
+  String toString() => jsonEncode(toMap());
 }
 
 class _Keys {

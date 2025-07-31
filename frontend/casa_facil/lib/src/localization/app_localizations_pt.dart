@@ -9,7 +9,7 @@ class AppLocalizationsPt extends AppLocalizations {
   AppLocalizationsPt([String locale = 'pt']) : super(locale);
 
   @override
-  String get appTitle => 'CasaFácil';
+  String get appTitle => 'TechWall';
 
   @override
   String get loginUsernameLabel => 'Usuário';
@@ -160,7 +160,7 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   AppLocalizationsPtBr() : super('pt_BR');
 
   @override
-  String get appTitle => 'CasaFácil';
+  String get appTitle => 'TechWall';
 
   @override
   String get loginUsernameLabel => 'Usuário';

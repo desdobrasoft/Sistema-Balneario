@@ -1,4 +1,5 @@
-import 'package:casa_facil/src/api/clientes.dart';
+import 'package:casa_facil/src/api/clientes/clientes.dart';
+import 'package:casa_facil/src/api/clientes/dto.dart';
 import 'package:casa_facil/src/components/app_button.dart';
 import 'package:casa_facil/src/components/dialogs/interface.dart';
 import 'package:casa_facil/src/constants/constants.dart' show gaplg;
@@ -10,7 +11,7 @@ import 'package:flutter/services.dart';
 class EditCliente extends StatefulWidget implements DialogInterface {
   const EditCliente({super.key, required this.cliente});
 
-  final Cliente cliente;
+  final ClienteModel cliente;
 
   @override
   State<EditCliente> createState() => _EditClienteState();
@@ -127,9 +128,11 @@ class _EditClienteState extends State<EditCliente> {
 
     final success = await ClientesApi.editCliente(
       id: widget.cliente.id,
-      nome: _nomeController.text,
-      email: _emailController.text,
-      nroContato: _contatoController.text,
+      dto: UpdateClienteDto(
+        nome: _nomeController.text,
+        email: _emailController.text,
+        nroContato: _contatoController.text,
+      ),
     );
 
     _isPressed.value = false;

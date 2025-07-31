@@ -45,8 +45,7 @@ class CreateModeloCasaDto {
   String toString() => jsonEncode(toMap());
 }
 
-class EditModeloCasaDto {
-  final int id;
+class UpdateModeloCasaDto {
   final String? nome;
   final String? descricao;
   final int? tempoFabricacao;
@@ -54,8 +53,7 @@ class EditModeloCasaDto {
   final double? preco;
   final List<MaterialRequeridoDto>? materiais;
 
-  const EditModeloCasaDto({
-    required this.id,
+  const UpdateModeloCasaDto({
     this.nome,
     this.descricao,
     this.tempoFabricacao,
@@ -64,14 +62,14 @@ class EditModeloCasaDto {
     this.materiais,
   });
 
-  Map<String, Object?> toMap([bool? noID]) => {
-    if (noID == true) 'id': id,
-    'nome': nome,
+  Map<String, Object?> toMap() => {
+    if (nome?.isNotEmpty == true) 'nome': nome,
     if (descricao?.isNotEmpty == true) 'descricao': descricao,
-    'tempo_fabricacao': tempoFabricacao,
+    if (tempoFabricacao != null) 'tempo_fabricacao': tempoFabricacao,
     if (urlImagem?.isNotEmpty == true) 'url_imagem': urlImagem,
-    'preco': preco,
-    'materiais': materiais?.map((m) => m.toMap()).toList(),
+    if (preco != null) 'preco': preco,
+    if (materiais != null)
+      'materiais': materiais?.map((m) => m.toMap()).toList(),
   };
 
   @override

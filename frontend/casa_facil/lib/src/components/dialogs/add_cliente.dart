@@ -1,4 +1,5 @@
-import 'package:casa_facil/src/api/clientes.dart';
+import 'package:casa_facil/src/api/clientes/clientes.dart';
+import 'package:casa_facil/src/api/clientes/dto.dart';
 import 'package:casa_facil/src/components/app_button.dart';
 import 'package:casa_facil/src/components/dialogs/interface.dart';
 import 'package:casa_facil/src/constants/constants.dart' show gaplg;
@@ -114,9 +115,11 @@ class _AddClienteState extends State<AddCliente> {
     _isPressed.value = true;
 
     await ClientesApi.addCliente(
-      nome: _nomeController.text,
-      email: _emailController.text,
-      nroContato: _contatoController.text,
+      CreateClienteDto(
+        nome: _nomeController.text,
+        email: _emailController.text,
+        nroContato: _contatoController.text,
+      ),
     );
 
     _isPressed.value = false;

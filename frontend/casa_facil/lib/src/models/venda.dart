@@ -11,14 +11,13 @@ class VendaModel {
   final int id;
   final int? clienteId;
   final int? modeloId;
-  final int? userId;
   final String dataVenda;
   final double preco;
   final StatusVenda statusVenda;
   final List<HistoricoStatusModel> statusHistorico;
   final StatusPagamento statusPagamento;
 
-  Cliente? cliente;
+  ClienteModel? cliente;
   ModeloCasaModel? modelo;
   UserModel? user;
 
@@ -26,7 +25,6 @@ class VendaModel {
     required this.id,
     this.clienteId,
     this.modeloId,
-    this.userId,
     required this.dataVenda,
     required this.preco,
     required this.statusVenda,
@@ -46,9 +44,8 @@ class VendaModel {
       id: json?[_Keys.id],
       clienteId: json?[_Keys.clienteId],
       modeloId: json?[_Keys.modeloId],
-      userId: json?[_Keys.userId],
       dataVenda: json?[_Keys.dataVenda],
-      preco: json?[_Keys.preco],
+      preco: double.parse('${json?[_Keys.preco]}'),
       statusVenda: StatusVenda.from(json?[_Keys.status]),
       statusHistorico: statusHistorico,
       statusPagamento: StatusPagamento.from(json?[_Keys.statusPagamento]),
@@ -59,7 +56,6 @@ class VendaModel {
     _Keys.id: id,
     _Keys.cliente: cliente?.toMap(),
     _Keys.modelo: modelo?.toMap(),
-    _Keys.user: user?.toMap(),
     _Keys.dataVenda: dataVenda,
     _Keys.preco: preco,
     _Keys.status: statusVenda.description,
@@ -77,14 +73,12 @@ class _Keys {
   static const id = 'id';
   static const clienteId = 'cliente_id';
   static const modeloId = 'modelo_id';
-  static const userId = 'user_id';
   static const dataVenda = 'data_venda';
   static const preco = 'preco';
   static const status = 'status';
-  static const historicoStatus = 'historico_status';
+  static const historicoStatus = 'vendas_historico';
   static const statusPagamento = 'status_pagamento';
 
   static const cliente = 'cliente';
   static const modelo = 'modelo';
-  static const user = 'user';
 }

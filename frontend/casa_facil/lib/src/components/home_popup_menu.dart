@@ -1,5 +1,5 @@
 import 'package:casa_facil/src/api/auth.dart';
-import 'package:casa_facil/src/components/dialogs/edit_user.dart';
+import 'package:casa_facil/src/components/dialogs/users/edit_user.dart';
 import 'package:casa_facil/src/routes/routes.dart';
 import 'package:casa_facil/src/services/dialog/dialog.dart';
 import 'package:casa_facil/src/utils/get_localization.dart';

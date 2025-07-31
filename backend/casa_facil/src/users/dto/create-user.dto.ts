@@ -7,9 +7,9 @@ import {
 } from 'class-validator';
 
 export class CreateUserDto {
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  full_name?: string;
+  full_name: string;
 
   @IsOptional()
   @IsString()

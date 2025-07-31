@@ -54,7 +54,7 @@ class ProductionOrder {
   final String notes;
   final bool? materialsAllocated;
 
-  Cliente? customer;
+  ClienteModel? customer;
   ModeloCasaModel? model;
 
   ProductionOrder({

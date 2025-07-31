@@ -15,11 +15,7 @@ class Logo extends StatelessWidget {
         mainAxisSize: MainAxisSize.max,
         children: [
           Icon(LucideIcons.building, size: 50),
-          Text(
-            'Gerenciamento CasaFácil',
-            textAlign: TextAlign.center,
-            style: style,
-          ),
+          Text('TechWall', textAlign: TextAlign.center, style: style),
         ],
       ),
     );
