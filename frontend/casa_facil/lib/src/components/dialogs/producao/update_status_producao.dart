@@ -3,9 +3,11 @@ import 'package:casa_facil/src/api/producao/producao.dart';
 import 'package:casa_facil/src/components/app_button.dart';
 import 'package:casa_facil/src/components/dialogs/interface.dart';
 import 'package:casa_facil/src/constants/constants.dart';
+import 'package:casa_facil/src/models/historico_producao.dart';
 import 'package:casa_facil/src/models/ordem_producao.dart';
 import 'package:casa_facil/src/models/status_producao.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' show DateFormat;
 
 class UpdateStatusProducaoDialog extends StatefulWidget
     implements DialogInterface {
@@ -27,6 +29,86 @@ class _UpdateStatusProducaoDialogState
   void initState() {
     super.initState();
     _selectedStatus = widget.ordem.status;
+  }
+
+  /// Constrói a seção que exibe o histórico de status.
+  Widget _buildHistorySection(List<HistoricoProducao> historico) {
+    final theme = Theme.of(context);
+    if (historico.isEmpty) {
+      return const Text('Nenhum histórico de status para exibir.');
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Histórico de Status', style: theme.textTheme.titleMedium),
+        const SizedBox(height: gapmd),
+        // Container com altura fixa e borda para a lista rolável
+        Container(
+          height: 150.0, // Altura moderada
+          decoration: BoxDecoration(
+            border: Border.all(color: theme.colorScheme.outlineVariant),
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: ListView.separated(
+            itemCount: historico.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (context, index) {
+              final item = historico[index];
+              final dataFormatada = item.dataAlteracao?.isNotEmpty == true
+                  ? DateFormat(
+                      'dd/MM/yyyy HH:mm',
+                    ).format(DateTime.parse(item.dataAlteracao!))
+                  : '';
+
+              return ListTile(
+                title: Text.rich(
+                  TextSpan(
+                    style: theme.textTheme.bodyMedium,
+                    children: [
+                      // Mostra o status anterior, se existir
+                      if (item.statusAnterior != null) ...[
+                        TextSpan(
+                          text: item.statusAnterior!.description,
+                          style: const TextStyle(
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                        const WidgetSpan(
+                          child: Icon(
+                            Icons.arrow_right_alt,
+                            size: 16,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                      // Mostra o status novo em negrito
+                      TextSpan(
+                        text: ' ${item.statusNovo.description}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+                subtitle: Text.rich(
+                  TextSpan(
+                    style: TextStyle(fontFamily: 'RobotoMono'),
+                    children: [
+                      // Data da alteração
+                      if (dataFormatada.isNotEmpty)
+                        TextSpan(text: '$dataFormatada: '),
+                      // Notas, se existirem
+                      if (item.notas?.isNotEmpty == true)
+                        TextSpan(text: item.notas!),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -64,6 +146,9 @@ class _UpdateStatusProducaoDialogState
               ),
               maxLines: 3,
             ),
+            const Divider(height: gaplg),
+            // Seção do histórico de status, agora usando os dados diretos
+            _buildHistorySection(widget.ordem.historicoProducao),
           ],
         ),
       ),

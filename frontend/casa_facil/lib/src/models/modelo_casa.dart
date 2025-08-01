@@ -25,9 +25,11 @@ class ModeloCasaModel {
 
   factory ModeloCasaModel.fromJson(Map? json) {
     Object? parser = json?[_Keys.materiais];
-    final materiais = List<MaterialNecessarioModelo>.from(
-      (parser as List).map((l) => MaterialNecessarioModelo.fromJson(l)),
-    );
+    final materiais = parser is List
+        ? List<MaterialNecessarioModelo>.from(
+            parser.map((l) => MaterialNecessarioModelo.fromJson(l)),
+          )
+        : List<MaterialNecessarioModelo>.empty(growable: false);
 
     final int id = json?[_Keys.id];
     final String nome = json?[_Keys.nome];

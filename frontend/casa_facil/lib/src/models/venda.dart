@@ -5,26 +5,25 @@ import 'package:casa_facil/src/models/historico_status.dart';
 import 'package:casa_facil/src/models/modelo_casa.dart';
 import 'package:casa_facil/src/models/status_pagamento.dart';
 import 'package:casa_facil/src/models/status_venda.dart';
-import 'package:casa_facil/src/models/user.dart';
 
 class VendaModel {
   final int id;
   final int? clienteId;
   final int? modeloId;
+  final ClienteModel? cliente;
+  final ModeloCasaModel? modelo;
   final String dataVenda;
   final double preco;
   final StatusVenda statusVenda;
   final List<HistoricoStatusModel> statusHistorico;
   final StatusPagamento statusPagamento;
 
-  ClienteModel? cliente;
-  ModeloCasaModel? modelo;
-  UserModel? user;
-
   VendaModel({
     required this.id,
     this.clienteId,
     this.modeloId,
+    this.cliente,
+    this.modelo,
     required this.dataVenda,
     required this.preco,
     required this.statusVenda,
@@ -44,6 +43,12 @@ class VendaModel {
       id: json?[_Keys.id],
       clienteId: json?[_Keys.clienteId],
       modeloId: json?[_Keys.modeloId],
+      cliente: json?[_Keys.cliente] != null
+          ? ClienteModel.fromJson(json?[_Keys.cliente])
+          : null,
+      modelo: json?[_Keys.modelo] != null
+          ? ModeloCasaModel.fromJson(json?[_Keys.modelo])
+          : null,
       dataVenda: json?[_Keys.dataVenda],
       preco: double.parse('${json?[_Keys.preco]}'),
       statusVenda: StatusVenda.from(json?[_Keys.status]),
@@ -78,7 +83,6 @@ class _Keys {
   static const status = 'status';
   static const historicoStatus = 'vendas_historico';
   static const statusPagamento = 'status_pagamento';
-
-  static const cliente = 'cliente';
-  static const modelo = 'modelo';
+  static const cliente = 'clientes';
+  static const modelo = 'modelo_casa';
 }

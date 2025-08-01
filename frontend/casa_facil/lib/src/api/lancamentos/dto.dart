@@ -50,8 +50,7 @@ class UpdateLancamentoDto {
 
   Map<String, dynamic> toMap() => {
     if (descricao != null) 'descricao': descricao,
-    if (statusPagamento != null)
-      'status_pagamento': statusPagamento!.description,
+    if (statusPagamento != null) 'status_pagamento': statusPagamento!.prisma,
     if (valorPago != null) 'valor_pago': valorPago,
     if (dataVencimento != null)
       'data_vencimento': dataVencimento!.toIso8601String(),

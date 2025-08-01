@@ -12,6 +12,7 @@ import 'package:casa_facil/src/routes/home/usuarios/usuarios.dart';
 import 'package:casa_facil/src/routes/home/vendas/vendas.dart';
 import 'package:casa_facil/src/routes/login/login.dart';
 import 'package:casa_facil/src/routes/routes.dart';
+import 'package:casa_facil/src/routes/sessao_expirada/sessao_expirada.dart';
 import 'package:flutter/widgets.dart' show BackButtonListener, PopScope;
 import 'package:go_router/go_router.dart';
 
@@ -36,6 +37,16 @@ class Router {
           return BackButtonListener(
             onBackButtonPressed: () async => !context.canPop(),
             child: PopScope(canPop: false, child: Login()),
+          );
+        },
+      ),
+      GoRoute(
+        path: Routes.sessaoExpirada.path,
+        name: Routes.sessaoExpirada.name,
+        builder: (context, state) {
+          return BackButtonListener(
+            onBackButtonPressed: () async => !context.canPop(),
+            child: PopScope(canPop: false, child: const SessaoExpirada()),
           );
         },
       ),
@@ -66,57 +77,57 @@ class Router {
             },
           ),
           GoRoute(
-            path: Routes.users.name,
-            name: Routes.users.name,
+            path: Routes.usuarios.name,
+            name: Routes.usuarios.name,
             pageBuilder: (context, state) {
               return NoTransitionPage(child: Home(child: Users()));
             },
           ),
           GoRoute(
-            path: Routes.customers.name,
-            name: Routes.customers.name,
+            path: Routes.clientes.name,
+            name: Routes.clientes.name,
             pageBuilder: (context, state) {
               return NoTransitionPage(child: Home(child: Customers()));
             },
           ),
           GoRoute(
-            path: Routes.houseCatalog.name,
-            name: Routes.houseCatalog.name,
+            path: Routes.modelos.name,
+            name: Routes.modelos.name,
             pageBuilder: (context, state) {
               return NoTransitionPage(child: Home(child: HouseCatalog()));
             },
           ),
           GoRoute(
-            path: Routes.salesRecord.name,
-            name: Routes.salesRecord.name,
+            path: Routes.vendas.name,
+            name: Routes.vendas.name,
             pageBuilder: (context, state) {
               return NoTransitionPage(child: Home(child: SalesRecord()));
             },
           ),
           GoRoute(
-            path: Routes.progress.name,
-            name: Routes.progress.name,
+            path: Routes.producao.name,
+            name: Routes.producao.name,
             pageBuilder: (context, state) {
               return NoTransitionPage(child: Home(child: Producao()));
             },
           ),
           GoRoute(
-            path: Routes.deliveryManagement.name,
-            name: Routes.deliveryManagement.name,
+            path: Routes.entregas.name,
+            name: Routes.entregas.name,
             pageBuilder: (context, state) {
               return NoTransitionPage(child: Home(child: Entregas()));
             },
           ),
           GoRoute(
-            path: Routes.finance.name,
-            name: Routes.finance.name,
+            path: Routes.financeiro.name,
+            name: Routes.financeiro.name,
             pageBuilder: (context, state) {
               return NoTransitionPage(child: Home(child: Finance()));
             },
           ),
           GoRoute(
-            path: Routes.stock.name,
-            name: Routes.stock.name,
+            path: Routes.estoque.name,
+            name: Routes.estoque.name,
             pageBuilder: (context, state) {
               return NoTransitionPage(child: Home(child: Stock()));
             },

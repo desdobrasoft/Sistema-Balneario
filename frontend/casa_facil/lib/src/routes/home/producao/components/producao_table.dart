@@ -26,7 +26,6 @@ class _ProducaoTableState extends State<ProducaoTable> {
   }
 
   Future<void> _updateStatus(OrdemProducaoModel ordem) async {
-    Navigator.of(context).pop(); // Fecha o menu popup
     final success = await DialogService.instance.showDialog(
       UpdateStatusProducaoDialog(ordem: ordem),
     );

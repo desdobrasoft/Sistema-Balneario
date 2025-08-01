@@ -51,7 +51,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get homeNavigationDeliveryLabel => 'Gerenciamento de Entregas';
 
   @override
-  String get homeNavigationFinanceLabel => 'Financeiro';
+  String get homeNavigationFinanceLabel => 'Financeiro/Compras';
 
   @override
   String get homeNavigationStockLabel => 'Estoque';
@@ -202,7 +202,7 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get homeNavigationDeliveryLabel => 'Gerenciamento de Entregas';
 
   @override
-  String get homeNavigationFinanceLabel => 'Financeiro';
+  String get homeNavigationFinanceLabel => 'Financeiro/Compras';
 
   @override
   String get homeNavigationStockLabel => 'Estoque';

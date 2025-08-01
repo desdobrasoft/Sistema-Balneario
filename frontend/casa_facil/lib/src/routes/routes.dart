@@ -2,45 +2,43 @@ import 'dart:convert';
 
 enum Routes {
   login(_loginName, _loginPath),
-
+  sessaoExpirada(_sessaoExpiradaName, _sessaoExpiradaPath),
   home(_homeName, _homePath),
   dashboard(_dashboardName, _dashboardPath),
-  users(_usersName, _usersPath),
-  customers(_customersName, _customersPath),
-  houseCatalog(_houseCatalogName, _houseCatalogPath),
-  salesRecord(_salesRecordName, _salesRecordPath),
-  progress(_progressName, _progressPath),
-  deliveryManagement(_deliveryManagementName, _deliveryManagementPath),
-  finance(_financeName, _financePath),
-  stock(_stockName, _stockPath),
-
-  settings(_settingsName, _settingsPath);
+  usuarios(_usuariosName, _usuariosPath),
+  clientes(_clientesName, _clientesPath),
+  modelos(_modelosName, _modelosPath),
+  vendas(_vendasName, _vendasPath),
+  producao(_producaoName, _producaoPath),
+  entregas(_entregasName, _entregasPath),
+  financeiro(_financeiroName, _financeiroPath),
+  estoque(_estoqueName, _estoquePath);
 
   static const _loginName = 'login';
+  static const _sessaoExpiradaName = 'sessao-expirada';
   static const _homeName = 'home';
   static const _dashboardName = 'painel';
-  static const _usersName = 'usuarios';
-  static const _customersName = 'clientes';
-  static const _houseCatalogName = 'catalogo';
-  static const _salesRecordName = 'registro-vendas';
-  static const _progressName = 'progresso-montagem';
-  static const _deliveryManagementName = 'gerenciamento-entrega';
-  static const _financeName = 'financeiro';
-  static const _stockName = 'estoque';
-  static const _settingsName = 'configuracoes';
+  static const _usuariosName = 'usuarios';
+  static const _clientesName = 'clientes';
+  static const _modelosName = 'catalogo';
+  static const _vendasName = 'registro-vendas';
+  static const _producaoName = 'progresso-montagem';
+  static const _entregasName = 'gerenciamento-entrega';
+  static const _financeiroName = 'financeiro';
+  static const _estoqueName = 'estoque';
 
   static const _loginPath = '/$_loginName';
+  static const _sessaoExpiradaPath = '/$_sessaoExpiradaName';
   static const _homePath = '/';
   static const _dashboardPath = '/$_dashboardName';
-  static const _usersPath = '/$_usersName';
-  static const _customersPath = '/$_customersName';
-  static const _houseCatalogPath = '/$_houseCatalogName';
-  static const _salesRecordPath = '/$_salesRecordName';
-  static const _progressPath = '/$_progressName';
-  static const _deliveryManagementPath = '/$_deliveryManagementName';
-  static const _financePath = '/$_financeName';
-  static const _stockPath = '/$_stockName';
-  static const _settingsPath = '/$_settingsName';
+  static const _usuariosPath = '/$_usuariosName';
+  static const _clientesPath = '/$_clientesName';
+  static const _modelosPath = '/$_modelosName';
+  static const _vendasPath = '/$_vendasName';
+  static const _producaoPath = '/$_producaoName';
+  static const _entregasPath = '/$_entregasName';
+  static const _financeiroPath = '/$_financeiroName';
+  static const _estoquePath = '/$_estoqueName';
 
   final String name;
   final String path;

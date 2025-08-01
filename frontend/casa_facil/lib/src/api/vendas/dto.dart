@@ -39,9 +39,8 @@ class UpdateVendaDto {
   const UpdateVendaDto({this.status, this.statusPagamento});
 
   Map<String, dynamic> toMap() => {
-    if (status != null) 'status': status!.description,
-    if (statusPagamento != null)
-      'status_pagamento': statusPagamento!.description,
+    if (status != null) 'status': status!.prisma,
+    if (statusPagamento != null) 'status_pagamento': statusPagamento!.prisma,
   };
 
   @override

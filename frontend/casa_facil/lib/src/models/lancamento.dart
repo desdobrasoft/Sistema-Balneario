@@ -44,19 +44,27 @@ class LancamentoModel {
 
   factory LancamentoModel.fromJson(Map<dynamic, dynamic>? json) {
     final data = json ?? {};
+
+    final id = data[_Keys.id] ?? 0;
+    final tipo = TipoLancamento.fromSigla(data[_Keys.tipo]);
+    final statusPagamento = StatusPagamento.from(
+      data[_Keys.statusPagamento] ?? '',
+    );
+    final venda = data[_Keys.venda] != null
+        ? VendaModel.fromJson(data[_Keys.venda])
+        : null;
+
     return LancamentoModel(
-      id: data[_Keys.id] ?? 0,
-      tipo: TipoLancamento.fromSigla(data[_Keys.tipo]),
-      statusPagamento: StatusPagamento.from(data[_Keys.statusPagamento] ?? ''),
+      id: id,
+      tipo: tipo,
+      statusPagamento: statusPagamento,
       descricao: data[_Keys.descricao],
       valorTotal: double.tryParse(data[_Keys.valorTotal].toString()) ?? 0.0,
       valorPendente:
           double.tryParse(data[_Keys.valorPendente].toString()) ?? 0.0,
       dataVencimento: data[_Keys.dataVencimento],
       dataUltimoPagamento: data[_Keys.dataUltimoPagamento],
-      venda: data[_Keys.venda] != null
-          ? VendaModel.fromJson(data[_Keys.venda])
-          : null,
+      venda: venda,
     );
   }
 

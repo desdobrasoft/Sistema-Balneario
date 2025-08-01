@@ -38,7 +38,6 @@ class _LancamentosState extends State<Lancamentos> {
   }
 
   Future<void> _editLancamento(LancamentoModel entry) async {
-    Navigator.of(context).pop(); // Fecha o menu de popup
     final success = await DialogService.instance.showDialog(
       EditLancamentoDialog(lancamento: entry),
     );
@@ -46,7 +45,6 @@ class _LancamentosState extends State<Lancamentos> {
   }
 
   Future<void> _removeLancamento(LancamentoModel entry) async {
-    Navigator.of(context).pop();
     final accept = await DialogService.instance.showDialog(
       BooleanDialog(
         title: 'Excluir Lançamento',

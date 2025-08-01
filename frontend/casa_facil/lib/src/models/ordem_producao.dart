@@ -23,7 +23,7 @@ class OrdemProducaoModel {
     final data = json ?? {};
     Object? parser;
 
-    parser = json?[_Keys.historicoProducao];
+    parser = data[_Keys.historicoProducao];
     final historicoProducao = parser is List
         ? parser.map((s) => HistoricoProducao.fromJson(s)).toList()
         : List<HistoricoProducao>.empty(growable: false);
@@ -56,5 +56,5 @@ class _Keys {
   static const dataAgendamento = 'data_agendamento';
   static const historicoProducao = 'ordens_producao_historico';
   static const status = 'status';
-  static const venda = 'venda';
+  static const venda = 'vendas';
 }

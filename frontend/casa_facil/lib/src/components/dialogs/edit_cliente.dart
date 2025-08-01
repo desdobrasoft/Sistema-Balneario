@@ -1,3 +1,5 @@
+import 'package:brasil_fields/brasil_fields.dart'
+    show TelefoneInputFormatter, UtilBrasilFields;
 import 'package:casa_facil/src/api/clientes/clientes.dart';
 import 'package:casa_facil/src/api/clientes/dto.dart';
 import 'package:casa_facil/src/components/app_button.dart';
@@ -33,7 +35,9 @@ class _EditClienteState extends State<EditCliente> {
     // Preenche os campos com os dados existentes do cliente
     _nomeController.text = widget.cliente.nome;
     _emailController.text = widget.cliente.email;
-    _contatoController.text = widget.cliente.nroContato;
+    _contatoController.text = UtilBrasilFields.obterTelefone(
+      widget.cliente.nroContato,
+    );
   }
 
   @override
@@ -90,6 +94,10 @@ class _EditClienteState extends State<EditCliente> {
                     hintStyle: hintStyle(context),
                     labelText: 'Nº Contato',
                   ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    TelefoneInputFormatter(),
+                  ],
                   keyboardType: TextInputType.phone,
                   maxLength: 20,
                   maxLengthEnforcement: MaxLengthEnforcement.enforced,
@@ -131,7 +139,7 @@ class _EditClienteState extends State<EditCliente> {
       dto: UpdateClienteDto(
         nome: _nomeController.text,
         email: _emailController.text,
-        nroContato: _contatoController.text,
+        nroContato: _contatoController.text.replaceAll(RegExp(r'[^0-9]'), ''),
       ),
     );
 

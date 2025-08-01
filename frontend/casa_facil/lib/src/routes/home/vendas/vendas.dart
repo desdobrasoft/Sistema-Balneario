@@ -11,6 +11,7 @@ import 'package:casa_facil/src/utils/hint_style.dart';
 import 'package:flutter/material.dart';
 
 // TODO: Multiplicador de vendas.
+// TODO: Data de vencimento no registro de venda.
 class SalesRecord extends StatefulWidget {
   const SalesRecord({super.key});
 

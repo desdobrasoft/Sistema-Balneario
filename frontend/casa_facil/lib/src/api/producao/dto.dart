@@ -14,7 +14,7 @@ class UpdateOrdemProducaoDto {
   });
 
   Map<String, dynamic> toMap() => {
-    'status': status.description,
+    'status': status.prisma,
     if (notas?.isNotEmpty == true) 'notas': notas,
     if (dataAgendamento != null)
       'data_agendamento': dataAgendamento!.toIso8601String(),

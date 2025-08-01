@@ -7,6 +7,7 @@ import 'package:casa_facil/src/routes/home/financeiro/components/invoices.dart';
 import 'package:casa_facil/src/routes/home/financeiro/components/lancamentos.dart';
 import 'package:flutter/material.dart';
 
+// TODO: Controle de compra de materiais.
 class Finance extends StatefulWidget {
   const Finance({super.key});
 

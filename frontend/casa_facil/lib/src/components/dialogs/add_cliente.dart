@@ -1,3 +1,4 @@
+import 'package:brasil_fields/brasil_fields.dart' show TelefoneInputFormatter;
 import 'package:casa_facil/src/api/clientes/clientes.dart';
 import 'package:casa_facil/src/api/clientes/dto.dart';
 import 'package:casa_facil/src/components/app_button.dart';
@@ -78,6 +79,10 @@ class _AddClienteState extends State<AddCliente> {
                     hintStyle: hintStyle(context),
                     labelText: 'Nº Contato',
                   ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    TelefoneInputFormatter(),
+                  ],
                   keyboardType: TextInputType.phone,
                   maxLength: 20,
                   maxLengthEnforcement: MaxLengthEnforcement.enforced,
@@ -118,7 +123,7 @@ class _AddClienteState extends State<AddCliente> {
       CreateClienteDto(
         nome: _nomeController.text,
         email: _emailController.text,
-        nroContato: _contatoController.text,
+        nroContato: _contatoController.text.replaceAll(RegExp(r'[^0-9]'), ''),
       ),
     );
 

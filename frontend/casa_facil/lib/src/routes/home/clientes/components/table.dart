@@ -1,5 +1,6 @@
 import 'dart:async' show FutureOr;
 
+import 'package:brasil_fields/brasil_fields.dart' show UtilBrasilFields;
 import 'package:casa_facil/src/api/clientes/clientes.dart';
 import 'package:casa_facil/src/components/dialogs/boolean.dart';
 import 'package:casa_facil/src/components/dialogs/edit_cliente.dart';
@@ -53,7 +54,7 @@ class _ClientesTableState extends State<ClientesTable> {
           cells: [
             ResponsiveCell(cliente.nome),
             ResponsiveCell(cliente.email),
-            ResponsiveCell(cliente.nroContato),
+            ResponsiveCell(UtilBrasilFields.obterTelefone(cliente.nroContato)),
             ResponsiveCell(cliente.historicoVendas.toString()),
           ],
           actions: [

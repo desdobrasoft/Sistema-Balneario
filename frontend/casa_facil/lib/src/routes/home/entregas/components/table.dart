@@ -26,7 +26,6 @@ class _EntregasTableState extends State<EntregasTable> {
   }
 
   Future<void> _onPressedEditar(EntregaModel entrega) async {
-    Navigator.of(context).pop();
     final success = await DialogService.instance.showDialog(
       UpdateEntregaDialog(entrega: entrega),
     );

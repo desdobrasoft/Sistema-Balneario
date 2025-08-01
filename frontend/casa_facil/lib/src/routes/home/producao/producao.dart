@@ -13,6 +13,7 @@ class Producao extends StatefulWidget {
   State<Producao> createState() => _ProducaoState();
 }
 
+// TODO: Impedir alteração de status de kits sem materiais.
 class _ProducaoState extends State<Producao> {
   final _controller = TextEditingController();
   final _notifier = ValueNotifier(false);

@@ -82,21 +82,17 @@ class _HomeState extends State<Home> {
       GoRouter.maybeOf(context)?.routeInformationProvider.value.uri.toString(),
     )) {
       Routes.login => localization(context).appTitle,
+      Routes.sessaoExpirada => localization(context).appTitle,
       Routes.home => localization(context).appTitle,
       Routes.dashboard => localization(context).homeNavigationDashboardLabel,
-      Routes.customers => localization(context).homeNavigationCustomersLabel,
-      Routes.houseCatalog => localization(context).homeNavigationCatalogLabel,
-      Routes.salesRecord => localization(
-        context,
-      ).homeNavigationSalesRecordLabel,
-      Routes.progress => localization(context).homeNavigationProgressLabel,
-      Routes.deliveryManagement => localization(
-        context,
-      ).homeNavigationDeliveryLabel,
-      Routes.finance => localization(context).homeNavigationFinanceLabel,
-      Routes.stock => localization(context).homeNavigationStockLabel,
-      Routes.settings => localization(context).homeNavigationSettingsLabel,
-      Routes.users => 'Usuários',
+      Routes.clientes => localization(context).homeNavigationCustomersLabel,
+      Routes.modelos => localization(context).homeNavigationCatalogLabel,
+      Routes.vendas => localization(context).homeNavigationSalesRecordLabel,
+      Routes.producao => localization(context).homeNavigationProgressLabel,
+      Routes.entregas => localization(context).homeNavigationDeliveryLabel,
+      Routes.financeiro => localization(context).homeNavigationFinanceLabel,
+      Routes.estoque => localization(context).homeNavigationStockLabel,
+      Routes.usuarios => 'Usuários',
     };
   }
 }

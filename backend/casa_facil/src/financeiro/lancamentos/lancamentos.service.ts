@@ -40,7 +40,7 @@ export class LancamentosService {
     return this.prisma.lancamentos_financeiros.findMany({
       orderBy: { data_vencimento: 'asc' },
       include: {
-        vendas: { select: { id: true, clientes: { select: { nome: true } } } },
+        vendas: { include: { clientes: true } },
         // Inclua a relação de movimentação se precisar mostrar detalhes
       },
     });

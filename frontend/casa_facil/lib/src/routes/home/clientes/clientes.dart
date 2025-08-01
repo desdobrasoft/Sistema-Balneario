@@ -18,6 +18,7 @@ class Customers extends StatefulWidget {
   State<Customers> createState() => _CustomersState();
 }
 
+// TODO: Adicionar status de contrato com cliente.
 class _CustomersState extends State<Customers> {
   final _controller = TextEditingController();
   final _notifier = ValueNotifier(false);

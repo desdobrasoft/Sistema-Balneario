@@ -16,7 +16,7 @@ class UpdateEntregaDto {
   });
 
   Map<String, dynamic> toMap() => {
-    if (status != null) 'status': status!.description,
+    if (status != null) 'status': status!.prisma,
     if (transportadora != null) 'transportadora': transportadora,
     if (previsaoEntrega != null)
       'previsao_entrega': previsaoEntrega!.toIso8601String(),

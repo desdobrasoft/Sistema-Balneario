@@ -7,7 +7,7 @@ class _Keys {
 
   static const backendHost = 'BACKEND_HOST';
   static const backendPort = 'BACKEND_PORT';
-  static const apiAutenticacao = 'API_AUTENTICACAO';
+  static const auth = 'AUTH';
   static const login = 'LOGIN';
   static const logout = 'LOGOUT';
   static const refresh = 'REFRESH';
@@ -31,7 +31,7 @@ class EnvManager {
 
   late final String backendHost;
   late final int backendPort;
-  late final String apiAutenticacao;
+  late final String auth;
   late final String login;
   late final String logout;
   late final String refresh;
@@ -52,7 +52,7 @@ class EnvManager {
 
     backendHost = dotenv.get(_Keys.backendHost);
     backendPort = dotenv.getInt(_Keys.backendPort);
-    apiAutenticacao = dotenv.get(_Keys.apiAutenticacao);
+    auth = dotenv.get(_Keys.auth);
     login = dotenv.get(_Keys.login);
     logout = dotenv.get(_Keys.logout);
     refresh = dotenv.get(_Keys.refresh);
@@ -72,7 +72,7 @@ class EnvManager {
   Map<String, Object?> toMap() => {
     _Keys.backendHost: backendHost,
     _Keys.backendPort: backendPort,
-    _Keys.apiAutenticacao: apiAutenticacao,
+    _Keys.auth: auth,
     _Keys.login: login,
     _Keys.logout: logout,
     _Keys.refresh: refresh,

@@ -69,11 +69,13 @@ class LancamentosApi {
           message: defaultErrorMessage,
           detalhes: e.response?.data.toString(),
         ),
+        ignoreOpenDialog: true,
       );
       return false;
     } catch (e) {
       DialogService.instance.showDialog(
         ErrorDialog(message: defaultErrorMessage, detalhes: e.toString()),
+        ignoreOpenDialog: true,
       );
       return false;
     }

@@ -53,5 +53,5 @@ class _Keys {
   static const previsaoEntrega = 'previsao_entrega';
   static const transportadora = 'transportadora';
   static const status = 'status';
-  static const venda = 'venda';
+  static const venda = 'vendas';
 }

@@ -1,8 +1,11 @@
 import 'package:casa_facil/src/api/auth.dart';
+import 'package:casa_facil/src/app.dart';
+import 'package:casa_facil/src/routes/routes.dart';
 import 'package:casa_facil/src/services/env/env.dart';
 import 'package:casa_facil/src/services/preferences/preferences.dart';
 import 'package:casa_facil/src/utils/build_url.dart';
 import 'package:dio/dio.dart';
+import 'package:go_router/go_router.dart';
 
 class HttpService {
   HttpService._() {
@@ -35,7 +38,13 @@ class HttpService {
               return handler.resolve(response);
             } catch (e) {
               // Se a renovação falhar, faz o logout
-              await AuthApi.api.logout();
+              await AuthApi.api.logout(forceLocal: true);
+
+              final context = CasaFacil.appKey.currentContext;
+              if (context != null && context.mounted) {
+                context.go(Routes.sessaoExpirada.path);
+              }
+
               return handler.reject(error);
             }
           }
