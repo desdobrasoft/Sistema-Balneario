@@ -14,7 +14,7 @@ import 'package:tech_wall/src/utils/get_localization.dart';
 class InventoryDashboard extends StatefulWidget {
   const InventoryDashboard({super.key, required this.data});
 
-  final List<MateriaisEstoque> data;
+  final List<MateriaisEstoqueModel> data;
 
   @override
   State<InventoryDashboard> createState() => InventoryDashboardState();

@@ -11,7 +11,7 @@ import 'package:tech_wall/src/utils/formatador_moeda.dart';
 
 class AddPedidoDialog extends StatefulWidget implements DialogInterface {
   const AddPedidoDialog({super.key, this.initialMaterial});
-  final MateriaisEstoque? initialMaterial;
+  final MateriaisEstoqueModel? initialMaterial;
 
   @override
   State<AddPedidoDialog> createState() => _AddPedidoDialogState();
@@ -23,7 +23,7 @@ class _AddPedidoDialogState extends State<AddPedidoDialog> {
   final _qtdeController = TextEditingController();
   final _fornecedorController = TextEditingController();
   final _valorController = TextEditingController(text: '0,00');
-  MateriaisEstoque? _selectedMaterial;
+  MateriaisEstoqueModel? _selectedMaterial;
 
   @override
   void initState() {
@@ -43,7 +43,7 @@ class _AddPedidoDialogState extends State<AddPedidoDialog> {
             mainAxisSize: MainAxisSize.min,
             spacing: gaplg,
             children: [
-              FutureBuilder<List<MateriaisEstoque>>(
+              FutureBuilder<List<MateriaisEstoqueModel>>(
                 future: MateriaisEstoqueApi.listAll(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
@@ -60,7 +60,7 @@ class _AddPedidoDialogState extends State<AddPedidoDialog> {
                     ); // Ordem decrescente
                   });
 
-                  return DropdownButtonFormField<MateriaisEstoque>(
+                  return DropdownButtonFormField<MateriaisEstoqueModel>(
                     value: _selectedMaterial,
                     decoration: const InputDecoration(
                       labelText: 'Material',

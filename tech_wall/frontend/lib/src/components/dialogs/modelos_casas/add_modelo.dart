@@ -32,13 +32,13 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
   final _controllerUrl = TextEditingController();
   final _controllerPreco = TextEditingController(text: '0,00');
   final _controllerDescricao = TextEditingController();
-  final _controllerMateriais = MultiSelectController<MateriaisEstoque>();
+  final _controllerMateriais = MultiSelectController<MateriaisEstoqueModel>();
 
   late ColorScheme _scheme;
 
   List<TextEditingController> _controllersMateriais = [];
   bool _isQuantidade = false;
-  List<MateriaisEstoque>? _materiais;
+  List<MateriaisEstoqueModel>? _materiais;
 
   @override
   void initState() {
@@ -260,7 +260,7 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
                             value: material,
                           );
                         }).toList() ??
-                        List<DropdownItem<MateriaisEstoque>>.empty(
+                        List<DropdownItem<MateriaisEstoqueModel>>.empty(
                           growable: false,
                         ),
 

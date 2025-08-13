@@ -28,9 +28,9 @@ class _StockState extends State<Stock> with SingleTickerProviderStateMixin {
   final _notifier = ValueNotifier(false);
   late final TabController _tabController;
 
-  List<MateriaisEstoque> _materiais = [];
+  List<MateriaisEstoqueModel> _materiais = [];
   List<PedidoCompraModel> _pedidos = [];
-  List<MateriaisEstoque> _filteredMateriais = [];
+  List<MateriaisEstoqueModel> _filteredMateriais = [];
 
   @override
   void initState() {
@@ -53,7 +53,7 @@ class _StockState extends State<Stock> with SingleTickerProviderStateMixin {
       MateriaisEstoqueApi.listAll(),
       PedidosCompraApi.listAll(),
     ]);
-    _materiais = responses[0] as List<MateriaisEstoque>;
+    _materiais = responses[0] as List<MateriaisEstoqueModel>;
     _pedidos = responses[1] as List<PedidoCompraModel>;
     _listener();
     _notifier.value = !_notifier.value;

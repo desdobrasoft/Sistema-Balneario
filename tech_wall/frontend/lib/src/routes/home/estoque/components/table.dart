@@ -13,7 +13,7 @@ import 'package:tech_wall/src/utils/get_localization.dart';
 class InventoryTable extends StatefulWidget {
   const InventoryTable({super.key, required this.data, this.onDataChange});
 
-  final List<MateriaisEstoque> data;
+  final List<MateriaisEstoqueModel> data;
   final FutureOr<void> Function()? onDataChange;
 
   @override
@@ -30,7 +30,7 @@ class InventoryTableState extends State<InventoryTable> {
   }
 
   // AÇÃO DE EDITAR
-  Future<void> _onPressedEditar(MateriaisEstoque item) async {
+  Future<void> _onPressedEditar(MateriaisEstoqueModel item) async {
     final success = await DialogService.instance.showDialog(
       EditMaterial(material: item),
     );
@@ -40,7 +40,7 @@ class InventoryTableState extends State<InventoryTable> {
   }
 
   // AÇÃO DE EXCLUIR
-  Future<void> _onPressedExcluir(MateriaisEstoque item) async {
+  Future<void> _onPressedExcluir(MateriaisEstoqueModel item) async {
     final accept =
         await DialogService.instance.showDialog(
           BooleanDialog(
@@ -114,8 +114,8 @@ class InventoryTableState extends State<InventoryTable> {
   }
 
   int _compare(
-    MateriaisEstoque a,
-    MateriaisEstoque b,
+    MateriaisEstoqueModel a,
+    MateriaisEstoqueModel b,
     bool ascending,
     int index,
   ) {

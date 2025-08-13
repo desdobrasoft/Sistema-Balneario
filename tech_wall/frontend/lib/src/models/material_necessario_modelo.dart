@@ -2,7 +2,7 @@ import 'package:tech_wall/src/models/materiais_estoque.dart';
 
 class MaterialNecessarioModelo {
   final int qtModelo;
-  final MateriaisEstoque material;
+  final MateriaisEstoqueModel material;
 
   const MaterialNecessarioModelo({
     required this.qtModelo,
@@ -12,7 +12,7 @@ class MaterialNecessarioModelo {
   factory MaterialNecessarioModelo.fromJson(Map? json) {
     return MaterialNecessarioModelo(
       qtModelo: json?[_Keys.qtModelo],
-      material: MateriaisEstoque.fromJson(json?[_Keys.material]),
+      material: MateriaisEstoqueModel.fromJson(json?[_Keys.material]),
     );
   }
 

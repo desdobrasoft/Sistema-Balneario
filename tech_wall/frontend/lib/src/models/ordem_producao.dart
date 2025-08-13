@@ -42,7 +42,7 @@ class OrdemProducaoModel {
     _Keys.dataAgendamento: dataAgendamento,
     _Keys.historicoProducao: historicoProducao.map((h) => h.toMap()).toList(),
     _Keys.status: status.description,
-    _Keys.venda: venda,
+    _Keys.venda: venda.toMap(),
   };
 
   @override

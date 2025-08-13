@@ -11,7 +11,7 @@ import 'package:tech_wall/src/utils/hint_style.dart';
 class EditMaterial extends StatefulWidget implements DialogInterface {
   const EditMaterial({super.key, required this.material});
 
-  final MateriaisEstoque material;
+  final MateriaisEstoqueModel material;
 
   @override
   State<EditMaterial> createState() => _EditMaterialState();

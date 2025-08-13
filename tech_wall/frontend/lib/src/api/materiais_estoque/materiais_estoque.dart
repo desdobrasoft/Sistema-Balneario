@@ -38,11 +38,13 @@ class MateriaisEstoqueApi {
   }
 
   /// Lista todos os materiais ativos no estoque.
-  static Future<List<MateriaisEstoque>> listAll() async {
+  static Future<List<MateriaisEstoqueModel>> listAll() async {
     try {
       final response = await _http.dio.get(buildUrl(_url));
       final json = response.data;
-      return (json as List).map((m) => MateriaisEstoque.fromJson(m)).toList();
+      return (json as List)
+          .map((m) => MateriaisEstoqueModel.fromJson(m))
+          .toList();
     } on DioException catch (e) {
       DialogService.instance.showDialog(
         ErrorDialog(
@@ -60,10 +62,10 @@ class MateriaisEstoqueApi {
   }
 
   /// Busca um único material pelo seu ID.
-  static Future<MateriaisEstoque?> getMaterial(String id) async {
+  static Future<MateriaisEstoqueModel?> getMaterial(String id) async {
     try {
       final response = await _http.dio.get(buildUrl('$_url/$id'));
-      return MateriaisEstoque.fromJson(response.data);
+      return MateriaisEstoqueModel.fromJson(response.data);
     } on DioException catch (e) {
       if (e.response?.statusCode != 404) {
         DialogService.instance.showDialog(
@@ -107,7 +109,7 @@ class MateriaisEstoqueApi {
   }
 
   /// Remove um material do estoque (soft delete).
-  static Future<bool> removeMaterial(MateriaisEstoque material) async {
+  static Future<bool> removeMaterial(MateriaisEstoqueModel material) async {
     final accept =
         await DialogService.instance.showDialog(
           BooleanDialog(

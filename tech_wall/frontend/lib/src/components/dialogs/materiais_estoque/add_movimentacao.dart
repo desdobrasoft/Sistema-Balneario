@@ -23,7 +23,7 @@ class _AddMovimentacaoDialogState extends State<AddMovimentacaoDialog> {
   final _tipoMovimentacao = ValueNotifier<TipoMovimentacao>(
     TipoMovimentacao.entrada,
   );
-  final _selectedMaterial = ValueNotifier<MateriaisEstoque?>(null);
+  final _selectedMaterial = ValueNotifier<MateriaisEstoqueModel?>(null);
 
   final _qtdeController = TextEditingController();
   final _fornecedorController = TextEditingController();
@@ -42,7 +42,7 @@ class _AddMovimentacaoDialogState extends State<AddMovimentacaoDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: gaplg,
             children: [
-              FutureBuilder<List<MateriaisEstoque>>(
+              FutureBuilder<List<MateriaisEstoqueModel>>(
                 future: MateriaisEstoqueApi.listAll(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -59,7 +59,7 @@ class _AddMovimentacaoDialogState extends State<AddMovimentacaoDialog> {
                   return ValueListenableBuilder(
                     valueListenable: _selectedMaterial,
                     builder: (context, material, _) {
-                      return DropdownButtonFormField<MateriaisEstoque>(
+                      return DropdownButtonFormField<MateriaisEstoqueModel>(
                         value: material,
                         decoration: InputDecoration(
                           filled: true,

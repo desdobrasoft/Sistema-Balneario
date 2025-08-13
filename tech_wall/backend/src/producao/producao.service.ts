@@ -3,15 +3,29 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { status_producao } from '@prisma/client';
+import { Prisma, status_producao } from '@prisma/client'; // Importação adicionada
 import { EntregasService } from 'src/entregas/entregas.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateOrdemProducaoDto } from './dto/update-ordem-producao.dto';
 
-const includeRelations = {
-  vendas: { include: { clientes: true, modelo_casa: true } },
+// Objeto de inclusão atualizado e com tipagem explícita para corrigir o erro
+const includeRelations: Prisma.ordens_producaoInclude = {
+  vendas: {
+    include: {
+      clientes: true,
+      modelo_casa: {
+        include: {
+          materiais_modelo_casa: {
+            include: {
+              materiais_estoque: true,
+            },
+          },
+        },
+      },
+    },
+  },
   ordens_producao_historico: { orderBy: { data_alteracao: 'asc' } },
-} as const;
+};
 
 @Injectable()
 export class ProducaoService {
@@ -23,14 +37,14 @@ export class ProducaoService {
   findAll() {
     return this.prisma.ordens_producao.findMany({
       orderBy: { created_at: 'desc' },
-      include: includeRelations,
+      include: includeRelations, // Utiliza o novo objeto de inclusão
     });
   }
 
   async findOne(id: number) {
     const ordem = await this.prisma.ordens_producao.findUnique({
       where: { id },
-      include: includeRelations,
+      include: includeRelations, // Utiliza o novo objeto de inclusão aqui também
     });
     if (!ordem) {
       throw new NotFoundException(

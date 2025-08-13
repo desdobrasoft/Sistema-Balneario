@@ -1,6 +1,6 @@
 import 'dart:convert' show jsonEncode;
 
-class MateriaisEstoque {
+class MateriaisEstoqueModel {
   final String id;
   final String nome;
   final int qtEstoque;
@@ -8,7 +8,7 @@ class MateriaisEstoque {
   final String? ultimaEntrada;
   final String? ultimaSaida;
 
-  const MateriaisEstoque({
+  const MateriaisEstoqueModel({
     required this.id,
     required this.nome,
     required this.qtEstoque,
@@ -17,8 +17,8 @@ class MateriaisEstoque {
     this.ultimaSaida,
   });
 
-  factory MateriaisEstoque.fromJson(Map? json) {
-    return MateriaisEstoque(
+  factory MateriaisEstoqueModel.fromJson(Map? json) {
+    return MateriaisEstoqueModel(
       id: json?[_Keys.id],
       nome: json?[_Keys.nome],
       qtEstoque: json?[_Keys.qtEstoque],
@@ -43,7 +43,7 @@ class MateriaisEstoque {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is MateriaisEstoque &&
+      other is MateriaisEstoqueModel &&
           runtimeType == other.runtimeType &&
           id == other.id;
 

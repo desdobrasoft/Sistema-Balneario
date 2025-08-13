@@ -13,7 +13,7 @@ class LowStockCard extends StatelessWidget {
     this.onTap,
   });
 
-  final List<MateriaisEstoque> materiais;
+  final List<MateriaisEstoqueModel> materiais;
   final List<PedidoCompraModel> pedidos;
   final VoidCallback? onTap;
 

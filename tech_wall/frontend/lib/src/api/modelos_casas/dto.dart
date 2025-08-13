@@ -9,7 +9,10 @@ class MaterialRequeridoDto {
     required this.qtModelo,
   });
 
-  toMap() => {'materialId': materialId, 'qt_modelo': qtModelo};
+  Map<String, Object?> toMap() => {
+    'materialId': materialId,
+    'qt_modelo': qtModelo,
+  };
 
   @override
   String toString() => jsonEncode(toMap());

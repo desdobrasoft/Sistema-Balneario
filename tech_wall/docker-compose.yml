@@ -1,0 +1,70 @@
+services:
+  # Serviço do Banco de Dados PostgreSQL
+  db:
+    image: postgres:17.5-alpine
+    container_name: tech_wall_db
+    environment:
+      POSTGRES_USER: tech_wall
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: tech_wall
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./backend/prisma/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Serviço do Backend (NestJS)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tech_wall_backend
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://tech_wall:${DB_PASSWORD}@db:5432/tech_wall?schema=public"
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION}
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  # Serviço do Frontend (Flutter + Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Passa as variáveis do .env como argumentos para o build do Docker
+        - BACKEND_HOST=${BACKEND_HOST}
+        - BACKEND_PORT=${BACKEND_PORT}
+        - AUTH=${AUTH}
+        - LOGIN=${LOGIN}
+        - REFRESH=${REFRESH}
+        - LOGOUT=${LOGOUT}
+        - CLIENTES=${CLIENTES}
+        - ENTREGAS=${ENTREGAS}
+        - FINANCEIRO=${FINANCEIRO}
+        - LANCAMENTOS=${LANCAMENTOS}
+        - PEDIDOS_COMPRA=${PEDIDOS_COMPRA}
+        - COMPRA_RECEBER=${COMPRA_RECEBER}
+        - COMPRA_RESOLVER=${COMPRA_RESOLVER}
+        - MATERIAIS=${MATERIAIS}
+        - MODELO_CASA=${MODELO_CASA}
+        - MOVIMENTACOES_MATERIAIS=${MOVIMENTACOES_MATERIAIS}
+        - PRODUCAO=${PRODUCAO}
+        - USERS=${USERS}
+        - VENDAS=${VENDAS}
+        - CURRENT_USER=${CURRENT_USER}
+    container_name: tech_wall_frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

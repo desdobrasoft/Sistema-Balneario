@@ -27,7 +27,7 @@ class FinanceDashboard extends StatefulWidget {
 class _FinanceDashboardState extends State<FinanceDashboard> {
   static const _cardHeight = 100.0;
 
-  List<MateriaisEstoque>? _materiais;
+  List<MateriaisEstoqueModel>? _materiais;
   List<PedidoCompraModel>? _pedidos;
 
   @override
@@ -43,7 +43,7 @@ class _FinanceDashboardState extends State<FinanceDashboard> {
     ]);
     if (mounted) {
       setState(() {
-        _materiais = responses[0] as List<MateriaisEstoque>;
+        _materiais = responses[0] as List<MateriaisEstoqueModel>;
         _pedidos = responses[1] as List<PedidoCompraModel>;
       });
     }

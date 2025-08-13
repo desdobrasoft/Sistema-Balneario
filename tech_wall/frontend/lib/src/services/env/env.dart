@@ -1,57 +1,32 @@
 import 'dart:convert' show JsonEncoder;
 
-import 'package:flutter_dotenv/flutter_dotenv.dart' show dotenv;
-
 class EnvManager {
   EnvManager._();
 
   static final env = EnvManager._();
 
-  late final String backendHost;
-  late final int backendPort;
-  late final String auth;
-  late final String login;
-  late final String logout;
-  late final String refresh;
-  late final String materiais;
-  late final String modeloCasa;
-  late final String movimentacoesMateriais;
-  late final String clientes;
-  late final String users;
-  late final String vendas;
-  late final String currentUser;
-  late final String financeiro;
-  late final String lancamentos;
-  late final String producao;
-  late final String entregas;
-  late final String pedidosCompra;
-  late final String compraReceber;
-  late final String compraResolver;
-
-  Future<void> init() async {
-    await dotenv.load(fileName: '.env');
-
-    backendHost = dotenv.get(_Keys.backendHost);
-    backendPort = dotenv.getInt(_Keys.backendPort);
-    auth = dotenv.get(_Keys.auth);
-    login = dotenv.get(_Keys.login);
-    logout = dotenv.get(_Keys.logout);
-    refresh = dotenv.get(_Keys.refresh);
-    clientes = dotenv.get(_Keys.clientes);
-    materiais = dotenv.get(_Keys.materiais);
-    modeloCasa = dotenv.get(_Keys.modeloCasa);
-    movimentacoesMateriais = dotenv.get(_Keys.movimentacoesMateriais);
-    users = dotenv.get(_Keys.users);
-    vendas = dotenv.get(_Keys.vendas);
-    currentUser = dotenv.get(_Keys.currentUser);
-    financeiro = dotenv.get(_Keys.financeiro);
-    lancamentos = dotenv.get(_Keys.lancamentos);
-    producao = dotenv.get(_Keys.producao);
-    entregas = dotenv.get(_Keys.entregas);
-    pedidosCompra = dotenv.get(_Keys.pedidosCompra);
-    compraReceber = dotenv.get(_Keys.compraReceber);
-    compraResolver = dotenv.get(_Keys.compraResolver);
-  }
+  final String backendHost = String.fromEnvironment(_Keys.backendHost);
+  final int backendPort = int.fromEnvironment(_Keys.backendPort);
+  final String auth = String.fromEnvironment(_Keys.auth);
+  final String login = String.fromEnvironment(_Keys.login);
+  final String logout = String.fromEnvironment(_Keys.logout);
+  final String refresh = String.fromEnvironment(_Keys.refresh);
+  final String materiais = String.fromEnvironment(_Keys.materiais);
+  final String modeloCasa = String.fromEnvironment(_Keys.modeloCasa);
+  final String movimentacoesMateriais = String.fromEnvironment(
+    _Keys.movimentacoesMateriais,
+  );
+  final String clientes = String.fromEnvironment(_Keys.clientes);
+  final String users = String.fromEnvironment(_Keys.users);
+  final String vendas = String.fromEnvironment(_Keys.vendas);
+  final String currentUser = String.fromEnvironment(_Keys.currentUser);
+  final String financeiro = String.fromEnvironment(_Keys.financeiro);
+  final String lancamentos = String.fromEnvironment(_Keys.lancamentos);
+  final String producao = String.fromEnvironment(_Keys.producao);
+  final String entregas = String.fromEnvironment(_Keys.entregas);
+  final String pedidosCompra = String.fromEnvironment(_Keys.pedidosCompra);
+  final String compraReceber = String.fromEnvironment(_Keys.compraReceber);
+  final String compraResolver = String.fromEnvironment(_Keys.compraResolver);
 
   Map<String, Object?> toMap() => {
     _Keys.backendHost: backendHost,

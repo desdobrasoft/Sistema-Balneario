@@ -39,15 +39,15 @@ class _VerDetalhesDialogState extends State<VerDetalhesDialog> {
   final _controllerUrl = TextEditingController();
   final _controllerPreco = TextEditingController(text: '0,00');
   final _controllerDescricao = TextEditingController();
-  final _controllerMateriais = MultiSelectController<MateriaisEstoque>();
+  final _controllerMateriais = MultiSelectController<MateriaisEstoqueModel>();
 
   late ColorScheme _scheme;
 
   List<TextEditingController> _controllersMateriais = [];
   bool _edit = false;
   bool _isQuantidade = false;
-  List<MateriaisEstoque>? _materiais;
-  List<DropdownItem<MateriaisEstoque>> _items = [];
+  List<MateriaisEstoqueModel>? _materiais;
+  List<DropdownItem<MateriaisEstoqueModel>> _items = [];
 
   @override
   void initState() {
@@ -70,7 +70,7 @@ class _VerDetalhesDialogState extends State<VerDetalhesDialog> {
               _materiais?.map((material) {
                 return DropdownItem(label: material.nome, value: material);
               }).toList() ??
-              List<DropdownItem<MateriaisEstoque>>.empty(growable: false);
+              List<DropdownItem<MateriaisEstoqueModel>>.empty(growable: false);
         });
       });
     });

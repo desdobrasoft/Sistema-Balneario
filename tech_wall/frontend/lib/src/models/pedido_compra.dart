@@ -12,7 +12,7 @@ class PedidoCompraModel {
   final double? valorUnitario;
   final String dataPedido;
   final StatusPedidoCompra status;
-  final MateriaisEstoque material;
+  final MateriaisEstoqueModel material;
   final UserModel? solicitante;
 
   const PedidoCompraModel({
@@ -37,7 +37,7 @@ class PedidoCompraModel {
       valorUnitario: double.tryParse(data[_Keys.valorUnitario].toString()),
       dataPedido: data[_Keys.dataPedido] ?? '',
       status: StatusPedidoCompra.from(data[_Keys.status]),
-      material: MateriaisEstoque.fromJson(data[_Keys.material]),
+      material: MateriaisEstoqueModel.fromJson(data[_Keys.material]),
       solicitante: data[_Keys.solicitante] != null
           ? UserModel.fromJson(data[_Keys.solicitante])
           : null,
