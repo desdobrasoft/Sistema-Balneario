@@ -1,4 +1,20 @@
 services:
+  reverse-proxy:
+    image: traefik:latest
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entryPoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=elliott@zenful.cloud"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock
   db:
     image: postgres:16-alpine
     container_name: tech_wall_db
@@ -22,7 +38,6 @@ services:
 
   backend:
     build: ./backend
-    container_name: tech_wall_backend
     restart: always
     ports:
       - "3000:3000"
@@ -30,6 +45,9 @@ services:
       - db-password
       - jwt-secret
       - jwt-refresh-secret
+    deploy:
+      mode: replicated
+      replicas: 3
     depends_on:
       db:
         condition: service_healthy
@@ -40,15 +58,23 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: tech_wall_frontend
     restart: always
     ports:
       - "80:80"
+    deploy:
+      mode: replicated
+      replicas: 3
     depends_on:
       - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend-router.rule=Host(`srv734963.hstgr.cloud`)"
+      - "traefik.http.routers.frontend-router.entrypoints=websecure"
+      - "traefik.http.routers.frontend-router.tls.certresolver=myresolver"
 
 volumes:
   postgres-data:
+  letsencrypt:
 
 secrets:
   db-password:
