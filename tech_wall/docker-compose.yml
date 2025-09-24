@@ -1,0 +1,61 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: tech_wall_db
+    restart: always
+    ports:
+      - "5432:5432"
+    secrets:
+      - db-password
+    environment:
+      POSTGRES_DB: tech_wall
+      POSTGRES_USER: tech_wall
+      POSTGRES_PASSWORD_FILE: /run/secrets/db-password
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+      - ./backend/src/prisma/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tech_wall -d tech_wall"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: tech_wall_backend
+    restart: always
+    ports:
+      - "3000:3000"
+    secrets:
+      - db-password
+      - jwt-secret
+      - jwt-refresh-secret
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env.production
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: tech_wall_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres-data:
+
+secrets:
+  db-password:
+    file: ~/db/password.txt
+  jwt-secret:
+    file: ~/secrets/jwt_secret.txt
+  jwt-refresh-secret:
+    file: ~/secrets/jwt_refresh_secret.txt

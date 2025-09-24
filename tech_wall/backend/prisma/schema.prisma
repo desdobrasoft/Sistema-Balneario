@@ -1,0 +1,304 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "windows"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model roles {
+  id         Int          @id @default(autoincrement())
+  role       String       @unique @db.VarChar(50)
+  user_roles user_roles[]
+}
+
+model user_roles {
+  user_id Int
+  role_id Int
+  roles   roles @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users   users @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([user_id, role_id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model users {
+  id                     Int                      @id @default(autoincrement())
+  full_name              String?                  @db.VarChar(255)
+  username               String?                  @unique @db.VarChar(50)
+  email                  String?                  @unique @db.VarChar(100)
+  password_hash          String
+  refresh_token_hash     String?
+  is_active              Boolean?                 @default(true)
+  qt_vendas              Int?                     @default(0)
+  created_at             DateTime?                @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime?                @default(now()) @db.Timestamptz(6)
+  movimentacao_materiais movimentacao_materiais[]
+  pedidos_compra         pedidos_compra[]
+  user_roles             user_roles[]
+  vendas                 vendas[]
+}
+
+model clientes {
+  id               Int       @id @default(autoincrement())
+  nome             String    @db.VarChar(255)
+  email            String?   @db.VarChar(100)
+  nro_contato      String?   @db.VarChar(20)
+  historico_vendas Int?      @default(0)
+  created_at       DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime? @default(now()) @db.Timestamptz(6)
+  vendas           vendas[]
+}
+
+model materiais_estoque {
+  id                     String                   @id
+  item                   String
+  quantidade             Int                      @default(0)
+  unidade                String?                  @db.VarChar(50)
+  observacao             String?
+  tipo_id                Int?
+  lim_baixo_estoque      Int?                     @default(0)
+  ultima_entrada         DateTime?                @db.Timestamptz(6)
+  ultima_saida           DateTime?                @db.Timestamptz(6)
+  deleted_at             DateTime?                @db.Timestamptz(6)
+  tipos_materiais        tipos_materiais?         @relation(fields: [tipo_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  materiais_modelo_casa  materiais_modelo_casa[]
+  movimentacao_materiais movimentacao_materiais[]
+  pedidos_compra         pedidos_compra[]
+  placas_especificacoes  placas_especificacoes?
+  venda_itens_override   venda_itens_override[]
+
+  @@index([deleted_at], map: "idx_materiais_estoque_deleted_at")
+}
+
+model materiais_modelo_casa {
+  modelo_casa_id    Int
+  material_id       String
+  qt_modelo         Int
+  materiais_estoque materiais_estoque @relation(fields: [material_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  modelo_casa       modelo_casa       @relation(fields: [modelo_casa_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([modelo_casa_id, material_id])
+}
+
+model modelo_casa {
+  id                    Int                     @id @default(autoincrement())
+  nome                  String                  @db.VarChar(255)
+  descricao             String?
+  tempo_fabricacao      Int
+  url_imagem            String?
+  preco                 Decimal                 @db.Decimal(12, 2)
+  qt_vendido            Int?                    @default(0)
+  created_at            DateTime?               @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime?               @default(now()) @db.Timestamptz(6)
+  deleted_at            DateTime?               @db.Timestamptz(6)
+  materiais_modelo_casa materiais_modelo_casa[]
+  vendas                vendas[]
+
+  @@index([deleted_at], map: "idx_modelo_casa_deleted_at")
+}
+
+model vendas {
+  id                      Int                       @id @default(autoincrement())
+  cliente_id              Int?
+  modelo_id               Int?
+  user_id                 Int?
+  data_venda              DateTime                  @db.Timestamptz(6)
+  preco                   Decimal                   @db.Decimal(12, 2)
+  endereco_entrega        String
+  status                  status_venda
+  status_pagamento        status_pagamento_venda
+  created_at              DateTime?                 @default(now()) @db.Timestamptz(6)
+  entregas                entregas?
+  lancamentos_financeiros lancamentos_financeiros[]
+  ordens_producao         ordens_producao?
+  venda_itens_override    venda_itens_override[]
+  clientes                clientes?                 @relation(fields: [cliente_id], references: [id], onUpdate: NoAction)
+  modelo_casa             modelo_casa?              @relation(fields: [modelo_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  users                   users?                    @relation(fields: [user_id], references: [id], onUpdate: NoAction)
+  vendas_historico        vendas_historico[]
+}
+
+model vendas_historico {
+  id              Int           @id @default(autoincrement())
+  venda_id        Int
+  status_anterior status_venda?
+  status_novo     status_venda
+  data_alteracao  DateTime?     @default(now()) @db.Timestamptz(6)
+  vendas          vendas        @relation(fields: [venda_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model movimentacao_materiais {
+  id                      Int                       @id @default(autoincrement())
+  user_id                 Int?
+  material_id             String
+  tipo_movimentacao       String                    @db.Char(1)
+  data_movimentacao       DateTime                  @db.Timestamptz(6)
+  qtde                    Int
+  fornecedor              String?                   @db.VarChar(255)
+  notas                   String?
+  created_at              DateTime?                 @default(now()) @db.Timestamptz(6)
+  lancamentos_financeiros lancamentos_financeiros[]
+  materiais_estoque       materiais_estoque         @relation(fields: [material_id], references: [id], onUpdate: NoAction)
+  users                   users?                    @relation(fields: [user_id], references: [id], onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model lancamentos_financeiros {
+  id                       Int                     @id @default(autoincrement())
+  tipo                     tipo_lancamento
+  status_pagamento         status_pagamento_venda  @default(PENDENTE)
+  descricao                String?
+  valor_total              Decimal                 @db.Decimal(12, 2)
+  valor_pendente           Decimal                 @default(0.00) @db.Decimal(12, 2)
+  data_vencimento          DateTime?               @db.Date
+  data_ultimo_pagamento    DateTime?               @db.Timestamptz(6)
+  venda_id                 Int?
+  movimentacao_material_id Int?
+  created_at               DateTime?               @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime?               @default(now()) @db.Timestamptz(6)
+  movimentacao_materiais   movimentacao_materiais? @relation(fields: [movimentacao_material_id], references: [id], onUpdate: NoAction)
+  vendas                   vendas?                 @relation(fields: [venda_id], references: [id], onUpdate: NoAction)
+}
+
+model ordens_producao {
+  id                        Int                         @id @default(autoincrement())
+  venda_id                  Int                         @unique
+  data_agendamento          DateTime?                   @db.Date
+  status                    status_producao
+  created_at                DateTime?                   @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime?                   @default(now()) @db.Timestamptz(6)
+  vendas                    vendas                      @relation(fields: [venda_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  ordens_producao_historico ordens_producao_historico[]
+}
+
+model ordens_producao_historico {
+  id                Int              @id @default(autoincrement())
+  ordem_producao_id Int
+  status_anterior   status_producao?
+  status_novo       status_producao
+  notas             String?
+  data_alteracao    DateTime?        @default(now()) @db.Timestamptz(6)
+  ordens_producao   ordens_producao  @relation(fields: [ordem_producao_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model entregas {
+  id                 Int                  @id @default(autoincrement())
+  venda_id           Int                  @unique
+  endereco_entrega   String
+  previsao_entrega   DateTime             @db.Date
+  transportadora     String?              @db.VarChar(255)
+  status             status_entrega
+  created_at         DateTime?            @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime?            @default(now()) @db.Timestamptz(6)
+  vendas             vendas               @relation(fields: [venda_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  entregas_historico entregas_historico[]
+}
+
+model entregas_historico {
+  id              Int             @id @default(autoincrement())
+  entrega_id      Int
+  status_anterior status_entrega?
+  status_novo     status_entrega
+  notas           String?
+  data_alteracao  DateTime?       @default(now()) @db.Timestamptz(6)
+  entregas        entregas        @relation(fields: [entrega_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model pedidos_compra {
+  id                Int                  @id @default(autoincrement())
+  material_id       String
+  user_id           Int?
+  qt_solicitada     Int
+  qt_entregue       Int?
+  fornecedor        String?              @db.VarChar(255)
+  valor_unitario    Decimal?             @db.Decimal(12, 2)
+  data_pedido       DateTime?            @default(now()) @db.Timestamptz(6)
+  status            status_pedido_compra @default(SOLICITADO)
+  created_at        DateTime?            @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime?            @default(now()) @db.Timestamptz(6)
+  materiais_estoque materiais_estoque    @relation(fields: [material_id], references: [id], onUpdate: NoAction)
+  users             users?               @relation(fields: [user_id], references: [id], onUpdate: NoAction)
+}
+
+model venda_itens_override {
+  id                Int               @id @default(autoincrement())
+  venda_id          Int
+  material_id       String
+  qt_final          Int
+  materiais_estoque materiais_estoque @relation(fields: [material_id], references: [id], onUpdate: NoAction)
+  vendas            vendas            @relation(fields: [venda_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([venda_id, material_id])
+}
+
+model placas_especificacoes {
+  id                Int               @id @default(autoincrement())
+  material_id       String            @unique
+  altura            Decimal?          @db.Decimal(10, 2)
+  largura           Decimal?          @db.Decimal(10, 2)
+  espessura         Decimal?          @db.Decimal(10, 2)
+  tipo_trama        String?           @db.VarChar(255)
+  materiais_estoque materiais_estoque @relation(fields: [material_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model tipos_materiais {
+  id                Int                 @id @default(autoincrement())
+  nome              String              @unique @db.VarChar(255)
+  materiais_estoque materiais_estoque[]
+}
+
+enum status_pagamento_venda {
+  PENDENTE
+  PAGO_PARCIALMENTE
+  PAGO
+  VENCIDO
+  CANCELADO
+}
+
+enum status_venda {
+  AGUARDANDO_AGENDAMENTO_PRODUCAO
+  PRODUCAO_AGENDADA
+  KIT_EM_PREPARACAO
+  MATERIAIS_ALOCADOS
+  PRONTO_PARA_ENVIO
+  ENVIADO
+  ENTREGUE
+  AGUARDANDO_REPOSICAO_ESTOQUE
+  CANCELADA
+}
+
+enum tipo_lancamento {
+  R
+  D
+}
+
+enum status_producao {
+  AGENDADO
+  MATERIAIS_PENDENTES
+  PREPARANDO_MATERIAIS
+  MONTANDO_KIT
+  PRONTO_PARA_ENVIO
+  EM_ESPERA
+  CANCELADO
+}
+
+enum status_entrega {
+  PENDENTE_TRANSPORTADORA
+  COLETA_AGENDADA
+  EM_TRANSITO
+  ENTREGUE
+  ATRASADA
+  CANCELADA
+}
+
+enum status_pedido_compra {
+  SOLICITADO
+  ENTREGUE
+  ENTREGUE_COM_ALTERACAO
+  RESOLVIDO
+}
