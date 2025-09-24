@@ -6,7 +6,6 @@ import 'package:tech_wall/src/models/entrega.dart';
 import 'package:tech_wall/src/services/dialog/dialog.dart';
 import 'package:tech_wall/src/services/env/env.dart';
 import 'package:tech_wall/src/services/http/service.dart';
-import 'package:tech_wall/src/utils/build_url.dart';
 
 class EntregasApi {
   const EntregasApi._();
@@ -18,7 +17,7 @@ class EntregasApi {
   /// Lista todas as entregas.
   static Future<List<EntregaModel>> listAll() async {
     try {
-      final response = await _http.dio.get(buildUrl(_url));
+      final response = await _http.dio.get(_url);
       final json = response.data;
       return (json as List).map((e) => EntregaModel.fromJson(e)).toList();
     } on DioException catch (e) {
@@ -40,7 +39,7 @@ class EntregasApi {
   /// Atualiza os dados de uma entrega.
   static Future<bool> update(int id, UpdateEntregaDto dto) async {
     try {
-      await _http.dio.patch(buildUrl('$_url/$id'), data: dto.toMap());
+      await _http.dio.patch('$_url/$id', data: dto.toMap());
       return true;
     } on DioException catch (e) {
       DialogService.instance.showDialog(

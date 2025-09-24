@@ -6,7 +6,6 @@ import 'package:tech_wall/src/models/ordem_producao.dart'; // Renomeei o modelo 
 import 'package:tech_wall/src/services/dialog/dialog.dart';
 import 'package:tech_wall/src/services/env/env.dart';
 import 'package:tech_wall/src/services/http/service.dart';
-import 'package:tech_wall/src/utils/build_url.dart';
 
 class ProducaoApi {
   const ProducaoApi._();
@@ -18,7 +17,7 @@ class ProducaoApi {
   /// Lista todas as ordens de produção.
   static Future<List<OrdemProducaoModel>> listAll() async {
     try {
-      final response = await _http.dio.get(buildUrl(_url));
+      final response = await _http.dio.get(_url);
 
       // O Dio já verifica o status code, então aqui só tratamos o sucesso
       final json = response.data;
@@ -44,7 +43,7 @@ class ProducaoApi {
   /// Atualiza o status de uma ordem de produção.
   static Future<bool> update(int id, UpdateOrdemProducaoDto dto) async {
     try {
-      await _http.dio.patch(buildUrl('$_url/$id'), data: dto.toMap());
+      await _http.dio.patch('$_url/$id', data: dto.toMap());
       return true;
     } on DioException catch (e) {
       DialogService.instance.showDialog(

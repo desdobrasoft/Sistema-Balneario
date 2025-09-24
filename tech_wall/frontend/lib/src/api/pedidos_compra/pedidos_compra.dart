@@ -6,7 +6,6 @@ import 'package:tech_wall/src/models/pedido_compra.dart';
 import 'package:tech_wall/src/services/dialog/dialog.dart';
 import 'package:tech_wall/src/services/env/env.dart';
 import 'package:tech_wall/src/services/http/service.dart';
-import 'package:tech_wall/src/utils/build_url.dart';
 
 class PedidosCompraApi {
   const PedidosCompraApi._();
@@ -17,7 +16,7 @@ class PedidosCompraApi {
 
   static Future<bool> create(CreatePedidoDto dto) async {
     try {
-      await _http.dio.post(buildUrl(_url), data: dto.toMap());
+      await _http.dio.post(_url, data: dto.toMap());
       return true;
     } on DioException catch (e) {
       DialogService.instance.showDialog(
@@ -33,7 +32,7 @@ class PedidosCompraApi {
 
   static Future<List<PedidoCompraModel>> listAll() async {
     try {
-      final response = await _http.dio.get(buildUrl(_url));
+      final response = await _http.dio.get(_url);
       return (response.data as List)
           .map((p) => PedidoCompraModel.fromJson(p))
           .toList();
@@ -51,7 +50,7 @@ class PedidosCompraApi {
   static Future<bool> receber(int id, ReceberPedidoDto dto) async {
     try {
       await _http.dio.patch(
-        buildUrl('$_url/$id${_env.compraReceber}'),
+        '$_url/$id${_env.compraReceber}',
         data: dto.toMap(),
       );
       return true;
@@ -68,7 +67,7 @@ class PedidosCompraApi {
 
   static Future<bool> resolver(int id) async {
     try {
-      await _http.dio.patch(buildUrl('$_url/$id${_env.compraResolver}'));
+      await _http.dio.patch('$_url/$id${_env.compraResolver}');
       return true;
     } on DioException catch (e) {
       DialogService.instance.showDialog(

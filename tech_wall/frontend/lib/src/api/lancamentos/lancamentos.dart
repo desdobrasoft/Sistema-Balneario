@@ -6,7 +6,6 @@ import 'package:tech_wall/src/models/lancamento.dart';
 import 'package:tech_wall/src/services/dialog/dialog.dart';
 import 'package:tech_wall/src/services/env/env.dart';
 import 'package:tech_wall/src/services/http/service.dart';
-import 'package:tech_wall/src/utils/build_url.dart';
 
 class LancamentosApi {
   const LancamentosApi._();
@@ -18,7 +17,7 @@ class LancamentosApi {
   /// Cria um novo lançamento financeiro.
   static Future<bool> create(CreateLancamentoDto dto) async {
     try {
-      await _http.dio.post(buildUrl(_url), data: dto.toMap());
+      await _http.dio.post(_url, data: dto.toMap());
       return true;
     } on DioException catch (e) {
       DialogService.instance.showDialog(
@@ -39,7 +38,7 @@ class LancamentosApi {
   /// Lista todos os lançamentos financeiros.
   static Future<List<LancamentoModel>> listAll() async {
     try {
-      final response = await _http.dio.get(buildUrl(_url));
+      final response = await _http.dio.get(_url);
       final json = response.data;
       return (json as List).map((l) => LancamentoModel.fromJson(l)).toList();
     } on DioException catch (e) {
@@ -61,7 +60,7 @@ class LancamentosApi {
   /// Atualiza um lançamento financeiro (ex: registrar um pagamento).
   static Future<bool> update(int id, UpdateLancamentoDto dto) async {
     try {
-      await _http.dio.patch(buildUrl('$_url/$id'), data: dto.toMap());
+      await _http.dio.patch('$_url/$id', data: dto.toMap());
       return true;
     } on DioException catch (e) {
       DialogService.instance.showDialog(
@@ -84,7 +83,7 @@ class LancamentosApi {
   /// Remove um lançamento financeiro.
   static Future<bool> remove(int id) async {
     try {
-      await _http.dio.delete(buildUrl('$_url/$id'));
+      await _http.dio.delete('$_url/$id');
       return true;
     } on DioException catch (e) {
       DialogService.instance.showDialog(

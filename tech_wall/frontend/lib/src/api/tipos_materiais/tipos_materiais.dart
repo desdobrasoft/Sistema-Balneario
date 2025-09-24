@@ -5,7 +5,6 @@ import 'package:tech_wall/src/models/tipo_material.dart';
 import 'package:tech_wall/src/services/dialog/dialog.dart';
 import 'package:tech_wall/src/services/env/env.dart';
 import 'package:tech_wall/src/services/http/service.dart';
-import 'package:tech_wall/src/utils/build_url.dart';
 
 class TiposMateriaisApi {
   const TiposMateriaisApi._();
@@ -16,7 +15,7 @@ class TiposMateriaisApi {
 
   static Future<List<TipoMaterialModel>> listAll() async {
     try {
-      final response = await _http.dio.get(buildUrl(_url));
+      final response = await _http.dio.get(_url);
       return (response.data as List)
           .map((e) => TipoMaterialModel.fromJson(e))
           .toList();

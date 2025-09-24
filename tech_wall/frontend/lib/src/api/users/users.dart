@@ -8,7 +8,6 @@ import 'package:tech_wall/src/models/user.dart';
 import 'package:tech_wall/src/services/dialog/dialog.dart';
 import 'package:tech_wall/src/services/env/env.dart';
 import 'package:tech_wall/src/services/http/service.dart';
-import 'package:tech_wall/src/utils/build_url.dart';
 
 class UsersApi {
   const UsersApi._();
@@ -20,7 +19,7 @@ class UsersApi {
   /// Adiciona um novo usuário.
   static Future<bool> addUser(CreateUserDto dto) async {
     try {
-      await _http.dio.post(buildUrl(_url), data: dto.toMap());
+      await _http.dio.post(_url, data: dto.toMap());
       return true;
     } on DioException catch (e) {
       DialogService.instance.showDialog(
@@ -41,7 +40,7 @@ class UsersApi {
   /// Edita o usuário atualmente logado.
   static Future<bool> editCurrent(UpdateUserDto dto) async {
     try {
-      await _http.dio.patch(buildUrl(_env.currentUser), data: dto.toMap());
+      await _http.dio.patch(_env.currentUser, data: dto.toMap());
       return true;
     } on DioException catch (e) {
       DialogService.instance.showDialog(
@@ -65,7 +64,7 @@ class UsersApi {
     required UpdateUserDto dto,
   }) async {
     try {
-      await _http.dio.patch(buildUrl('$_url/$id'), data: dto.toMap());
+      await _http.dio.patch('$_url/$id', data: dto.toMap());
       return true;
     } on DioException catch (e) {
       DialogService.instance.showDialog(
@@ -86,7 +85,7 @@ class UsersApi {
   /// Busca os dados do usuário atualmente logado.
   static Future<UserModel?> getCurrent() async {
     try {
-      final response = await _http.dio.get(buildUrl(_env.currentUser));
+      final response = await _http.dio.get(_env.currentUser);
       return UserModel.fromJson(response.data);
     } catch (_) {
       // Falha silenciosa é aceitável aqui, pode ser token expirado.
@@ -97,7 +96,7 @@ class UsersApi {
   /// Lista todos os usuários.
   static Future<List<UserModel>> listAll() async {
     try {
-      final response = await _http.dio.get(buildUrl(_url));
+      final response = await _http.dio.get(_url);
       final json = response.data;
       return (json as List).map((user) => UserModel.fromJson(user)).toList();
     } on DioException catch (e) {
@@ -134,7 +133,7 @@ class UsersApi {
     }
 
     try {
-      await _http.dio.delete(buildUrl('$_url/${user.id}'));
+      await _http.dio.delete('$_url/${user.id}');
       if (isCurrent) {
         // Força o logout local após o sucesso da remoção no backend
         await AuthApi.api.logout(forceLocal: true);

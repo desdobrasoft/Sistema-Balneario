@@ -13,7 +13,7 @@ String buildUrl([String? endpoint]) {
   }
 
   // Se o host não estiver definido, assume um caminho relativo para o proxy Nginx.
-  if (env.backendHost.isEmpty) {
+  if (env.backendHost?.isNotEmpty != true) {
     return '/api$endp';
   }
 

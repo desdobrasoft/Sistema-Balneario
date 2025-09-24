@@ -7,7 +7,6 @@ import 'package:tech_wall/src/models/material_estoque.dart';
 import 'package:tech_wall/src/services/dialog/dialog.dart';
 import 'package:tech_wall/src/services/env/env.dart';
 import 'package:tech_wall/src/services/http/service.dart';
-import 'package:tech_wall/src/utils/build_url.dart';
 
 class MateriaisEstoqueApi {
   const MateriaisEstoqueApi._();
@@ -19,7 +18,7 @@ class MateriaisEstoqueApi {
   /// Cria um novo material no estoque.
   static Future<bool> addMaterial(CreateMaterialDto dto) async {
     try {
-      await _http.dio.post(buildUrl(_url), data: dto.toMap());
+      await _http.dio.post(_url, data: dto.toMap());
       return true;
     } on DioException catch (e) {
       DialogService.instance.showDialog(
@@ -40,7 +39,7 @@ class MateriaisEstoqueApi {
   /// Lista todos os materiais ativos no estoque.
   static Future<List<MaterialEstoqueModel>> listAll() async {
     try {
-      final response = await _http.dio.get(buildUrl(_url));
+      final response = await _http.dio.get(_url);
       final json = response.data;
       return (json as List)
           .map((m) => MaterialEstoqueModel.fromJson(m))
@@ -64,7 +63,7 @@ class MateriaisEstoqueApi {
   /// Busca um único material pelo seu ID.
   static Future<MaterialEstoqueModel?> getMaterial(String id) async {
     try {
-      final response = await _http.dio.get(buildUrl('$_url/$id'));
+      final response = await _http.dio.get('$_url/$id');
       return MaterialEstoqueModel.fromJson(response.data);
     } on DioException catch (e) {
       if (e.response?.statusCode != 404) {
@@ -90,7 +89,7 @@ class MateriaisEstoqueApi {
     required UpdateMaterialDto dto,
   }) async {
     try {
-      await _http.dio.patch(buildUrl('$_url/$id'), data: dto.toMap());
+      await _http.dio.patch('$_url/$id', data: dto.toMap());
       return true;
     } on DioException catch (e) {
       DialogService.instance.showDialog(
@@ -123,7 +122,7 @@ class MateriaisEstoqueApi {
     if (!accept) return false;
 
     try {
-      await _http.dio.delete(buildUrl('$_url/${material.id}'));
+      await _http.dio.delete('$_url/${material.id}');
       return true;
     } on DioException catch (e) {
       DialogService.instance.showDialog(

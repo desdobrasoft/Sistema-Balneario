@@ -9,7 +9,6 @@ import 'package:tech_wall/src/services/dialog/dialog.dart';
 import 'package:tech_wall/src/services/env/env.dart';
 import 'package:tech_wall/src/services/http/service.dart';
 import 'package:tech_wall/src/services/preferences/preferences.dart';
-import 'package:tech_wall/src/utils/build_url.dart';
 import 'package:tech_wall/src/utils/show_snackbar.dart';
 
 class AuthApi with ChangeNotifier {
@@ -97,7 +96,7 @@ class AuthApi with ChangeNotifier {
     if (!forceLocal && _prefs.authToken != null) {
       try {
         // Tenta fazer o logout no backend para invalidar o refresh token
-        await _http.dio.post(buildUrl(_env.logout));
+        await _http.dio.post(_env.logout);
       } catch (_) {
         // Ignora erros no logout do backend, o logout local é mais importante
       }

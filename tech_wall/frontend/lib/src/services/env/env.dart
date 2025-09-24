@@ -7,8 +7,8 @@ class EnvManager {
 
   static final env = EnvManager._();
 
-  late final String backendHost;
-  late final int backendPort;
+  late final String? backendHost;
+  late final int? backendPort;
   late final String auth;
   late final String login;
   late final String logout;
@@ -36,8 +36,8 @@ class EnvManager {
   Future<void> init() async {
     await dotenv.load(fileName: '.env');
 
-    backendHost = dotenv.get(_Keys.backendHost);
-    backendPort = dotenv.getInt(_Keys.backendPort);
+    backendHost = dotenv.maybeGet(_Keys.backendHost);
+    backendPort = int.tryParse('${dotenv.maybeGet(_Keys.backendPort)}');
     auth = dotenv.get(_Keys.auth);
     login = dotenv.get(_Keys.login);
     logout = dotenv.get(_Keys.logout);

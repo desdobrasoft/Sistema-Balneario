@@ -7,7 +7,6 @@ import 'package:tech_wall/src/models/modelo_casa.dart';
 import 'package:tech_wall/src/services/dialog/dialog.dart';
 import 'package:tech_wall/src/services/env/env.dart';
 import 'package:tech_wall/src/services/http/service.dart';
-import 'package:tech_wall/src/utils/build_url.dart';
 
 class ModelosCasasApi {
   const ModelosCasasApi._();
@@ -19,7 +18,7 @@ class ModelosCasasApi {
   /// Adiciona um novo modelo de casa.
   static Future<bool> addModeloCasa(CreateModeloCasaDto dto) async {
     try {
-      await _http.dio.post(buildUrl(_url), data: dto.toMap());
+      await _http.dio.post(_url, data: dto.toMap());
       return true;
     } on DioException catch (e) {
       DialogService.instance.showDialog(
@@ -43,7 +42,7 @@ class ModelosCasasApi {
     required UpdateModeloCasaDto dto,
   }) async {
     try {
-      await _http.dio.patch(buildUrl('$_url/$id'), data: dto.toMap());
+      await _http.dio.patch('$_url/$id', data: dto.toMap());
       return true;
     } on DioException catch (e) {
       DialogService.instance.showDialog(
@@ -64,7 +63,7 @@ class ModelosCasasApi {
   /// Lista todos os modelos de casa ativos.
   static Future<List<ModeloCasaModel>> listAll() async {
     try {
-      final response = await _http.dio.get(buildUrl(_url));
+      final response = await _http.dio.get(_url);
       final json = response.data;
       return (json as List).map((m) => ModeloCasaModel.fromJson(m)).toList();
     } on DioException catch (e) {
@@ -98,7 +97,7 @@ class ModelosCasasApi {
     if (!accept) return false;
 
     try {
-      await _http.dio.delete(buildUrl('$_url/${modelo.id}'));
+      await _http.dio.delete('$_url/${modelo.id}');
       return true;
     } on DioException catch (e) {
       DialogService.instance.showDialog(

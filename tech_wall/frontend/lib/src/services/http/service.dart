@@ -61,7 +61,7 @@ class HttpService {
 
   Future<String> _getNewAccessToken() async {
     final response = await Dio().post(
-      buildUrl(_env.refresh),
+      _env.refresh,
       options: Options(
         headers: {'Authorization': 'Bearer ${_prefs.refreshToken}'},
       ),
