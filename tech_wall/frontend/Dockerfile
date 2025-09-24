@@ -13,7 +13,7 @@ COPY .env.production .env
 RUN flutter pub get
 
 # Constrói a aplicação web
-RUN flutter build web --release
+RUN flutter build web --release --wasm
 
 # Stage 2: Serve with Nginx
 FROM nginx:1.29.1-alpine
