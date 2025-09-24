@@ -53,6 +53,15 @@ services:
         condition: service_healthy
     env_file:
       - ./backend/.env.production
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend-router.rule=Host(`srv734963.hstgr.cloud`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend-router.entrypoints=websecure"
+      - "traefik.http.routers.backend-router.tls.certresolver=myresolver"
+      - "traefik.http.services.backend-service.loadbalancer.server.port=3000"
+      - "traefik.http.routers.backend-router.service=backend-service"
+      - "traefik.http.middlewares.strip-api-prefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.backend-router.middlewares=strip-api-prefix"
 
   frontend:
     build:
