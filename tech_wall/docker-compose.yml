@@ -39,8 +39,6 @@ services:
   backend:
     build: ./backend
     restart: always
-    ports:
-      - "3000:3000"
     secrets:
       - db-password
       - jwt-secret
@@ -59,8 +57,6 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     restart: always
-    ports:
-      - "80:80"
     deploy:
       mode: replicated
       replicas: 3
