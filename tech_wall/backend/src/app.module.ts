@@ -18,6 +18,7 @@ import { ProducaoModule } from './producao/producao.module';
 import { TiposMateriaisModule } from './tipos-materiais/tipos-materiais.module';
 import { UsersModule } from './users/users.module';
 import { VendasModule } from './vendas/vendas.module';
+import { PlacasModule } from './placas/placas.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
@@ -37,6 +38,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     PedidosCompraModule,
     TiposMateriaisModule,
     DashboardModule,
+    PlacasModule,
   ],
   controllers: [AppController],
   providers: [

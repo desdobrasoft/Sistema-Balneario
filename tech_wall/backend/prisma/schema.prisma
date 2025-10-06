@@ -65,9 +65,9 @@ model materiais_estoque {
   deleted_at             DateTime?                @db.Timestamptz(6)
   tipos_materiais        tipos_materiais?         @relation(fields: [tipo_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   materiais_modelo_casa  materiais_modelo_casa[]
+  materiais_placa        materiais_placa[]
   movimentacao_materiais movimentacao_materiais[]
   pedidos_compra         pedidos_compra[]
-  placas_especificacoes  placas_especificacoes?
   venda_itens_override   venda_itens_override[]
 
   @@index([deleted_at], map: "idx_materiais_estoque_deleted_at")
@@ -95,6 +95,7 @@ model modelo_casa {
   updated_at            DateTime?               @default(now()) @db.Timestamptz(6)
   deleted_at            DateTime?               @db.Timestamptz(6)
   materiais_modelo_casa materiais_modelo_casa[]
+  placas_modelo_casa    placas_modelo_casa[]
   vendas                vendas[]
 
   @@index([deleted_at], map: "idx_modelo_casa_deleted_at")
@@ -236,20 +237,50 @@ model venda_itens_override {
   @@unique([venda_id, material_id])
 }
 
-model placas_especificacoes {
-  id                Int               @id @default(autoincrement())
-  material_id       String            @unique
-  altura            Decimal?          @db.Decimal(10, 2)
-  largura           Decimal?          @db.Decimal(10, 2)
-  espessura         Decimal?          @db.Decimal(10, 2)
-  tipo_trama        String?           @db.VarChar(255)
-  materiais_estoque materiais_estoque @relation(fields: [material_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-}
-
 model tipos_materiais {
   id                Int                 @id @default(autoincrement())
   nome              String              @unique @db.VarChar(255)
   materiais_estoque materiais_estoque[]
+}
+
+model materiais_placa {
+  placa_id          Int
+  material_id       String
+  quantidade        Int
+  materiais_estoque materiais_estoque @relation(fields: [material_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  placas            placas            @relation(fields: [placa_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([placa_id, material_id])
+}
+
+model placas {
+  id                     Int                  @id @default(autoincrement())
+  nome                   String               @unique @db.VarChar(255)
+  descricao              String?
+  altura                 Decimal?             @db.Decimal(10, 2)
+  largura                Decimal?             @db.Decimal(10, 2)
+  espessura              Decimal?             @db.Decimal(10, 2)
+  tipo_trama             String?              @db.VarChar(255)
+  qt_aguardando_producao Int?                 @default(0)
+  qt_em_producao         Int?                 @default(0)
+  qt_pronta              Int?                 @default(0)
+  created_at             DateTime?            @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime?            @default(now()) @db.Timestamptz(6)
+  deleted_at             DateTime?            @db.Timestamptz(6)
+  materiais_placa        materiais_placa[]
+  placas_modelo_casa     placas_modelo_casa[]
+
+  @@index([deleted_at], map: "idx_placas_deleted_at")
+}
+
+model placas_modelo_casa {
+  modelo_casa_id Int
+  placa_id       Int
+  qt_placa       Int
+  modelo_casa    modelo_casa @relation(fields: [modelo_casa_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  placas         placas      @relation(fields: [placa_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([modelo_casa_id, placa_id])
 }
 
 enum status_pagamento_venda {

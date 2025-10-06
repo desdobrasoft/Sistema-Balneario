@@ -12,6 +12,9 @@ import 'package:tech_wall/src/models/material_estoque.dart';
 import 'package:tech_wall/src/utils/formatador_moeda.dart';
 import 'package:tech_wall/src/utils/hint_style.dart';
 
+import 'package:tech_wall/src/api/placas/placas.dart';
+import 'package:tech_wall/src/models/placa.dart';
+
 class AddModeloDialog extends StatefulWidget implements DialogInterface {
   const AddModeloDialog({super.key});
 
@@ -33,21 +36,28 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
   final _controllerPreco = TextEditingController(text: '0,00');
   final _controllerDescricao = TextEditingController();
   final _controllerMateriais = MultiSelectController<MaterialEstoqueModel>();
+  final _controllerPlacas = MultiSelectController<Placa>();
 
   late ColorScheme _scheme;
 
   List<TextEditingController> _controllersMateriais = [];
+  List<TextEditingController> _controllersPlacas = [];
   bool _isQuantidade = false;
   List<MaterialEstoqueModel>? _materiais;
+  List<Placa>? _placas;
 
   @override
   void initState() {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      MateriaisEstoqueApi.listAll().then((materiais) {
+      Future.wait([
+        MateriaisEstoqueApi.listAll(),
+        PlacasApi.listAll(),
+      ]).then((responses) {
         setState(() {
-          _materiais = materiais;
+          _materiais = responses[0] as List<MaterialEstoqueModel>;
+          _placas = responses[1] as List<Placa>;
         });
       });
     });
@@ -57,7 +67,7 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
   Widget build(BuildContext context) {
     _scheme = ColorScheme.of(context);
 
-    if (_materiais == null) {
+    if (_materiais == null || _placas == null) {
       return BackButtonListener(
         onBackButtonPressed: () async => true,
         child: PopScope(
@@ -73,7 +83,7 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
               children: [
                 Flexible(
                   child: Text(
-                    'Carregando lista de materiais, por favor aguarde...',
+                    'Carregando lista de materiais e placas, por favor aguarde...',
                     style: contentStyle(context),
                   ),
                 ),
@@ -104,53 +114,89 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
                 _controllersMateriais = _controllerMateriais.selectedItems
                     .map((material) => TextEditingController())
                     .toList();
+                _controllersPlacas = _controllerPlacas.selectedItems
+                    .map((placa) => TextEditingController())
+                    .toList();
 
                 return Form(
                   key: _formKeyQtde,
                   child: ListenableBuilder(
-                    listenable: _controllerMateriais,
+                    listenable: Listenable.merge([_controllerMateriais, _controllerPlacas]),
                     builder: (context, _) {
                       final materiais = _controllerMateriais.selectedItems
+                          .map((item) => item.value)
+                          .toList();
+                      final placas = _controllerPlacas.selectedItems
                           .map((item) => item.value)
                           .toList();
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         spacing: gaplg,
-                        children: List.generate(_controllersMateriais.length, (
-                          i,
-                        ) {
-                          final controller = _controllersMateriais[i];
-
-                          return Row(
-                            children: [
-                              Expanded(child: Text(materiais[i].item)),
-                              SizedBox(
-                                width: _qtdeWidth,
-                                child: TextFormField(
-                                  controller: controller,
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    labelText: 'Qtde.',
+                        children: [
+                          if (materiais.isNotEmpty)
+                            ...List.generate(_controllersMateriais.length, (i) {
+                              final controller = _controllersMateriais[i];
+                              return Row(
+                                children: [
+                                  Expanded(child: Text(materiais[i].item)),
+                                  SizedBox(
+                                    width: _qtdeWidth,
+                                    child: TextFormField(
+                                      controller: controller,
+                                      decoration: InputDecoration(
+                                        filled: true,
+                                        labelText: 'Qtde.',
+                                      ),
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly,
+                                      ],
+                                      textAlign: TextAlign.end,
+                                      keyboardType: TextInputType.number,
+                                      textInputAction: TextInputAction.next,
+                                      validator: (value) {
+                                        if (value?.isNotEmpty != true) {
+                                          return 'Este campo não pode ficar vazio';
+                                        }
+                                        return null;
+                                      },
+                                    ),
                                   ),
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
-                                  ],
-                                  textAlign: TextAlign.end,
-                                  keyboardType: TextInputType.number,
-                                  textInputAction: TextInputAction.next,
-
-                                  validator: (value) {
-                                    if (value?.isNotEmpty != true) {
-                                      return 'Este campo não pode ficar vazio';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                            ],
-                          );
-                        }),
+                                ],
+                              );
+                            }),
+                          if (placas.isNotEmpty)
+                            ...List.generate(_controllersPlacas.length, (i) {
+                              final controller = _controllersPlacas[i];
+                              return Row(
+                                children: [
+                                  Expanded(child: Text(placas[i].nome)),
+                                  SizedBox(
+                                    width: _qtdeWidth,
+                                    child: TextFormField(
+                                      controller: controller,
+                                      decoration: InputDecoration(
+                                        filled: true,
+                                        labelText: 'Qtde.',
+                                      ),
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly,
+                                      ],
+                                      textAlign: TextAlign.end,
+                                      keyboardType: TextInputType.number,
+                                      textInputAction: TextInputAction.next,
+                                      validator: (value) {
+                                        if (value?.isNotEmpty != true) {
+                                          return 'Este campo não pode ficar vazio';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }),
+                        ],
                       );
                     },
                   ),
@@ -265,11 +311,47 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
                         ),
 
                     validator: (value) {
-                      if (value?.isNotEmpty != true) {
-                        return 'Este campo não pode ficar vazio';
+                      if (value?.isEmpty ?? true) {
+                        return 'Pelo menos um material deve ser selecionado';
                       }
                       return null;
                     },
+                  ),
+                  MultiDropdown(
+                    controller: _controllerPlacas,
+                    searchEnabled: true,
+                    chipDecoration: ChipDecoration(
+                      backgroundColor: _scheme.secondaryContainer,
+                      labelStyle: TextTheme.of(context).labelLarge,
+                    ),
+                    dropdownDecoration: DropdownDecoration(
+                      backgroundColor: _scheme.surfaceContainerHighest,
+                      maxHeight: MediaQuery.of(context).size.height * 0.4,
+                    ),
+                    dropdownItemDecoration: DropdownItemDecoration(
+                      selectedBackgroundColor: _scheme.secondaryContainer,
+                      selectedTextColor: _scheme.onSecondaryContainer,
+                      textColor: _scheme.onSurface,
+                    ),
+                    fieldDecoration: FieldDecoration(
+                      backgroundColor: _scheme.surfaceContainerHighest,
+                      border: UnderlineInputBorder(
+                        borderSide: BorderSide(color: _scheme.onSurfaceVariant),
+                      ),
+                      borderRadius: 0,
+                      labelText: 'Placas',
+                      hintText: _placas?.firstOrNull?.nome,
+                      hintStyle: hintStyle(context),
+                    ),
+                    items: _placas?.map((placa) {
+                          return DropdownItem(
+                            label: placa.nome,
+                            value: placa,
+                          );
+                        }).toList() ??
+                        List<DropdownItem<Placa>>.empty(
+                          growable: false,
+                        ),
                   ),
                   TextFormField(
                     controller: _controllerDescricao,
@@ -347,12 +429,16 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
         tempoFabricacao: int.tryParse(_controllerTempo.text) ?? 0,
         urlImagem: _controllerUrl.text.isEmpty ? null : _controllerUrl.text,
         preco: double.tryParse(_controllerPreco.text.replaceAll(',', '.')) ?? 0,
-        materiais: List.generate(_controllerMateriais.selectedItems.length, (
-          i,
-        ) {
+        materiais: List.generate(_controllerMateriais.selectedItems.length, (i) {
           return MaterialRequeridoDto(
             materialId: _controllerMateriais.selectedItems[i].value.id,
             qtModelo: int.tryParse(_controllersMateriais[i].text) ?? 0,
+          );
+        }),
+        placas: List.generate(_controllerPlacas.selectedItems.length, (i) {
+          return PlacaRequeridaDto(
+            placaId: _controllerPlacas.selectedItems[i].value.id,
+            qtPlaca: int.tryParse(_controllersPlacas[i].text) ?? 0,
           );
         }),
       ),

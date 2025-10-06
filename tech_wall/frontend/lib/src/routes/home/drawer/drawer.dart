@@ -97,6 +97,12 @@ class _HomeDrawerState extends State<HomeDrawer> {
             icon: Icon(Icons.inventory_2_outlined),
             selectedIcon: Icon(Icons.inventory),
           ),
+          _Route(
+            path: Routes.placas.path,
+            label: localization(context).homeNavigationPlacasLabel,
+            icon: Icon(Mdi.viewGridOutline),
+            selectedIcon: Icon(Mdi.viewGrid),
+          ),
         ];
 
         return Drawer(

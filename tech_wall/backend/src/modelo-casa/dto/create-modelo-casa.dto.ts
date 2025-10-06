@@ -21,6 +21,16 @@ class MaterialRequeridoDto {
   qt_modelo: number;
 }
 
+class PlacaRequeridaDto {
+  @IsInt()
+  @IsPositive()
+  placaId: number;
+
+  @IsInt()
+  @IsPositive()
+  qt_placa: number;
+}
+
 export class CreateModeloCasaDto {
   @IsString()
   @IsNotEmpty()
@@ -45,5 +55,12 @@ export class CreateModeloCasaDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => MaterialRequeridoDto)
-  materiais: MaterialRequeridoDto[];
+  @IsOptional()
+  materiais?: MaterialRequeridoDto[];
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PlacaRequeridaDto)
+  @IsOptional()
+  placas?: PlacaRequeridaDto[];
 }

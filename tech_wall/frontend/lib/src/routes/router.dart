@@ -12,6 +12,7 @@ import 'package:tech_wall/src/routes/home/modelos/modelos.dart';
 import 'package:tech_wall/src/routes/home/producao/producao.dart';
 import 'package:tech_wall/src/routes/home/usuarios/usuarios.dart';
 import 'package:tech_wall/src/routes/home/vendas/vendas.dart';
+import 'package:tech_wall/src/routes/home/placas/placas.dart';
 import 'package:tech_wall/src/routes/login/login.dart';
 import 'package:tech_wall/src/routes/routes.dart';
 import 'package:tech_wall/src/routes/sessao_expirada/sessao_expirada.dart';
@@ -130,6 +131,13 @@ class Router {
             name: Routes.estoque.name,
             pageBuilder: (context, state) {
               return NoTransitionPage(child: Home(child: Stock()));
+            },
+          ),
+          GoRoute(
+            path: Routes.placas.name,
+            name: Routes.placas.name,
+            pageBuilder: (context, state) {
+              return NoTransitionPage(child: Home(child: PlacasView()));
             },
           ),
         ],

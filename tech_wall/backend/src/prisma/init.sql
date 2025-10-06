@@ -98,14 +98,29 @@ CREATE TABLE materiais_estoque (
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
--- Tabela de Especificações para Placas
-CREATE TABLE placas_especificacoes (
+-- Tabela de Placas
+CREATE TABLE placas (
     id SERIAL PRIMARY KEY,
-    material_id TEXT UNIQUE NOT NULL REFERENCES materiais_estoque (id) ON DELETE CASCADE,
+    nome VARCHAR(255) UNIQUE NOT NULL,
+    descricao TEXT,
     altura DECIMAL(10, 2),
     largura DECIMAL(10, 2),
     espessura DECIMAL(10, 2),
-    tipo_trama VARCHAR(255)
+    tipo_trama VARCHAR(255),
+    qt_aguardando_producao INT DEFAULT 0,
+    qt_em_producao INT DEFAULT 0,
+    qt_pronta INT DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+-- Tabela de Ligação: Materiais <-> Placas
+CREATE TABLE materiais_placa (
+    placa_id INT NOT NULL REFERENCES placas (id) ON DELETE CASCADE,
+    material_id TEXT NOT NULL REFERENCES materiais_estoque (id) ON DELETE CASCADE,
+    quantidade INT NOT NULL,
+    PRIMARY KEY (placa_id, material_id)
 );
 
 -- Tabela de Modelos de Casas
@@ -128,6 +143,14 @@ CREATE TABLE materiais_modelo_casa (
     material_id TEXT NOT NULL REFERENCES materiais_estoque (id) ON DELETE CASCADE,
     qt_modelo INT NOT NULL,
     PRIMARY KEY (modelo_casa_id, material_id)
+);
+
+-- Tabela de Ligação: Placas <-> Modelos de Casas
+CREATE TABLE placas_modelo_casa (
+    modelo_casa_id INT NOT NULL REFERENCES modelo_casa (id) ON DELETE CASCADE,
+    placa_id INT NOT NULL REFERENCES placas (id) ON DELETE CASCADE,
+    qt_placa INT NOT NULL,
+    PRIMARY KEY (modelo_casa_id, placa_id)
 );
 
 -- Tabela de Vendas
@@ -274,6 +297,10 @@ CREATE TRIGGER set_timestamp_modelo_casa BEFORE
 UPDATE ON modelo_casa FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp ();
 
+CREATE TRIGGER set_timestamp_placas BEFORE
+UPDATE ON placas FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp ();
+
 CREATE TRIGGER set_timestamp_lancamentos BEFORE
 UPDATE ON lancamentos_financeiros FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp ();
@@ -307,6 +334,8 @@ EXECUTE FUNCTION atualizar_timestamps_estoque ();
 CREATE INDEX idx_modelo_casa_deleted_at ON modelo_casa (deleted_at);
 
 CREATE INDEX idx_materiais_estoque_deleted_at ON materiais_estoque (deleted_at);
+
+CREATE INDEX idx_placas_deleted_at ON placas (deleted_at);
 
 -- =================================================================
 -- DADOS INICIAIS (SEEDS)
@@ -367,8 +396,7 @@ VALUES
     ('Esquadrias'),
     ('Acabamento'),
     ('Serviços'),
-    ('Materiais Extras'),
-    ('Placas');
+    ('Materiais Extras');
 
 -- Inserção de Materiais de Exemplo
 INSERT INTO

@@ -1,31 +1,4 @@
-import { Type } from 'class-transformer';
-import {
-  IsInt,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsPositive,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
-
-class PlacaEspecificacaoDto {
-  @IsNumber()
-  @IsOptional()
-  altura?: number;
-
-  @IsNumber()
-  @IsOptional()
-  largura?: number;
-
-  @IsNumber()
-  @IsOptional()
-  espessura?: number;
-
-  @IsString()
-  @IsOptional()
-  tipo_trama?: string;
-}
+import { IsInt, IsNotEmpty, IsOptional, IsPositive, IsString } from 'class-validator';
 
 export class CreateMaterialDto {
   @IsString()
@@ -55,9 +28,4 @@ export class CreateMaterialDto {
   @IsInt()
   @IsOptional()
   lim_baixo_estoque?: number;
-
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => PlacaEspecificacaoDto)
-  placa_especificacao?: PlacaEspecificacaoDto;
 }

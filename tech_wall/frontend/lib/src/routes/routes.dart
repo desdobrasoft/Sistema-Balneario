@@ -12,7 +12,8 @@ enum Routes {
   producao(_producaoName, _producaoPath),
   entregas(_entregasName, _entregasPath),
   financeiro(_financeiroName, _financeiroPath),
-  estoque(_estoqueName, _estoquePath);
+  estoque(_estoqueName, _estoquePath),
+  placas(_placasName, _placasPath);
 
   static const _loginName = 'login';
   static const _sessaoExpiradaName = 'sessao-expirada';
@@ -26,6 +27,7 @@ enum Routes {
   static const _entregasName = 'gerenciamento-entrega';
   static const _financeiroName = 'financeiro';
   static const _estoqueName = 'estoque';
+  static const _placasName = 'placas';
 
   static const _loginPath = '/$_loginName';
   static const _sessaoExpiradaPath = '/$_sessaoExpiradaName';
@@ -39,6 +41,7 @@ enum Routes {
   static const _entregasPath = '/$_entregasName';
   static const _financeiroPath = '/$_financeiroName';
   static const _estoquePath = '/$_estoqueName';
+  static const _placasPath = '/$_placasName';
 
   final String name;
   final String path;

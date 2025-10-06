@@ -7,36 +7,49 @@ import { UpdateModeloCasaDto } from './dto/update-modelo-casa.dto';
 export class ModeloCasaService {
   constructor(private prisma: PrismaService) {}
 
-  // SEU MÉTODO CREATE (sem alterações)
   async create(createModeloCasaDto: CreateModeloCasaDto) {
-    const { materiais, ...modeloData } = createModeloCasaDto;
+    const { materiais, placas, ...modeloData } = createModeloCasaDto;
     return this.prisma.$transaction(async (tx) => {
       const novoModelo = await tx.modelo_casa.create({ data: modeloData });
-      const materiaisParaCriar = materiais.map((m) => ({
-        modelo_casa_id: novoModelo.id,
-        material_id: m.materialId,
-        qt_modelo: m.qt_modelo,
-      }));
-      await tx.materiais_modelo_casa.createMany({ data: materiaisParaCriar });
-      return this.findOne(novoModelo.id, tx); // Reutiliza o findOne para consistência
+
+      if (materiais && materiais.length > 0) {
+        const materiaisParaCriar = materiais.map((m) => ({
+          modelo_casa_id: novoModelo.id,
+          material_id: m.materialId,
+          qt_modelo: m.qt_modelo,
+        }));
+        await tx.materiais_modelo_casa.createMany({ data: materiaisParaCriar });
+      }
+
+      if (placas && placas.length > 0) {
+        const placasParaCriar = placas.map((p) => ({
+          modelo_casa_id: novoModelo.id,
+          placa_id: p.placaId,
+          qt_placa: p.qt_placa,
+        }));
+        await tx.placas_modelo_casa.createMany({ data: placasParaCriar });
+      }
+
+      return this.findOne(novoModelo.id, tx);
     });
   }
 
-  // MÉTODO FINDALL (NOVO)
   findAll() {
     return this.prisma.modelo_casa.findMany({
-      where: { deleted_at: null }, // Filtra os soft-deleted
+      where: { deleted_at: null },
       orderBy: { nome: 'asc' },
       include: {
         materiais_modelo_casa: {
           orderBy: { materiais_estoque: { item: 'asc' } },
           include: { materiais_estoque: true },
         },
+        placas_modelo_casa: {
+          include: { placas: true },
+        },
       },
     });
   }
 
-  // MÉTODO FINDONE (NOVO)
   async findOne(id: number, tx?: any) {
     const prisma = tx ?? this.prisma;
     const modelo = await prisma.modelo_casa.findUnique({
@@ -44,6 +57,9 @@ export class ModeloCasaService {
       include: {
         materiais_modelo_casa: {
           include: { materiais_estoque: true },
+        },
+        placas_modelo_casa: {
+          include: { placas: true },
         },
       },
     });
@@ -55,26 +71,20 @@ export class ModeloCasaService {
     return modelo;
   }
 
-  // MÉTODO UPDATE (NOVO)
   async update(id: number, updateModeloCasaDto: UpdateModeloCasaDto) {
-    const { materiais, ...modeloData } = updateModeloCasaDto;
+    const { materiais, placas, ...modeloData } = updateModeloCasaDto;
     return this.prisma.$transaction(async (tx) => {
-      // 1. Garante que o modelo existe
       await this.findOne(id, tx);
 
-      // 2. Atualiza os dados principais do modelo
       await tx.modelo_casa.update({
         where: { id },
         data: modeloData,
       });
 
-      // 3. Se uma nova lista de materiais foi enviada, substitui a antiga
       if (materiais) {
-        // Deleta as associações antigas
         await tx.materiais_modelo_casa.deleteMany({
           where: { modelo_casa_id: id },
         });
-        // Cria as novas associações
         const materiaisParaCriar = materiais.map((m) => ({
           modelo_casa_id: id,
           material_id: m.materialId,
@@ -83,16 +93,24 @@ export class ModeloCasaService {
         await tx.materiais_modelo_casa.createMany({ data: materiaisParaCriar });
       }
 
-      // 4. Retorna o objeto completo e atualizado
+      if (placas) {
+        await tx.placas_modelo_casa.deleteMany({
+          where: { modelo_casa_id: id },
+        });
+        const placasParaCriar = placas.map((p) => ({
+          modelo_casa_id: id,
+          placa_id: p.placaId,
+          qt_placa: p.qt_placa,
+        }));
+        await tx.placas_modelo_casa.createMany({ data: placasParaCriar });
+      }
+
       return this.findOne(id, tx);
     });
   }
 
-  // MÉTODO REMOVE (NOVO - SOFT DELETE)
   async remove(id: number) {
-    // Garante que o modelo existe antes de tentar deletar
     await this.findOne(id);
-    // O middleware/extensão do Prisma fará a mágica do soft delete
     await this.prisma.modelo_casa.delete({ where: { id } });
     return { message: 'Modelo de casa removido com sucesso.' };
   }

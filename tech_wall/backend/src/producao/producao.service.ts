@@ -47,7 +47,12 @@ export class ProducaoService {
         include: {
           vendas: {
             include: {
-              modelo_casa: { include: { materiais_modelo_casa: true } },
+              modelo_casa: {
+                include: {
+                  materiais_modelo_casa: { include: { materiais_estoque: true } },
+                  placas_modelo_casa: { include: { placas: true } },
+                },
+              },
             },
           },
         },
@@ -66,22 +71,39 @@ export class ProducaoService {
           );
         }
 
-        const materiais = ordem.vendas.modelo_casa.materiais_modelo_casa;
-        for (const item of materiais) {
-          const materialEstoque = await tx.materiais_estoque.findUnique({
-            where: { id: item.material_id },
-          });
-          if (!materialEstoque || materialEstoque.quantidade < item.qt_modelo) {
+        const { materiais_modelo_casa, placas_modelo_casa } = ordem.vendas.modelo_casa;
+
+        // 1. Validar estoque de materiais
+        for (const item of materiais_modelo_casa) {
+          if (item.materiais_estoque.quantidade < item.qt_modelo) {
             throw new ConflictException(
-              `Estoque insuficiente para o material "${item.material_id}". Não é possível iniciar a preparação.`,
+              `Estoque insuficiente para o material "${item.materiais_estoque.item}".`,
             );
           }
         }
-        // Se chegou aqui, há estoque. Vamos debitar.
-        for (const item of materiais) {
+
+        // 2. Validar estoque de placas
+        for (const item of placas_modelo_casa) {
+          if (item.placas.qt_pronta < item.qt_placa) {
+            throw new ConflictException(
+              `Estoque insuficiente para a placa "${item.placas.nome}".`,
+            );
+          }
+        }
+
+        // 3. Debitar estoque de materiais
+        for (const item of materiais_modelo_casa) {
           await tx.materiais_estoque.update({
             where: { id: item.material_id },
             data: { quantidade: { decrement: item.qt_modelo } },
+          });
+        }
+
+        // 4. Debitar estoque de placas
+        for (const item of placas_modelo_casa) {
+          await tx.placas.update({
+            where: { id: item.placa_id },
+            data: { qt_pronta: { decrement: item.qt_placa } },
           });
         }
       }
