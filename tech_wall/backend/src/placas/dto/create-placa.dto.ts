@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   IsArray,
-  IsDecimal,
+  IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,

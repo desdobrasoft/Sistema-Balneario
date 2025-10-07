@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:tech_wall/src/api/placas/placas.dart';
 import 'package:tech_wall/src/components/app_button.dart';
 import 'package:tech_wall/src/components/card.dart';
+import 'package:tech_wall/src/components/dialogs/placas/add_edit_placa.dart';
 import 'package:tech_wall/src/constants/constants.dart';
 import 'package:tech_wall/src/models/placa.dart';
 import 'package:tech_wall/src/routes/home/placas/components/table.dart';
-// import 'package:tech_wall/src/routes/home/placas/dialogs/add_edit_placa.dart';
-import 'package:tech_wall/src/routes/home/placas/dialogs/add_edit_placa.dart';
 import 'package:tech_wall/src/services/dialog/dialog.dart';
 
 class PlacasView extends StatefulWidget {

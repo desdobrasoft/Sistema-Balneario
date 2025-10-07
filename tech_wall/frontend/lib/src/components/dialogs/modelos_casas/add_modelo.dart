@@ -4,16 +4,15 @@ import 'package:multi_dropdown/multi_dropdown.dart';
 import 'package:tech_wall/src/api/materiais_estoque/materiais_estoque.dart';
 import 'package:tech_wall/src/api/modelos_casas/dto.dart';
 import 'package:tech_wall/src/api/modelos_casas/modelos_casas.dart';
+import 'package:tech_wall/src/api/placas/placas.dart';
 import 'package:tech_wall/src/components/app_button.dart';
 import 'package:tech_wall/src/components/dialogs/interface.dart';
 import 'package:tech_wall/src/components/dialogs/utils/get_content_style.dart';
 import 'package:tech_wall/src/constants/constants.dart' show gaplg, gapmd;
 import 'package:tech_wall/src/models/material_estoque.dart';
+import 'package:tech_wall/src/models/placa.dart';
 import 'package:tech_wall/src/utils/formatador_moeda.dart';
 import 'package:tech_wall/src/utils/hint_style.dart';
-
-import 'package:tech_wall/src/api/placas/placas.dart';
-import 'package:tech_wall/src/models/placa.dart';
 
 class AddModeloDialog extends StatefulWidget implements DialogInterface {
   const AddModeloDialog({super.key});
@@ -51,10 +50,9 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.wait([
-        MateriaisEstoqueApi.listAll(),
-        PlacasApi.listAll(),
-      ]).then((responses) {
+      Future.wait([MateriaisEstoqueApi.listAll(), PlacasApi.listAll()]).then((
+        responses,
+      ) {
         setState(() {
           _materiais = responses[0] as List<MaterialEstoqueModel>;
           _placas = responses[1] as List<Placa>;
@@ -121,7 +119,10 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
                 return Form(
                   key: _formKeyQtde,
                   child: ListenableBuilder(
-                    listenable: Listenable.merge([_controllerMateriais, _controllerPlacas]),
+                    listenable: Listenable.merge([
+                      _controllerMateriais,
+                      _controllerPlacas,
+                    ]),
                     builder: (context, _) {
                       final materiais = _controllerMateriais.selectedItems
                           .map((item) => item.value)
@@ -343,15 +344,11 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
                       hintText: _placas?.firstOrNull?.nome,
                       hintStyle: hintStyle(context),
                     ),
-                    items: _placas?.map((placa) {
-                          return DropdownItem(
-                            label: placa.nome,
-                            value: placa,
-                          );
+                    items:
+                        _placas?.map((placa) {
+                          return DropdownItem(label: placa.nome, value: placa);
                         }).toList() ??
-                        List<DropdownItem<Placa>>.empty(
-                          growable: false,
-                        ),
+                        List<DropdownItem<Placa>>.empty(growable: false),
                   ),
                   TextFormField(
                     controller: _controllerDescricao,
@@ -429,7 +426,9 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
         tempoFabricacao: int.tryParse(_controllerTempo.text) ?? 0,
         urlImagem: _controllerUrl.text.isEmpty ? null : _controllerUrl.text,
         preco: double.tryParse(_controllerPreco.text.replaceAll(',', '.')) ?? 0,
-        materiais: List.generate(_controllerMateriais.selectedItems.length, (i) {
+        materiais: List.generate(_controllerMateriais.selectedItems.length, (
+          i,
+        ) {
           return MaterialRequeridoDto(
             materialId: _controllerMateriais.selectedItems[i].value.id,
             qtModelo: int.tryParse(_controllersMateriais[i].text) ?? 0,

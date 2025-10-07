@@ -57,6 +57,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get homeNavigationStockLabel => 'Estoque';
 
   @override
+  String get homeNavigationPlacasLabel => 'Placas';
+
+  @override
   String get homeNavigationSettingsLabel => 'Configurações';
 
   @override
@@ -206,6 +209,9 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get homeNavigationStockLabel => 'Estoque';
+
+  @override
+  String get homeNavigationPlacasLabel => 'Placas';
 
   @override
   String get homeNavigationSettingsLabel => 'Configurações';

@@ -18,13 +18,26 @@ class MaterialRequeridoDto {
   String toString() => jsonEncode(toMap());
 }
 
+class PlacaRequeridaDto {
+  final int placaId;
+  final int qtPlaca;
+
+  const PlacaRequeridaDto({required this.placaId, required this.qtPlaca});
+
+  Map<String, Object?> toMap() => {'placaId': placaId, 'qt_placa': qtPlaca};
+
+  @override
+  String toString() => jsonEncode(toMap());
+}
+
 class CreateModeloCasaDto {
   final String nome;
   final String? descricao;
   final int tempoFabricacao;
   final String? urlImagem;
   final double preco;
-  final List<MaterialRequeridoDto> materiais;
+  final List<MaterialRequeridoDto>? materiais;
+  final List<PlacaRequeridaDto>? placas;
 
   const CreateModeloCasaDto({
     required this.nome,
@@ -32,7 +45,8 @@ class CreateModeloCasaDto {
     required this.tempoFabricacao,
     this.urlImagem,
     required this.preco,
-    required this.materiais,
+    this.materiais,
+    this.placas,
   });
 
   Map<String, Object?> toMap() => {
@@ -41,7 +55,9 @@ class CreateModeloCasaDto {
     'tempo_fabricacao': tempoFabricacao,
     if (urlImagem?.isNotEmpty == true) 'url_imagem': urlImagem,
     'preco': preco,
-    'materiais': materiais.map((m) => m.toMap()).toList(),
+    if (materiais != null)
+      'materiais': materiais!.map((m) => m.toMap()).toList(),
+    if (placas != null) 'placas': placas!.map((p) => p.toMap()).toList(),
   };
 
   @override
@@ -55,6 +71,7 @@ class UpdateModeloCasaDto {
   final String? urlImagem;
   final double? preco;
   final List<MaterialRequeridoDto>? materiais;
+  final List<PlacaRequeridaDto>? placas;
 
   const UpdateModeloCasaDto({
     this.nome,
@@ -63,6 +80,7 @@ class UpdateModeloCasaDto {
     this.urlImagem,
     this.preco,
     this.materiais,
+    this.placas,
   });
 
   Map<String, Object?> toMap() => {
@@ -72,7 +90,8 @@ class UpdateModeloCasaDto {
     if (urlImagem?.isNotEmpty == true) 'url_imagem': urlImagem,
     if (preco != null) 'preco': preco,
     if (materiais != null)
-      'materiais': materiais?.map((m) => m.toMap()).toList(),
+      'materiais': materiais!.map((m) => m.toMap()).toList(),
+    if (placas != null) 'placas': placas!.map((p) => p.toMap()).toList(),
   };
 
   @override

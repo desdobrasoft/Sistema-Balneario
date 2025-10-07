@@ -195,6 +195,12 @@ abstract class AppLocalizations {
   /// **'Stock'**
   String get homeNavigationStockLabel;
 
+  /// No description provided for @homeNavigationPlacasLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Plates'**
+  String get homeNavigationPlacasLabel;
+
   /// No description provided for @homeNavigationSettingsLabel.
   ///
   /// In en, this message translates to:

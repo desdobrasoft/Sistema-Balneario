@@ -6,8 +6,8 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePlacaDto } from './dto/create-placa.dto';
-import { UpdatePlacaDto } from './dto/update-placa.dto';
 import { GerenciarProducaoPlacaDto } from './dto/gerenciar-producao-placa.dto';
+import { UpdatePlacaDto } from './dto/update-placa.dto';
 
 @Injectable()
 export class PlacasService {
@@ -175,9 +175,18 @@ export class PlacasService {
       // Lógica para finalizar produção
       if (finalizarProducao && finalizarProducao > 0) {
         const placaAtualizada = await tx.placas.findUnique({ where: { id } }); // Re-fetch
-        if (placaAtualizada.qt_em_producao < finalizarProducao) {
+        if (!placaAtualizada) {
+          throw new NotFoundException(`Placa com ID "${id}" não encontrada.`);
+        }
+
+        if (
+          placaAtualizada.qt_em_producao === null ||
+          placaAtualizada.qt_em_producao < finalizarProducao
+        ) {
           throw new BadRequestException(
-            `Não há placas suficientes em produção. Disponível: ${placa.qt_em_producao}`,
+            `Não há placas suficientes em produção. Disponível: ${
+              placaAtualizada.qt_em_producao ?? 0
+            }`,
           );
         }
 

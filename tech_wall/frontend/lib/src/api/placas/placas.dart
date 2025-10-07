@@ -1,59 +1,97 @@
-import 'dart:convert';
-
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
+import 'package:tech_wall/src/api/placas/dto.dart';
+import 'package:tech_wall/src/components/dialogs/error.dart';
+import 'package:tech_wall/src/constants/constants.dart';
 import 'package:tech_wall/src/models/placa.dart';
-import 'package:tech_wall/src/services/api_service.dart';
+import 'package:tech_wall/src/services/dialog/dialog.dart';
+import 'package:tech_wall/src/services/env/env.dart';
+import 'package:tech_wall/src/services/http/service.dart';
 
 class PlacasApi {
-  static final _api = ApiService();
+  const PlacasApi._();
+
+  static final _http = HttpService.instance;
+  static final _url = EnvManager.env.placas;
 
   static Future<List<Placa>> listAll() async {
-    final response = await _api.get('/placas');
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => Placa.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load placas');
+    try {
+      final response = await _http.dio.get(_url);
+      return (response.data as List).map((p) => Placa.fromJson(p)).toList();
+    } on DioException catch (e) {
+      DialogService.instance.showDialog(
+        ErrorDialog(
+          message: defaultErrorMessage,
+          detalhes: e.response?.data.toString(),
+        ),
+      );
+      return [];
     }
   }
 
-  static Future<Placa> create(Map<String, dynamic> data) async {
-    final response = await _api.post('/placas', body: jsonEncode(data));
-    if (response.statusCode == 201) {
-      return Placa.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to create placa');
+  static Future<bool> create(CreatePlacaDto dto) async {
+    try {
+      await _http.dio.post(_url, data: dto.toMap());
+      return true;
+    } on DioException catch (e) {
+      DialogService.instance.showDialog(
+        ErrorDialog(
+          message: defaultErrorMessage,
+          detalhes: e.response?.data.toString(),
+        ),
+        ignoreOpenDialog: true,
+      );
+      return false;
     }
   }
 
-  static Future<Placa> update(int id, Map<String, dynamic> data) async {
-    final response = await _api.patch('/placas/$id', body: jsonEncode(data));
-    if (response.statusCode == 200) {
-      return Placa.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to update placa');
+  static Future<bool> update(int id, UpdatePlacaDto dto) async {
+    try {
+      await _http.dio.patch('$_url/$id', data: dto.toMap());
+      return true;
+    } on DioException catch (e) {
+      DialogService.instance.showDialog(
+        ErrorDialog(
+          message: defaultErrorMessage,
+          detalhes: e.response?.data.toString(),
+        ),
+        ignoreOpenDialog: true,
+      );
+      return false;
     }
   }
 
-  static Future<void> remove(int id) async {
-    final response = await _api.delete('/placas/$id');
-    if (response.statusCode != 200) {
-      throw Exception('Failed to delete placa');
+  static Future<bool> remove(int id) async {
+    try {
+      await _http.dio.delete('$_url/$id');
+      return true;
+    } on DioException catch (e) {
+      DialogService.instance.showDialog(
+        ErrorDialog(
+          message: defaultErrorMessage,
+          detalhes: e.response?.data.toString(),
+        ),
+        ignoreOpenDialog: true,
+      );
+      return false;
     }
   }
 
-  static Future<Placa> gerenciarProducao(
+  static Future<bool> gerenciarProducao(
     int id,
-    Map<String, dynamic> data,
+    GerenciarProducaoPlacaDto dto,
   ) async {
-    final response = await _api.post(
-      '/placas/$id/gerenciar-producao',
-      body: jsonEncode(data),
-    );
-    if (response.statusCode == 201) {
-      return Placa.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to manage producao');
+    try {
+      await _http.dio.post('$_url/$id/gerenciar-producao', data: dto.toMap());
+      return true;
+    } on DioException catch (e) {
+      DialogService.instance.showDialog(
+        ErrorDialog(
+          message: defaultErrorMessage,
+          detalhes: e.response?.data.toString(),
+        ),
+        ignoreOpenDialog: true,
+      );
+      return false;
     }
   }
 }

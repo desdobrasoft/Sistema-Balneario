@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, status_producao } from '@prisma/client';
+import { status_producao } from '@prisma/client';
 import { EntregasService } from 'src/entregas/entregas.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateOrdemProducaoDto } from './dto/update-ordem-producao.dto';
@@ -49,7 +49,9 @@ export class ProducaoService {
             include: {
               modelo_casa: {
                 include: {
-                  materiais_modelo_casa: { include: { materiais_estoque: true } },
+                  materiais_modelo_casa: {
+                    include: { materiais_estoque: true },
+                  },
                   placas_modelo_casa: { include: { placas: true } },
                 },
               },
@@ -71,7 +73,8 @@ export class ProducaoService {
           );
         }
 
-        const { materiais_modelo_casa, placas_modelo_casa } = ordem.vendas.modelo_casa;
+        const { materiais_modelo_casa, placas_modelo_casa } =
+          ordem.vendas.modelo_casa;
 
         // 1. Validar estoque de materiais
         for (const item of materiais_modelo_casa) {
@@ -84,7 +87,7 @@ export class ProducaoService {
 
         // 2. Validar estoque de placas
         for (const item of placas_modelo_casa) {
-          if (item.placas.qt_pronta < item.qt_placa) {
+          if ((item.placas.qt_pronta ?? 0) < item.qt_placa) {
             throw new ConflictException(
               `Estoque insuficiente para a placa "${item.placas.nome}".`,
             );

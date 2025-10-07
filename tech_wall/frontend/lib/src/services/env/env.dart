@@ -25,6 +25,7 @@ class EnvManager {
   late final String producao;
   late final String entregas;
   late final String pedidosCompra;
+  late final String placas;
   late final String compraReceber;
   late final String compraResolver;
   late final String tiposMateriais;
@@ -51,6 +52,7 @@ class EnvManager {
     currentUser = dotenv.get(_Keys.currentUser);
     financeiro = dotenv.get(_Keys.financeiro);
     lancamentos = dotenv.get(_Keys.lancamentos);
+    placas = dotenv.get(_Keys.placas);
     producao = dotenv.get(_Keys.producao);
     entregas = dotenv.get(_Keys.entregas);
     pedidosCompra = dotenv.get(_Keys.pedidosCompra);
@@ -78,6 +80,7 @@ class EnvManager {
     _Keys.currentUser: currentUser,
     _Keys.financeiro: financeiro,
     _Keys.lancamentos: lancamentos,
+    _Keys.placas: placas,
     _Keys.producao: producao,
     _Keys.entregas: entregas,
     _Keys.pedidosCompra: pedidosCompra,
@@ -112,6 +115,7 @@ abstract class _Keys {
   static const currentUser = 'CURRENT_USER';
   static const financeiro = 'FINANCEIRO';
   static const lancamentos = 'LANCAMENTOS';
+  static const placas = 'PLACAS';
   static const producao = 'PRODUCAO';
   static const entregas = 'ENTREGAS';
   static const pedidosCompra = 'PEDIDOS_COMPRA';

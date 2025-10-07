@@ -57,6 +57,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeNavigationStockLabel => 'Stock';
 
   @override
+  String get homeNavigationPlacasLabel => 'Plates';
+
+  @override
   String get homeNavigationSettingsLabel => 'Settings';
 
   @override

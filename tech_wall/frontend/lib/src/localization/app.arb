@@ -33,6 +33,8 @@
   "@homeNavigationFinanceLabel": {},
   "homeNavigationStockLabel": "Stock",
   "@homeNavigationStockLabel": {},
+  "homeNavigationPlacasLabel": "Plates",
+  "@homeNavigationPlacasLabel": {},
   "homeNavigationSettingsLabel": "Settings",
   "@homeNavigationSettingsLabel": {},
   "homePopupLogoutLabel": "Logout",
