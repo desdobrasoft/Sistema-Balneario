@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:tech_wall/src/api/placas/placas.dart';
 import 'package:tech_wall/src/components/dialogs/boolean.dart';
 import 'package:tech_wall/src/components/dialogs/placas/add_edit_placa.dart';
+import 'package:tech_wall/src/components/dialogs/placas/baixa_producao.dart';
 import 'package:tech_wall/src/components/dialogs/placas/gerenciar_producao.dart';
 import 'package:tech_wall/src/components/responsive_table.dart';
 import 'package:tech_wall/src/models/placa.dart';
@@ -32,6 +33,15 @@ class _PlacasTableState extends State<PlacasTable> {
   Future<void> _onPressedGerenciar(Placa item) async {
     final success = await DialogService.instance.showDialog(
       GerenciarProducaoDialog(placa: item),
+    );
+    if (success == true) {
+      widget.onDataChange?.call();
+    }
+  }
+
+  Future<void> _onPressedBaixa(Placa item) async {
+    final success = await DialogService.instance.showDialog(
+      BaixaProducaoDialog(placa: item),
     );
     if (success == true) {
       widget.onDataChange?.call();
@@ -102,6 +112,13 @@ class _PlacasTableState extends State<PlacasTable> {
               child: const ListTile(
                 leading: Icon(Icons.settings),
                 title: Text('Gerenciar Produção'),
+              ),
+            ),
+            PopupMenuItem(
+              onTap: () => _onPressedBaixa(item),
+              child: const ListTile(
+                leading: Icon(Icons.check_circle_outline),
+                title: Text('Dar Baixa Direta'),
               ),
             ),
             PopupMenuItem(

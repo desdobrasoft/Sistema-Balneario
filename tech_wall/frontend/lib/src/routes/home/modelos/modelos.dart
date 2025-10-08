@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:tech_wall/src/api/modelos_casas/modelos_casas.dart';
 import 'package:tech_wall/src/components/app_button.dart';
@@ -123,18 +125,17 @@ class _HouseCatalogState extends State<HouseCatalog> {
         child: Text('400 x 600', style: TextTheme.of(context).displaySmall),
       ),
     );
-    final hasImage = model.urlImagem?.isNotEmpty == true;
+    final hasImage = model.imagemBase64?.isNotEmpty == true;
 
     return AppCard.outlined(
       image: AspectRatio(
         aspectRatio: 600 / 400,
         child: hasImage
-            ? Image.network(
-                model.urlImagem!,
-
+            ? Image.memory(
+                base64Decode(model.imagemBase64!),
                 filterQuality: FilterQuality.high,
                 isAntiAlias: true,
-
+                fit: BoxFit.contain,
                 errorBuilder: (_, _, _) {
                   return placeholder;
                 },

@@ -7,7 +7,6 @@ import {
   IsOptional,
   IsPositive,
   IsString,
-  IsUrl,
   ValidateNested,
 } from 'class-validator';
 
@@ -44,9 +43,9 @@ export class CreateModeloCasaDto {
   @IsPositive()
   tempo_fabricacao: number;
 
-  @IsUrl()
+  @IsString()
   @IsOptional()
-  url_imagem?: string;
+  imagem_base64?: string;
 
   @IsNumber()
   @IsPositive()

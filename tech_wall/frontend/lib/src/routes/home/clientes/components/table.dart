@@ -54,7 +54,9 @@ class _ClientesTableState extends State<ClientesTable> {
           cells: [
             ResponsiveCell(cliente.nome),
             ResponsiveCell(cliente.email),
-            ResponsiveCell(UtilBrasilFields.obterTelefone(cliente.nroContato)),
+            ResponsiveCell(
+              UtilBrasilFields.obterTelefone(cliente.nroContato ?? ''),
+            ),
             ResponsiveCell(cliente.historicoVendas.toString()),
           ],
           actions: [

@@ -84,13 +84,43 @@ class PlacasApi {
       await _http.dio.post('$_url/$id/gerenciar-producao', data: dto.toMap());
       return true;
     } on DioException catch (e) {
-      DialogService.instance.showDialog(
-        ErrorDialog(
-          message: defaultErrorMessage,
-          detalhes: e.response?.data.toString(),
-        ),
-        ignoreOpenDialog: true,
-      );
+      try {
+        DialogService.instance.showDialog(
+          ErrorDialog(message: e.response?.data['message']),
+          ignoreOpenDialog: true,
+        );
+      } catch (_) {
+        DialogService.instance.showDialog(
+          ErrorDialog(
+            message: defaultErrorMessage,
+            detalhes: e.response?.data.toString(),
+          ),
+          ignoreOpenDialog: true,
+        );
+      }
+      return false;
+    }
+  }
+
+  static Future<bool> baixaProducao(int id, BaixaProducaoPlacaDto dto) async {
+    try {
+      await _http.dio.post('$_url/$id/baixa-producao', data: dto.toMap());
+      return true;
+    } on DioException catch (e) {
+      try {
+        DialogService.instance.showDialog(
+          ErrorDialog(message: e.response?.data['message']),
+          ignoreOpenDialog: true,
+        );
+      } catch (_) {
+        DialogService.instance.showDialog(
+          ErrorDialog(
+            message: defaultErrorMessage,
+            detalhes: e.response?.data.toString(),
+          ),
+          ignoreOpenDialog: true,
+        );
+      }
       return false;
     }
   }

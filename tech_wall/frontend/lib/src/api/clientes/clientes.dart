@@ -21,16 +21,25 @@ class ClientesApi {
       await _http.dio.post(_url, data: dto.toMap());
       return true;
     } on DioException catch (e) {
-      DialogService.instance.showDialog(
-        ErrorDialog(
-          message: defaultErrorMessage,
-          detalhes: e.response?.data.toString(),
-        ),
-      );
+      try {
+        DialogService.instance.showDialog(
+          ErrorDialog(message: e.response?.data['message']),
+          ignoreOpenDialog: true,
+        );
+      } catch (_) {
+        DialogService.instance.showDialog(
+          ErrorDialog(
+            message: defaultErrorMessage,
+            detalhes: e.response?.data.toString(),
+          ),
+          ignoreOpenDialog: true,
+        );
+      }
       return false;
     } catch (e) {
       DialogService.instance.showDialog(
         ErrorDialog(message: defaultErrorMessage, detalhes: e.toString()),
+        ignoreOpenDialog: true,
       );
       return false;
     }

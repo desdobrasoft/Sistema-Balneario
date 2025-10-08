@@ -128,6 +128,11 @@ class _UpdateStatusProducaoDialogState
                 filled: true,
               ),
               items: StatusProducao.values
+                  .where(
+                    (s) =>
+                        s != StatusProducao.materiaisPendentes &&
+                        s != StatusProducao.prontoEnvio,
+                  )
                   .map(
                     (s) =>
                         DropdownMenuItem(value: s, child: Text(s.description)),
@@ -178,7 +183,7 @@ class _UpdateStatusProducaoDialogState
       notas: _notasController.text,
     );
 
-    final success = await ProducaoApi.update(widget.ordem.id, dto);
+    final success = await ProducaoApi.updateStatus(widget.ordem.id, dto);
 
     _isPressed.value = false;
     if (success && mounted) Navigator.of(context).pop(true);

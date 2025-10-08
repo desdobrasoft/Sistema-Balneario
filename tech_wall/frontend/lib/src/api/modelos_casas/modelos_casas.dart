@@ -82,6 +82,27 @@ class ModelosCasasApi {
     }
   }
 
+  /// Busca um modelo de casa pelo ID.
+  static Future<ModeloCasaModel?> getById(int id) async {
+    try {
+      final response = await _http.dio.get('$_url/$id');
+      return ModeloCasaModel.fromJson(response.data);
+    } on DioException catch (e) {
+      DialogService.instance.showDialog(
+        ErrorDialog(
+          message: defaultErrorMessage,
+          detalhes: e.response?.data.toString(),
+        ),
+      );
+      return null;
+    } catch (e) {
+      DialogService.instance.showDialog(
+        ErrorDialog(message: defaultErrorMessage, detalhes: e.toString()),
+      );
+      return null;
+    }
+  }
+
   /// Remove um modelo de casa (soft delete).
   static Future<bool> removeModeloCasa(ModeloCasaModel modelo) async {
     final accept =

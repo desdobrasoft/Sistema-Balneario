@@ -84,19 +84,29 @@ class UpdatePlacaDto {
 }
 
 class GerenciarProducaoPlacaDto {
+  final int? adicionarAguardando;
   final int? iniciarProducao;
   final int? finalizarProducao;
 
   const GerenciarProducaoPlacaDto({
+    this.adicionarAguardando,
     this.iniciarProducao,
     this.finalizarProducao,
   });
 
   Map<String, dynamic> toMap() => {
+        if (adicionarAguardando != null)
+          'adicionarAguardando': adicionarAguardando,
         if (iniciarProducao != null) 'iniciarProducao': iniciarProducao,
         if (finalizarProducao != null) 'finalizarProducao': finalizarProducao,
       };
 
   @override
   String toString() => jsonEncode(toMap());
+}
+
+class BaixaProducaoPlacaDto {
+  final int quantidade;
+  const BaixaProducaoPlacaDto({required this.quantidade});
+  Map<String, dynamic> toMap() => {'quantidade': quantidade};
 }

@@ -118,7 +118,8 @@ class _CustomersState extends State<Customers> {
           .where(
             (customer) =>
                 customer.nome.toLowerCase().contains(text.toLowerCase()) ||
-                customer.email.toLowerCase().contains(text.toLowerCase()) ||
+                customer.email?.toLowerCase().contains(text.toLowerCase()) ==
+                    true ||
                 customer.nroContato.toString().toLowerCase().contains(
                   text.toLowerCase(),
                 ),

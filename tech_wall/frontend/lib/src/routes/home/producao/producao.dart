@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:tech_wall/src/api/producao/producao.dart';
+import 'package:tech_wall/src/components/app_button.dart';
 import 'package:tech_wall/src/components/card.dart';
+import 'package:tech_wall/src/components/dialogs/producao/add_ordem_interna_dialog.dart';
 import 'package:tech_wall/src/constants/constants.dart';
 import 'package:tech_wall/src/models/ordem_producao.dart';
 import 'package:tech_wall/src/routes/home/producao/components/producao_table.dart';
+import 'package:tech_wall/src/services/dialog/dialog.dart';
 import 'package:tech_wall/src/utils/hint_style.dart';
 
 class Producao extends StatefulWidget {
@@ -13,7 +16,6 @@ class Producao extends StatefulWidget {
   State<Producao> createState() => _ProducaoState();
 }
 
-// TODO: Impedir alteração de status de kits sem materiais.
 class _ProducaoState extends State<Producao> {
   final _controller = TextEditingController();
   final _notifier = ValueNotifier(false);
@@ -59,6 +61,15 @@ class _ProducaoState extends State<Producao> {
     });
   }
 
+  Future<void> _onPressedAdd() async {
+    final success = await DialogService.instance.showDialog(
+      const AddOrdemInternaDialog(),
+    );
+    if (success == true) {
+      _reloadData();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,6 +97,11 @@ class _ProducaoState extends State<Producao> {
                           prefixIcon: const Icon(Icons.search),
                         ),
                       ),
+                    ),
+                    AppButton(
+                      label: 'Nova Ordem de Produção',
+                      onPressed: _onPressedAdd,
+                      icon: const Icon(Icons.add),
                     ),
                   ],
                 ),

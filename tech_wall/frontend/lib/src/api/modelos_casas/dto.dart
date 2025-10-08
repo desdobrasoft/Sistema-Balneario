@@ -1,4 +1,4 @@
-import 'dart:convert' show jsonEncode;
+import 'dart:convert' show JsonEncoder;
 
 class MaterialRequeridoDto {
   final String materialId;
@@ -15,7 +15,7 @@ class MaterialRequeridoDto {
   };
 
   @override
-  String toString() => jsonEncode(toMap());
+  String toString() => JsonEncoder.withIndent('  ').convert(toMap());
 }
 
 class PlacaRequeridaDto {
@@ -27,14 +27,14 @@ class PlacaRequeridaDto {
   Map<String, Object?> toMap() => {'placaId': placaId, 'qt_placa': qtPlaca};
 
   @override
-  String toString() => jsonEncode(toMap());
+  String toString() => JsonEncoder.withIndent('  ').convert(toMap());
 }
 
 class CreateModeloCasaDto {
   final String nome;
   final String? descricao;
   final int tempoFabricacao;
-  final String? urlImagem;
+  final String? imagemBase64;
   final double preco;
   final List<MaterialRequeridoDto>? materiais;
   final List<PlacaRequeridaDto>? placas;
@@ -43,7 +43,7 @@ class CreateModeloCasaDto {
     required this.nome,
     this.descricao,
     required this.tempoFabricacao,
-    this.urlImagem,
+    this.imagemBase64,
     required this.preco,
     this.materiais,
     this.placas,
@@ -52,8 +52,7 @@ class CreateModeloCasaDto {
   Map<String, Object?> toMap() => {
     'nome': nome,
     if (descricao?.isNotEmpty == true) 'descricao': descricao,
-    'tempo_fabricacao': tempoFabricacao,
-    if (urlImagem?.isNotEmpty == true) 'url_imagem': urlImagem,
+    if (imagemBase64?.isNotEmpty == true) 'imagem_base64': imagemBase64,
     'preco': preco,
     if (materiais != null)
       'materiais': materiais!.map((m) => m.toMap()).toList(),
@@ -61,14 +60,14 @@ class CreateModeloCasaDto {
   };
 
   @override
-  String toString() => jsonEncode(toMap());
+  String toString() => JsonEncoder.withIndent('  ').convert(toMap());
 }
 
 class UpdateModeloCasaDto {
   final String? nome;
   final String? descricao;
   final int? tempoFabricacao;
-  final String? urlImagem;
+  final String? imagemBase64;
   final double? preco;
   final List<MaterialRequeridoDto>? materiais;
   final List<PlacaRequeridaDto>? placas;
@@ -77,7 +76,7 @@ class UpdateModeloCasaDto {
     this.nome,
     this.descricao,
     this.tempoFabricacao,
-    this.urlImagem,
+    this.imagemBase64,
     this.preco,
     this.materiais,
     this.placas,
@@ -87,7 +86,7 @@ class UpdateModeloCasaDto {
     if (nome?.isNotEmpty == true) 'nome': nome,
     if (descricao?.isNotEmpty == true) 'descricao': descricao,
     if (tempoFabricacao != null) 'tempo_fabricacao': tempoFabricacao,
-    if (urlImagem?.isNotEmpty == true) 'url_imagem': urlImagem,
+    if (imagemBase64?.isNotEmpty == true) 'imagem_base64': imagemBase64,
     if (preco != null) 'preco': preco,
     if (materiais != null)
       'materiais': materiais!.map((m) => m.toMap()).toList(),
@@ -95,5 +94,5 @@ class UpdateModeloCasaDto {
   };
 
   @override
-  String toString() => jsonEncode(toMap());
+  String toString() => JsonEncoder.withIndent('  ').convert(toMap());
 }

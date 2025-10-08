@@ -1,4 +1,4 @@
-import 'dart:convert' show jsonEncode;
+import 'dart:convert' show JsonEncoder;
 
 import 'package:tech_wall/src/models/historico_producao.dart';
 import 'package:tech_wall/src/models/status_producao.dart';
@@ -42,11 +42,11 @@ class OrdemProducaoModel {
     _Keys.dataAgendamento: dataAgendamento,
     _Keys.historicoProducao: historicoProducao.map((h) => h.toMap()).toList(),
     _Keys.status: status.description,
-    _Keys.venda: venda,
+    _Keys.venda: venda.toMap(),
   };
 
   @override
-  String toString() => jsonEncode(toMap());
+  String toString() => JsonEncoder.withIndent('  ').convert(toMap());
 }
 
 class _Keys {

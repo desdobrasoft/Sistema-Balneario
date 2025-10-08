@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, HttpCode } from '@nestjs/common';
 import { PlacasService } from './placas.service';
 import { CreatePlacaDto } from './dto/create-placa.dto';
 import { UpdatePlacaDto } from './dto/update-placa.dto';
 import { GerenciarProducaoPlacaDto } from './dto/gerenciar-producao-placa.dto';
+import { BaixaProducaoPlacaDto } from './dto/baixa-producao-placa.dto';
 
 @Controller('placas')
 export class PlacasController {
@@ -39,5 +40,14 @@ export class PlacasController {
     @Body() gerenciarProducaoPlacaDto: GerenciarProducaoPlacaDto,
   ) {
     return this.placasService.gerenciarProducao(id, gerenciarProducaoPlacaDto);
+  }
+
+  @Post(':id/baixa-producao')
+  @HttpCode(200)
+  baixaProducao(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: BaixaProducaoPlacaDto,
+  ) {
+    return this.placasService.baixaProducao(id, dto);
   }
 }

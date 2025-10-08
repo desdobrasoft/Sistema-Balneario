@@ -7,35 +7,29 @@ import 'package:tech_wall/src/components/dialogs/interface.dart';
 import 'package:tech_wall/src/constants/constants.dart';
 import 'package:tech_wall/src/models/placa.dart';
 
-class GerenciarProducaoDialog extends StatefulWidget
-    implements DialogInterface {
+class BaixaProducaoDialog extends StatefulWidget implements DialogInterface {
   final Placa placa;
-  const GerenciarProducaoDialog({super.key, required this.placa});
+  const BaixaProducaoDialog({super.key, required this.placa});
 
   @override
-  State<GerenciarProducaoDialog> createState() =>
-      _GerenciarProducaoDialogState();
+  State<BaixaProducaoDialog> createState() => _BaixaProducaoDialogState();
 }
 
-class _GerenciarProducaoDialogState extends State<GerenciarProducaoDialog> {
+class _BaixaProducaoDialogState extends State<BaixaProducaoDialog> {
   final _formKey = GlobalKey<FormState>();
   final _isSubmitting = ValueNotifier(false);
-  final _iniciarController = TextEditingController();
-  final _finalizarController = TextEditingController();
-  final _adicionarController = TextEditingController();
+  final _quantidadeController = TextEditingController();
   bool _materiaisExpanded = false;
 
   @override
   void initState() {
     super.initState();
-    _iniciarController.addListener(() => setState(() {}));
+    _quantidadeController.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
-    _iniciarController.dispose();
-    _finalizarController.dispose();
-    _adicionarController.dispose();
+    _quantidadeController.dispose();
     _isSubmitting.dispose();
     super.dispose();
   }
@@ -45,7 +39,7 @@ class _GerenciarProducaoDialogState extends State<GerenciarProducaoDialog> {
     final textTheme = Theme.of(context).textTheme;
     return AlertDialog(
       scrollable: true,
-      title: Text('Gerenciar Produção - ${widget.placa.nome}'),
+      title: Text('Dar Baixa na Produção - ${widget.placa.nome}'),
       content: Form(
         key: _formKey,
         child: SizedBox(
@@ -54,51 +48,21 @@ class _GerenciarProducaoDialogState extends State<GerenciarProducaoDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildQtdeChip(
-                    'Aguardando',
-                    widget.placa.qtAguardandoProducao,
-                    textTheme,
-                  ),
-                  _buildQtdeChip(
-                    'Em Produção',
-                    widget.placa.qtEmProducao,
-                    textTheme,
-                  ),
-                  _buildQtdeChip('Prontas', widget.placa.qtPronta, textTheme),
-                ],
-              ),
-              const Divider(height: gaplg * 2),
-              TextFormField(
-                controller: _adicionarController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: const InputDecoration(
-                  labelText: 'Adicionar para Produção (Qtde)',
-                  hintText: 'Adiciona placas para "Aguardando Produção"',
-                  filled: true,
-                ),
+              Text(
+                'Esta ação irá consumir os materiais necessários do estoque e adicionar a quantidade informada diretamente às placas "Prontas".',
+                style: textTheme.bodyMedium,
               ),
               const SizedBox(height: gaplg),
               TextFormField(
-                controller: _iniciarController,
+                controller: _quantidadeController,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: const InputDecoration(
-                  labelText: 'Iniciar Produção (Qtde)',
-                  hintText: 'Aguardando -> Em Produção',
+                  labelText: 'Quantidade para Dar Baixa',
                   filled: true,
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) return null;
-                  final qt = int.tryParse(value) ?? 0;
-                  if (qt > widget.placa.qtAguardandoProducao) {
-                    return 'Insuficiente';
-                  }
-                  return null;
-                },
+                validator: (v) =>
+                    (v == null || v.isEmpty) ? 'Obrigatório' : null,
               ),
               Padding(
                 padding: const EdgeInsets.only(left: 4.0, top: gapsm),
@@ -120,25 +84,6 @@ class _GerenciarProducaoDialogState extends State<GerenciarProducaoDialog> {
                 ),
               ),
               if (_materiaisExpanded) _buildMateriaisList(),
-              const SizedBox(height: gaplg),
-              TextFormField(
-                controller: _finalizarController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: const InputDecoration(
-                  labelText: 'Finalizar Produção (Qtde)',
-                  hintText: 'Em Produção -> Pronta',
-                  filled: true,
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) return null;
-                  final qt = int.tryParse(value) ?? 0;
-                  if (qt > widget.placa.qtEmProducao) {
-                    return 'Insuficiente';
-                  }
-                  return null;
-                },
-              ),
             ],
           ),
         ),
@@ -161,7 +106,7 @@ class _GerenciarProducaoDialogState extends State<GerenciarProducaoDialog> {
   }
 
   Widget _buildMateriaisList() {
-    final qtdeIniciar = int.tryParse(_iniciarController.text) ?? 0;
+    final qtde = int.tryParse(_quantidadeController.text) ?? 0;
     final textTheme = Theme.of(context).textTheme;
 
     if (widget.placa.materiais.isEmpty) {
@@ -172,8 +117,8 @@ class _GerenciarProducaoDialogState extends State<GerenciarProducaoDialog> {
     }
 
     return Container(
+      margin: const EdgeInsets.only(top: gapsm),
       padding: const EdgeInsets.all(gapsm),
-      margin: EdgeInsets.only(top: gapsm),
       decoration: BoxDecoration(
         border: Border.all(color: Theme.of(context).dividerColor),
         borderRadius: BorderRadius.circular(gapsm),
@@ -185,8 +130,8 @@ class _GerenciarProducaoDialogState extends State<GerenciarProducaoDialog> {
           Padding(
             padding: const EdgeInsets.only(left: 12, bottom: 4),
             child: Text(
-              qtdeIniciar > 0
-                  ? 'Necessário para $qtdeIniciar placa(s):'
+              qtde > 0
+                  ? 'Necessário para $qtde placa(s):'
                   : 'Material por placa:',
               style: textTheme.labelLarge,
             ),
@@ -195,7 +140,7 @@ class _GerenciarProducaoDialogState extends State<GerenciarProducaoDialog> {
             mainAxisSize: MainAxisSize.min,
             children: widget.placa.materiais.map((material) {
               final necessarioPorPlaca = material.quantidade;
-              final necessarioTotal = necessarioPorPlaca * qtdeIniciar;
+              final necessarioTotal = necessarioPorPlaca * qtde;
               final emEstoque = material.material?.quantidade ?? 0;
               final hasEnough = emEstoque >= necessarioTotal;
 
@@ -207,12 +152,12 @@ class _GerenciarProducaoDialogState extends State<GerenciarProducaoDialog> {
                     style: textTheme.bodyMedium,
                     children: [
                       TextSpan(
-                        text: qtdeIniciar > 0
+                        text: qtde > 0
                             ? '$necessarioTotal'
                             : '$necessarioPorPlaca',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: qtdeIniciar > 0 && !hasEnough
+                          color: qtde > 0 && !hasEnough
                               ? Theme.of(context).colorScheme.error
                               : null,
                         ),
@@ -230,39 +175,18 @@ class _GerenciarProducaoDialogState extends State<GerenciarProducaoDialog> {
     );
   }
 
-  Widget _buildQtdeChip(String label, int quantity, TextTheme textTheme) {
-    return Column(
-      children: [
-        Text(label, style: textTheme.labelLarge),
-        const SizedBox(height: gapsm),
-        Chip(label: Text(quantity.toString(), style: textTheme.titleMedium)),
-      ],
-    );
-  }
-
   Future<void> _submit() async {
     if (_formKey.currentState?.validate() != true) return;
 
-    final adicionar = int.tryParse(_adicionarController.text);
-    final iniciar = int.tryParse(_iniciarController.text);
-    final finalizar = int.tryParse(_finalizarController.text);
-
-    if ((adicionar == null || adicionar == 0) &&
-        (iniciar == null || iniciar == 0) &&
-        (finalizar == null || finalizar == 0)) {
-      return;
-    }
+    final quantidade = int.tryParse(_quantidadeController.text);
+    if (quantidade == null || quantidade == 0) return;
 
     if (_isSubmitting.value) return;
     _isSubmitting.value = true;
 
-    final dto = GerenciarProducaoPlacaDto(
-      adicionarAguardando: adicionar,
-      iniciarProducao: iniciar,
-      finalizarProducao: finalizar,
-    );
+    final dto = BaixaProducaoPlacaDto(quantidade: quantidade);
 
-    final success = await PlacasApi.gerenciarProducao(widget.placa.id, dto);
+    final success = await PlacasApi.baixaProducao(widget.placa.id, dto);
 
     _isSubmitting.value = false;
     if (success && mounted) {

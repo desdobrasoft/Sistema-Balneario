@@ -32,6 +32,19 @@ class DeliveryTimeAnalysis extends StatelessWidget {
     }
 
     final dataMax = data.map((item) => item.count).reduce(max);
+
+    if (dataMax == 0) {
+      return AppCard(
+        title: localization(context).dashboardDeliveryTimeAnalysisCardTitle,
+        subtitle: localization(
+          context,
+        ).dashboardDeliveryTimeAnalysisCardSubtitle,
+        content: const Center(
+          child: Text('Nenhuma entrega registrada no período.'),
+        ),
+      );
+    }
+
     // Pequeno adicional para descolar a maior barra do topo.
     final maxY = dataMax * 1.1;
     final interval = maxY / _step;

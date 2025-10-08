@@ -62,6 +62,12 @@ class _HomeDrawerState extends State<HomeDrawer> {
             selectedIcon: Icon(Icons.group),
           ),
           _Route(
+            path: Routes.placas.path,
+            label: localization(context).homeNavigationPlacasLabel,
+            icon: Icon(Icons.house_siding_outlined),
+            selectedIcon: Icon(Icons.house_siding),
+          ),
+          _Route(
             path: Routes.modelos.path,
             label: localization(context).homeNavigationCatalogLabel,
             icon: Icon(Icons.home_outlined),
@@ -96,12 +102,6 @@ class _HomeDrawerState extends State<HomeDrawer> {
             label: localization(context).homeNavigationStockLabel,
             icon: Icon(Icons.inventory_2_outlined),
             selectedIcon: Icon(Icons.inventory),
-          ),
-          _Route(
-            path: Routes.placas.path,
-            label: localization(context).homeNavigationPlacasLabel,
-            icon: Icon(Mdi.viewGridOutline),
-            selectedIcon: Icon(Mdi.viewGrid),
           ),
         ];
 

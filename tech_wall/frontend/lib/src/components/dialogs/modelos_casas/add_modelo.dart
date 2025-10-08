@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:multi_dropdown/multi_dropdown.dart';
 import 'package:tech_wall/src/api/materiais_estoque/materiais_estoque.dart';
 import 'package:tech_wall/src/api/modelos_casas/dto.dart';
@@ -31,7 +34,6 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
 
   final _controllerNome = TextEditingController();
   final _controllerTempo = TextEditingController();
-  final _controllerUrl = TextEditingController();
   final _controllerPreco = TextEditingController(text: '0,00');
   final _controllerDescricao = TextEditingController();
   final _controllerMateriais = MultiSelectController<MaterialEstoqueModel>();
@@ -44,6 +46,8 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
   bool _isQuantidade = false;
   List<MaterialEstoqueModel>? _materiais;
   List<Placa>? _placas;
+  XFile? _imageFile;
+  String? _imagemBase64;
 
   @override
   void initState() {
@@ -61,6 +65,18 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
     });
   }
 
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      final bytes = await image.readAsBytes();
+      setState(() {
+        _imageFile = image;
+        _imagemBase64 = base64Encode(bytes);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     _scheme = ColorScheme.of(context);
@@ -72,7 +88,6 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
           canPop: false,
           child: AlertDialog(
             scrollable: true,
-
             title: Text('Aguarde'),
             content: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -233,7 +248,6 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
                     textAlign: TextAlign.end,
                     keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.next,
-
                     validator: (value) {
                       if (value?.isNotEmpty != true) {
                         return 'Este campo não pode ficar vazio';
@@ -241,16 +255,42 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
                       return null;
                     },
                   ),
-                  TextFormField(
-                    controller: _controllerUrl,
-                    decoration: InputDecoration(
-                      filled: true,
-                      hintText: 'http://localhost:8080/imagens/imagem.png',
-                      hintStyle: hintStyle(context),
-                      labelText: 'URL da imagem',
+                  // Image Picker Widget
+                  Container(
+                    padding: const EdgeInsets.all(gapmd),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: _scheme.outlineVariant),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    keyboardType: TextInputType.url,
-                    textInputAction: TextInputAction.next,
+                    child: Row(
+                      children: [
+                        if (_imageFile != null)
+                          SizedBox(
+                            width: 80,
+                            height: 80,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: Image.network(
+                                _imageFile!.path,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                        if (_imageFile != null) const SizedBox(width: gaplg),
+                        Expanded(
+                          child: Text(
+                            _imageFile?.name ?? 'Nenhuma imagem selecionada.',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: gaplg),
+                        IconButton(
+                          icon: const Icon(Icons.upload_file),
+                          onPressed: _pickImage,
+                          tooltip: 'Selecionar Imagem',
+                        ),
+                      ],
+                    ),
                   ),
                   TextFormField(
                     controller: _controllerPreco,
@@ -262,7 +302,6 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
                     inputFormatters: [CurrencyInputFormatter()],
                     keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.next,
-
                     onFieldSubmitted: (_) =>
                         _controllerMateriais.openDropdown(),
                     validator: (value) {
@@ -275,7 +314,6 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
                   MultiDropdown(
                     controller: _controllerMateriais,
                     searchEnabled: true,
-
                     chipDecoration: ChipDecoration(
                       backgroundColor: _scheme.primaryContainer,
                       labelStyle: TextTheme.of(context).labelLarge,
@@ -299,7 +337,6 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
                       hintText: _materiais?.firstOrNull?.item,
                       hintStyle: hintStyle(context),
                     ),
-
                     items:
                         _materiais?.map((material) {
                           return DropdownItem(
@@ -310,7 +347,6 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
                         List<DropdownItem<MaterialEstoqueModel>>.empty(
                           growable: false,
                         ),
-
                     validator: (value) {
                       if (value?.isEmpty ?? true) {
                         return 'Pelo menos um material deve ser selecionado';
@@ -379,7 +415,6 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
             }
             Navigator.of(context).pop();
           },
-
           child: Text(_isQuantidade ? 'Voltar' : 'Cancelar'),
         ),
         ValueListenableBuilder(
@@ -388,7 +423,6 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
             return AppButton(
               iconPlacement: IconPlacement.right,
               isLoading: submit,
-
               onPressed: () async {
                 if (_isQuantidade) {
                   await _submit();
@@ -401,7 +435,6 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
                   });
                 }
               },
-
               icon: Icon(Icons.check),
               child: Text(_isQuantidade ? 'Adicionar' : 'Próximo'),
             );
@@ -424,7 +457,7 @@ class _AddModeloDialogState extends State<AddModeloDialog> {
             ? null
             : _controllerDescricao.text,
         tempoFabricacao: int.tryParse(_controllerTempo.text) ?? 0,
-        urlImagem: _controllerUrl.text.isEmpty ? null : _controllerUrl.text,
+        imagemBase64: _imagemBase64,
         preco: double.tryParse(_controllerPreco.text.replaceAll(',', '.')) ?? 0,
         materiais: List.generate(_controllerMateriais.selectedItems.length, (
           i,

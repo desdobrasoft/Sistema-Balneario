@@ -119,7 +119,7 @@ class _AddClienteState extends State<AddCliente> {
     if (_isPressed.value) return;
     _isPressed.value = true;
 
-    await ClientesApi.addCliente(
+    final success = await ClientesApi.addCliente(
       CreateClienteDto(
         nome: _nomeController.text,
         email: _emailController.text,
@@ -128,7 +128,7 @@ class _AddClienteState extends State<AddCliente> {
     );
 
     _isPressed.value = false;
-    if (mounted) {
+    if (success && mounted) {
       Navigator.of(context).pop(true); // Retorna true para indicar sucesso
     }
   }

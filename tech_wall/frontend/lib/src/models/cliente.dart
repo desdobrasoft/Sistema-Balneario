@@ -1,17 +1,17 @@
-import 'dart:convert' show jsonEncode;
+import 'dart:convert' show JsonEncoder;
 
 class ClienteModel {
   final int id;
   final String nome;
-  final String email;
-  final String nroContato;
+  final String? email;
+  final String? nroContato;
   final int historicoVendas;
 
   const ClienteModel({
     required this.id,
     required this.nome,
-    required this.email,
-    required this.nroContato,
+    this.email,
+    this.nroContato,
     required this.historicoVendas,
   });
 
@@ -30,8 +30,8 @@ class ClienteModel {
     _Keys.historicoVendas: historicoVendas,
   };
 
-    @override
-  String toString() => jsonEncode(toMap());
+  @override
+  String toString() => JsonEncoder.withIndent('  ').convert(toMap());
 
   @override
   bool operator ==(Object other) =>
@@ -43,7 +43,6 @@ class ClienteModel {
   @override
   int get hashCode => id.hashCode;
 }
-
 
 class _Keys {
   const _Keys._();

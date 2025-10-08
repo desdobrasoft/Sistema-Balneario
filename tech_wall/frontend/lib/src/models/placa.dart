@@ -39,7 +39,8 @@ class Placa {
       qtAguardandoProducao: json['qt_aguardando_producao'] ?? 0,
       qtEmProducao: json['qt_em_producao'] ?? 0,
       qtPronta: json['qt_pronta'] ?? 0,
-      materiais: (json['materiais_placa'] as List?)
+      materiais:
+          (json['materiais_placa'] as List?)
               ?.map((e) => MaterialPlaca.fromJson(e))
               .toList() ??
           [],

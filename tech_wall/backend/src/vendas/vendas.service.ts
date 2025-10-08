@@ -283,7 +283,9 @@ export class VendasService {
   }
 
   findAll(excludeStatus?: status_venda) {
-    const where: Prisma.vendasWhereInput = {};
+    const where: Prisma.vendasWhereInput = {
+      is_internal: false, // Excluir vendas internas por padrão
+    };
 
     if (excludeStatus) {
       where.status = {

@@ -34,9 +34,9 @@ class _EditClienteState extends State<EditCliente> {
     super.initState();
     // Preenche os campos com os dados existentes do cliente
     _nomeController.text = widget.cliente.nome;
-    _emailController.text = widget.cliente.email;
+    _emailController.text = widget.cliente.email ?? '';
     _contatoController.text = UtilBrasilFields.obterTelefone(
-      widget.cliente.nroContato,
+      widget.cliente.nroContato ?? '',
     );
   }
 

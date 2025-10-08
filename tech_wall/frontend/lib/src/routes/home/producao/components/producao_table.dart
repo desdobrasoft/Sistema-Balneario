@@ -2,9 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:tech_wall/src/api/producao/producao.dart';
+import 'package:tech_wall/src/components/dialogs/boolean.dart';
+import 'package:tech_wall/src/components/dialogs/producao/iniciar_producao_dialog.dart';
 import 'package:tech_wall/src/components/dialogs/producao/update_status_producao.dart';
 import 'package:tech_wall/src/components/responsive_table.dart';
 import 'package:tech_wall/src/models/ordem_producao.dart';
+import 'package:tech_wall/src/models/status_producao.dart';
 import 'package:tech_wall/src/services/dialog/dialog.dart';
 import 'package:tech_wall/src/utils/compare.dart';
 
@@ -25,11 +29,58 @@ class _ProducaoTableState extends State<ProducaoTable> {
     _sort(0, true);
   }
 
+  Future<void> _iniciarProducao(OrdemProducaoModel ordem) async {
+    final success = await DialogService.instance.showDialog(
+      IniciarProducaoDialog(ordem: ordem),
+    );
+    if (success == true) {
+      widget.onDataChange?.call();
+    }
+  }
+
   Future<void> _updateStatus(OrdemProducaoModel ordem) async {
     final success = await DialogService.instance.showDialog(
       UpdateStatusProducaoDialog(ordem: ordem),
     );
     if (success == true) {
+      widget.onDataChange?.call();
+    }
+  }
+
+  Future<void> _finalizarProducao(OrdemProducaoModel ordem) async {
+    final confirmed =
+        await DialogService.instance.showDialog(
+          BooleanDialog(
+            title: 'Finalizar Produção',
+            content:
+                'Tem certeza que deseja finalizar a produção para a venda #${ordem.venda.id}? Esta ação irá gerar o registro de entrega e não poderá ser desfeita.',
+          ),
+        ) ==
+        true;
+
+    if (!confirmed) return;
+
+    final success = await ProducaoApi.finalizarProducao(ordem.id);
+    if (success) {
+      widget.onDataChange?.call();
+    }
+  }
+
+  Future<void> _removerOrdem(OrdemProducaoModel ordem) async {
+    final confirmed =
+        await DialogService.instance.showDialog(
+          BooleanDialog(
+            title: 'Remover Ordem de Produção',
+            content:
+                'ATENÇÃO: Tem certeza que deseja remover permanentemente a ordem de produção da venda #${ordem.venda.id}? Esta ação não pode ser desfeita.',
+          ),
+        ) ==
+        true;
+
+    if (!confirmed) return;
+
+    final success = await ProducaoApi.remove(ordem.id);
+    if (success) {
       widget.onDataChange?.call();
     }
   }
@@ -65,18 +116,60 @@ class _ProducaoTableState extends State<ProducaoTable> {
             ResponsiveCell(date),
             ResponsiveCell(ordem.status.description),
           ],
-          actions: [
-            PopupMenuItem(
-              onTap: () => _updateStatus(ordem),
-              child: const ListTile(
-                leading: Icon(Icons.edit_note),
-                title: Text("Alterar Status"),
-              ),
-            ),
-          ],
+          actions: _buildActionsForStatus(ordem),
         );
       }),
     );
+  }
+
+  List<PopupMenuEntry> _buildActionsForStatus(OrdemProducaoModel ordem) {
+    switch (ordem.status) {
+      case StatusProducao.materiaisPendentes:
+        return [
+          PopupMenuItem(
+            onTap: () => _iniciarProducao(ordem),
+            child: const ListTile(
+              leading: Icon(Icons.play_circle_outline),
+              title: Text("Iniciar Produção"),
+            ),
+          ),
+        ];
+      case StatusProducao.prontoEnvio:
+        return [
+          PopupMenuItem(
+            onTap: () => _removerOrdem(ordem),
+            child: const ListTile(
+              leading: Icon(Icons.delete_forever, color: Colors.red),
+              title: Text("Remover", style: TextStyle(color: Colors.red)),
+            ),
+          ),
+        ];
+      default:
+        return [
+          PopupMenuItem(
+            onTap: () => _updateStatus(ordem),
+            child: const ListTile(
+              leading: Icon(Icons.edit_note),
+              title: Text("Alterar Status"),
+            ),
+          ),
+          PopupMenuItem(
+            onTap: () => _finalizarProducao(ordem),
+            child: const ListTile(
+              leading: Icon(Icons.check_circle_outline),
+              title: Text("Finalizar Produção"),
+            ),
+          ),
+          const PopupMenuDivider(),
+          PopupMenuItem(
+            onTap: () => _removerOrdem(ordem),
+            child: const ListTile(
+              leading: Icon(Icons.delete_forever, color: Colors.red),
+              title: Text("Remover", style: TextStyle(color: Colors.red)),
+            ),
+          ),
+        ];
+    }
   }
 
   int _compare(

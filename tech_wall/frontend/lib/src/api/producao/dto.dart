@@ -1,11 +1,9 @@
-import 'dart:convert' show jsonEncode;
-
 import 'package:tech_wall/src/models/status_producao.dart';
 
 class UpdateOrdemProducaoDto {
   final StatusProducao status;
   final String? notas;
-  final DateTime? dataAgendamento;
+  final String? dataAgendamento;
 
   const UpdateOrdemProducaoDto({
     required this.status,
@@ -14,12 +12,16 @@ class UpdateOrdemProducaoDto {
   });
 
   Map<String, dynamic> toMap() => {
-    'status': status.prisma,
-    if (notas?.isNotEmpty == true) 'notas': notas,
-    if (dataAgendamento != null)
-      'data_agendamento': dataAgendamento!.toIso8601String(),
+    'status': status.prisma.toUpperCase(),
+    if (notas != null) 'notas': notas,
+    if (dataAgendamento != null) 'data_agendamento': dataAgendamento,
   };
+}
 
-  @override
-  String toString() => jsonEncode(toMap());
+class CreateInternalOrderDto {
+  final int modeloId;
+
+  const CreateInternalOrderDto({required this.modeloId});
+
+  Map<String, dynamic> toMap() => {'modeloId': modeloId};
 }

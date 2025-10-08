@@ -110,15 +110,26 @@ export class PlacasService {
   }
 
   async gerenciarProducao(id: number, dto: GerenciarProducaoPlacaDto) {
-    const { iniciarProducao, finalizarProducao } = dto;
+    const { adicionarAguardando, iniciarProducao, finalizarProducao } = dto;
 
-    if (!iniciarProducao && !finalizarProducao) {
+    if (!adicionarAguardando && !iniciarProducao && !finalizarProducao) {
       throw new BadRequestException(
-        'Especifique a quantidade para iniciar ou finalizar a produção.',
+        'Especifique a quantidade para adicionar, iniciar ou finalizar a produção.',
       );
     }
 
     return this.prisma.$transaction(async (tx) => {
+      // Lógica para adicionar placas aguardando produção
+      if (adicionarAguardando && adicionarAguardando > 0) {
+        await tx.placas.update({
+          where: { id },
+          data: {
+            qt_aguardando_producao: {
+              increment: adicionarAguardando,
+            },
+          },
+        });
+      }
       const placa = await this.findOne(id, tx);
 
       // Lógica para iniciar produção
@@ -202,6 +213,54 @@ export class PlacasService {
           },
         });
       }
+
+      return this.findOne(id, tx);
+    });
+  }
+
+  async baixaProducao(id: number, dto: { quantidade: number }) {
+    const { quantidade } = dto;
+
+    return this.prisma.$transaction(async (tx) => {
+      const placa = await this.findOne(id, tx);
+
+      // Verificar se há material em estoque
+      for (const materialPlaca of placa.materiais_placa) {
+        const materialEstoque = await tx.materiais_estoque.findUnique({
+          where: { id: materialPlaca.material_id },
+        });
+
+        if (
+          !materialEstoque ||
+          materialEstoque.quantidade < materialPlaca.quantidade * quantidade
+        ) {
+          throw new BadRequestException(
+            `Material insuficiente em estoque: ${materialPlaca.materiais_estoque.item}`,
+          );
+        }
+      }
+
+      // Debitar materiais do estoque
+      for (const materialPlaca of placa.materiais_placa) {
+        await tx.materiais_estoque.update({
+          where: { id: materialPlaca.material_id },
+          data: {
+            quantidade: {
+              decrement: materialPlaca.quantidade * quantidade,
+            },
+          },
+        });
+      }
+
+      // Atualizar quantidade de placas prontas
+      await tx.placas.update({
+        where: { id },
+        data: {
+          qt_pronta: {
+            increment: quantidade,
+          },
+        },
+      });
 
       return this.findOne(id, tx);
     });

@@ -12,7 +12,27 @@ export class ClientesService {
   }
 
   findAll() {
-    return this.prisma.clientes.findMany({ orderBy: { nome: 'asc' } });
+    return this.prisma.clientes.findMany({
+      where: { is_internal: false },
+      orderBy: { nome: 'asc' },
+    });
+  }
+
+  async findOrCreateInternalClient() {
+    const internalClient = await this.prisma.clientes.findFirst({
+      where: { is_internal: true, nome: 'Cliente Interno' },
+    });
+
+    if (internalClient) {
+      return internalClient;
+    }
+
+    return this.prisma.clientes.create({
+      data: {
+        nome: 'Cliente Interno',
+        is_internal: true,
+      },
+    });
   }
 
   async findOne(id: number) {
