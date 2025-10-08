@@ -18,6 +18,11 @@ RUN flutter build web --release --wasm
 # Stage 2: Serve with Nginx
 FROM nginx:1.29.1-alpine
 
+# Adiciona o MIME type para arquivos .mjs de forma segura
+RUN sed -i '$ d' /etc/nginx/mime.types && \
+    echo '    application/javascript mjs;' >> /etc/nginx/mime.types && \
+    echo '}' >> /etc/nginx/mime.types
+
 # Copia a build do Flutter para o diretório do Nginx
 COPY --from=builder /app/build/web /usr/share/nginx/html
 
