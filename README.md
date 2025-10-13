@@ -1,12 +1,12 @@
-# Sistema Tech-Wall - Manual do Usuário
+# Sistema TechWall - Manual do Usuário
 
-Bem-vindo ao Tech-Wall! Este manual foi projetado para guiar os usuários através
+Bem-vindo ao TechWall! Este manual foi projetado para guiar os usuários através
 das funcionalidades do sistema, desde a configuração inicial até a gestão do dia
 a dia.
 
 ## Visão Geral
 
-O sistema Tech-Wall é uma solução completa para gerenciamento de produção e
+O sistema TechWall é uma solução completa para gerenciamento de produção e
 vendas de casas pré-fabricadas. Ele abrange o controle de clientes, estoque,
 produção de componentes, montagem de kits, vendas, finanças e entregas,
 fornecendo uma visão integrada de todo o processo.
