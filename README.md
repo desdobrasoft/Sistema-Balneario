@@ -200,5 +200,3 @@ operações mais importantes, incluindo:
       **Estoque > Recebimento**), ele aparecerá aqui com o status "Entregue com
       Alteração" para que o financeiro possa resolver a pendência com o
       fornecedor.
-  - **Notas Fiscais**: Uma área para registro e consulta de notas fiscais
-    (funcionalidade em desenvolvimento).
