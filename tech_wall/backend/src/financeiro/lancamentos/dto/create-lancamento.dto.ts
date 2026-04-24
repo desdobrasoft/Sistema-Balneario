@@ -1,4 +1,3 @@
-import { tipo_lancamento } from '@prisma/client';
 import {
   IsDateString,
   IsEnum,
@@ -9,10 +8,11 @@ import {
   IsPositive,
   IsString,
 } from 'class-validator';
+import { TipoLancamento } from '../../../generated/prisma/client';
 
 export class CreateLancamentoDto {
-  @IsEnum(tipo_lancamento)
-  tipo: tipo_lancamento;
+  @IsEnum(TipoLancamento)
+  tipo: TipoLancamento;
 
   @IsString()
   @IsNotEmpty()
@@ -20,11 +20,11 @@ export class CreateLancamentoDto {
 
   @IsNumber()
   @IsPositive()
-  valor_total: number;
+  valorTotal: number;
 
   @IsOptional()
   @IsDateString()
-  data_vencimento?: string;
+  dataVencimento?: string;
 
   // Referências mutuamente exclusivas (a lógica será validada no service)
   @IsOptional()

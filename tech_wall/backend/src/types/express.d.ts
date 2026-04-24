@@ -2,14 +2,14 @@
 export interface AuthenticatedUser {
   id: number;
   username: string;
-  roles: string[];
+  role: string[];
 }
 
 // Payload from Refresh Token Strategy
 export interface RefreshTokenUser {
   sub: number;
   username: string;
-  roles: string[];
+  role: string[];
   refreshToken: string;
 }
 

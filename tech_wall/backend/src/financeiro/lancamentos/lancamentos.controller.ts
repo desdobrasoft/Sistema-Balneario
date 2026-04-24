@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   ParseIntPipe,
   Patch,
@@ -10,14 +11,16 @@ import {
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { Roles } from 'src/auth/roles.decorator';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { Roles } from '../../auth/roles.decorator';
+import { RolesGuard } from '../../auth/roles.guard';
+import { DataTableParamsDto } from '../../common/dto/data-table.dto';
 import { CreateLancamentoDto } from './dto/create-lancamento.dto';
 import { UpdateLancamentoDto } from './dto/update-lancamento.dto';
 import { LancamentosService } from './lancamentos.service';
 
-@UseGuards(JwtAuthGuard)
-@Roles('admin', 'financeiro')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('financeiro')
 @Controller('financeiro/lancamentos')
 export class LancamentosController {
   constructor(private readonly service: LancamentosService) {}
@@ -29,7 +32,13 @@ export class LancamentosController {
 
   @Get()
   findAll() {
-    return this.service.findAll();
+    return this.service.findAllRaw();
+  }
+
+  @Post('datatable')
+  @HttpCode(200)
+  async datatable(@Body() body: DataTableParamsDto) {
+    return this.service.findDatatable(body);
   }
 
   @Get(':id')

@@ -1,48 +1,91 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Prisma, PrismaClient } from '../generated/prisma/client';
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit {
-  constructor() {
-    super();
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
+  private _extendedClient: any;
 
-    // 1. Defina a lógica de soft delete UMA VEZ em uma constante.
-    // Ela será aplicada a qualquer modelo que precisarmos.
+  constructor() {
+    const adapter = new PrismaPg({
+      connectionString: process.env.DATABASE_URL,
+    });
+    super({ adapter });
+
     const softDeleteActions = {
-      async delete(args: any) {
+      async delete(this: any, args: any) {
         const ctx = Prisma.getExtensionContext(this);
-        // A lógica agora é reutilizável e usa o contexto correto
         return (ctx as any).update({
           ...args,
-          data: { deleted_at: new Date() },
+          data: { deletedAt: new Date() },
+        });
+      },
+
+      async deleteMany(this: any, args: any) {
+        const ctx = Prisma.getExtensionContext(this);
+        return (ctx as any).updateMany({
+          ...args,
+          data: { deletedAt: new Date() },
         });
       },
     };
 
-    this.$extends({
+    this._extendedClient = this.$extends({
       query: {
-        $allModels: {
-          // Filtra as buscas para todos os modelos que tiverem 'deleted_at'
+        modeloCasa: {
           async findMany({ args, query }) {
-            args.where = { ...args.where, deleted_at: null };
+            args.where = { deletedAt: null, ...args.where };
             return query(args);
           },
           async findUnique({ args, query }) {
-            args.where = { ...args.where, deleted_at: null };
+            args.where = { deletedAt: null, ...args.where };
             return query(args);
           },
           async findFirst({ args, query }) {
-            args.where = { ...args.where, deleted_at: null };
+            args.where = { deletedAt: null, ...args.where };
+            return query(args);
+          },
+        },
+        materiaPrima: {
+          async findMany({ args, query }) {
+            args.where = { deletedAt: null, ...args.where };
+            return query(args);
+          },
+          async findUnique({ args, query }) {
+            args.where = { deletedAt: null, ...args.where };
+            return query(args);
+          },
+          async findFirst({ args, query }) {
+            args.where = { deletedAt: null, ...args.where };
+            return query(args);
+          },
+        },
+        placa: {
+          async findMany({ args, query }) {
+            args.where = { deletedAt: null, ...args.where };
+            return query(args);
+          },
+          async findUnique({ args, query }) {
+            args.where = { deletedAt: null, ...args.where };
+            return query(args);
+          },
+          async findFirst({ args, query }) {
+            args.where = { deletedAt: null, ...args.where };
             return query(args);
           },
         },
       },
       model: {
-        // 2. Aplique a lógica de soft delete aos modelos desejados
-        modelo_casa: softDeleteActions,
-        materiais_estoque: softDeleteActions,
+        modeloCasa: softDeleteActions,
+        materiaPrima: softDeleteActions,
+        placa: softDeleteActions,
       },
     });
+
+    return this._extendedClient;
   }
 
   async onModuleInit() {

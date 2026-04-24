@@ -1,30 +1,32 @@
-# Stage 1: Build Flutter App
-FROM ghcr.io/cirruslabs/flutter:3.35.4 AS builder
+# Stage 1: Build React/Vite App
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
-# Copia os arquivos do projeto
+# Copia apenas os arquivos de dependência primeiro (melhor cache de layers)
+COPY package*.json ./
+
+RUN npm ci
+
+# Copia o resto do projeto
 COPY . .
 
-# Copia o .env de produção para .env, que será lido pelo app
-COPY .env.production .env
+# Define a URL da API para o build de produção
+# O Traefik roteia /api para o backend, então usamos path relativo
+ARG VITE_API_URL=/api
+ENV VITE_API_URL=$VITE_API_URL
 
-# Instala as dependências
-RUN flutter pub get
+# Build de produção (Vite gera em dist/)
+RUN npm run build
 
-# Constrói a aplicação web
-RUN flutter build web --release --wasm
+# Stage 2: Serve com Nginx
+FROM nginx:1.27-alpine
 
-# Stage 2: Serve with Nginx
-FROM nginx:1.29.1-alpine
+# Remove a configuração padrão do Nginx
+RUN rm /etc/nginx/conf.d/default.conf
 
-# Adiciona o MIME type para arquivos .mjs de forma segura
-RUN sed -i '$ d' /etc/nginx/mime.types && \
-    echo '    application/javascript mjs;' >> /etc/nginx/mime.types && \
-    echo '}' >> /etc/nginx/mime.types
-
-# Copia a build do Flutter para o diretório do Nginx
-COPY --from=builder /app/build/web /usr/share/nginx/html
+# Copia a build do Vite para o diretório do Nginx
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Copia a configuração do Nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf

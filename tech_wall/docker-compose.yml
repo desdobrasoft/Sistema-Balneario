@@ -4,6 +4,7 @@ services:
     command:
       - "--providers.docker"
       - "--providers.docker.exposedbydefault=false"
+      - "--api.dashboard=false"
       - "--entryPoints.websecure.address=:443"
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.myresolver.acme.email=elliott@zenful.cloud"
@@ -16,13 +17,13 @@ services:
       - "443:443"
     volumes:
       - letsencrypt:/letsencrypt
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
   db:
     image: postgres:16-alpine
     container_name: tech_wall_db
     restart: always
-    ports:
-      - "5432:5432"
+    # ports:
+    #   - "5432:5432"
     secrets:
       - db-password
     environment:
@@ -55,7 +56,8 @@ services:
       - ./backend/.env.production
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend-router.rule=Host(`srv734963.hstgr.cloud`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend-router.rule=Host(`srv734963.hstgr.cloud`)&&
+        PathPrefix(`/api`)"
       - "traefik.http.routers.backend-router.entrypoints=websecure"
       - "traefik.http.routers.backend-router.tls.certresolver=myresolver"
       - "traefik.http.services.backend-service.loadbalancer.server.port=3000"

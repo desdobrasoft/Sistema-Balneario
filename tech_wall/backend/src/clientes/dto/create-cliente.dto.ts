@@ -11,5 +11,5 @@ export class CreateClienteDto {
 
   @IsOptional()
   @IsString()
-  nro_contato?: string;
+  nroContato?: string;
 }

@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsBoolean,
   IsInt,
   IsNotEmpty,
   IsNumber,
@@ -11,9 +12,9 @@ import {
 } from 'class-validator';
 
 class MaterialPlacaDto {
-  @IsString()
+  @IsInt()
   @IsNotEmpty()
-  material_id: string;
+  materiaPrimaId: number;
 
   @IsInt()
   @IsPositive()
@@ -41,12 +42,65 @@ export class CreatePlacaDto {
   @IsOptional()
   espessura?: number;
 
+  @IsBoolean()
+  @IsOptional()
+  tramaEsquerdaAtiva?: boolean;
+
+  @IsInt()
+  @IsOptional()
+  tramaEsquerdaId?: number;
+
   @IsString()
   @IsOptional()
-  tipo_trama?: string;
+  tramaEsquerdaOrientacao?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  tramaDireitaAtiva?: boolean;
+
+  @IsInt()
+  @IsOptional()
+  tramaDireitaId?: number;
+
+  @IsString()
+  @IsOptional()
+  tramaDireitaOrientacao?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  tramaSuperiorAtiva?: boolean;
+
+  @IsInt()
+  @IsOptional()
+  tramaSuperiorId?: number;
+
+  @IsString()
+  @IsOptional()
+  tramaSuperiorOrientacao?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  tramaInferiorAtiva?: boolean;
+
+  @IsInt()
+  @IsOptional()
+  tramaInferiorId?: number;
+
+  @IsString()
+  @IsOptional()
+  tramaInferiorOrientacao?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  retalhoDescartado?: boolean;
 
   @IsArray()
+  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => MaterialPlacaDto)
   materiais: MaterialPlacaDto[];
+
+  @IsBoolean()
+  @IsOptional()
+  darBaixaImediata?: boolean;
 }

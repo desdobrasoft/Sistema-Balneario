@@ -3,20 +3,26 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+import { DataTableParamsDto } from '../common/dto/data-table.dto';
 import { ClientesService } from './clientes.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('clientes')
 @Controller('clientes')
-@Roles('admin')
 export class ClientesController {
   constructor(private readonly clientesService: ClientesService) {}
 
@@ -29,6 +35,13 @@ export class ClientesController {
   @Get()
   findAll() {
     return this.clientesService.findAll();
+  }
+
+  @Post('datatable')
+  @HttpCode(200)
+  async datatable(@Body() body: DataTableParamsDto) {
+    const result = await this.clientesService.findDatatable(body);
+    return result;
   }
 
   @Get(':id')

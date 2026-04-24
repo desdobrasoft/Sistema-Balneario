@@ -1,18 +1,11 @@
-import { IsInt, IsOptional, IsPositive } from 'class-validator';
+import { IsEnum, IsObject, IsOptional } from 'class-validator';
+import { StatusProducaoPlaca } from '../../generated/prisma/client';
 
 export class GerenciarProducaoPlacaDto {
-  @IsInt()
-  @IsPositive()
-  @IsOptional()
-  adicionarAguardando?: number;
+  @IsEnum(StatusProducaoPlaca)
+  status: StatusProducaoPlaca;
 
-  @IsInt()
-  @IsPositive()
+  @IsObject()
   @IsOptional()
-  iniciarProducao?: number;
-
-  @IsInt()
-  @IsPositive()
-  @IsOptional()
-  finalizarProducao?: number;
+  materiaisConsumidos?: Record<string, number>;
 }

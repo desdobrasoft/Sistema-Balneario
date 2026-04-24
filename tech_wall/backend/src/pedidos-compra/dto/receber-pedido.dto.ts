@@ -13,5 +13,5 @@ export class ReceberPedidoDto {
   @IsOptional()
   @IsInt()
   @IsPositive()
-  qt_entregue?: number;
+  qtEntregue?: number;
 }

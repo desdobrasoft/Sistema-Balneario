@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Param,
   ParseIntPipe,
   Patch,
@@ -13,42 +14,60 @@ import {
 import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
-import { status_venda } from '@prisma/client';
+import { RolesGuard } from '../auth/roles.guard';
+import { DataTableParamsDto } from '../common/dto/data-table.dto';
+import { StatusVenda } from '../generated/prisma/client';
 import { CreateVendaDto } from './dto/create-venda.dto';
+import { RegistrarCompraSuprimentoDto } from './dto/registrar-compra-suprimento.dto';
 import { UpdateVendaDto } from './dto/update-venda.dto';
 import { VendasService } from './vendas.service';
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('vendas')
 @Controller('vendas')
 export class VendasController {
   constructor(private readonly service: VendasService) {}
 
   @Post()
-  @Roles('admin', 'vendas')
   create(@Body(ValidationPipe) dto: CreateVendaDto, @CurrentUser() user: any) {
     return this.service.create(dto, user.id);
   }
 
+  @Post(':id/suprimentos/comprar')
+  @Roles('producao', 'vendas')
+  registrarCompraSuprimento(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(ValidationPipe) dto: RegistrarCompraSuprimentoDto,
+  ) {
+    return this.service.registrarCompraSuprimento(id, dto);
+  }
+
   @Get()
-  @Roles('admin', 'vendas', 'estoque', 'dashboard')
-  findAll(@Query('exclude_status') excludeStatus?: status_venda) {
+  findAll(@Query('exclude_status') excludeStatus?: StatusVenda) {
     return this.service.findAll(excludeStatus);
   }
 
+  @Post('datatable')
+  @HttpCode(200)
+  async datatable(
+    @Body() body: DataTableParamsDto,
+    @Query('exclude_status') excludeStatus?: StatusVenda,
+  ) {
+    const result = await this.service.findDatatable(body, excludeStatus);
+    return result;
+  }
+
   @Get(':id')
-  @Roles('admin', 'vendas', 'estoque')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.service.findOne(id);
   }
 
   @Get(':id/customization')
-  @Roles('admin', 'vendas', 'estoque')
   findCustomization(@Param('id', ParseIntPipe) id: number) {
     return this.service.findCustomization(id);
   }
 
   @Patch(':id')
-  @Roles('admin', 'vendas')
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body(ValidationPipe) dto: UpdateVendaDto,
@@ -57,7 +76,6 @@ export class VendasController {
   }
 
   @Post(':id/estornar')
-  @Roles('admin')
   estornar(@Param('id', ParseIntPipe) id: number) {
     return this.service.estornar(id);
   }

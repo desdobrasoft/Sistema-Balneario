@@ -3,40 +3,55 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ClientesService } from '../clientes/clientes.service';
+import { EntregasService } from '../entregas/entregas.service';
 import {
   Prisma,
-  status_pagamento_venda,
-  status_producao,
-  status_venda,
-} from '@prisma/client';
-import { ClientesService } from 'src/clientes/clientes.service';
-import { EntregasService } from 'src/entregas/entregas.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+  StatusPagamentoVenda,
+  StatusProducao,
+  StatusVenda,
+} from '../generated/prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateInternalOrderDto } from './dto/create-internal-order.dto';
 import { UpdateOrdemProducaoDto } from './dto/update-ordem-producao.dto';
 
 const includeRelations = {
-  vendas: {
+  venda: {
     include: {
-      clientes: true,
-      modelo_casa: {
+      cliente: true,
+      modeloCasa: {
         include: {
-          materiais_modelo_casa: {
+          materiaisModeloCasa: {
             include: {
-              materiais_estoque: true,
+              materiaPrima: true,
             },
           },
-          placas_modelo_casa: {
+          requisitos: {
             include: {
-              placas: true,
+              corte: true,
             },
           },
         },
       },
+      vendaRequisitos: {
+        include: {
+          corte: true,
+          placaAlocada: true,
+        },
+      },
     },
   },
-  ordens_producao_historico: { orderBy: { data_alteracao: 'asc' } },
+  ordensProducaoHistorico: { orderBy: { dataAlteracao: 'asc' } },
 } as const;
+
+import {
+  DataTableParamsDto,
+  DataTableResult,
+} from '../common/dto/data-table.dto';
+import {
+  buildSearchFilter,
+  getIdsByNumericPartialMatch,
+} from '../common/utils/prisma-search.utils';
 
 @Injectable()
 export class ProducaoService {
@@ -47,15 +62,98 @@ export class ProducaoService {
   ) {}
 
   findAll() {
-    return this.prisma.ordens_producao.findMany({
-      orderBy: { created_at: 'desc' },
+    return this.prisma.ordemProducao.findMany({
+      orderBy: { id: 'desc' },
       include: includeRelations,
     });
   }
 
+  async findDatatable(
+    query: DataTableParamsDto,
+  ): Promise<DataTableResult<any>> {
+    const { start = 0, length = 10, search } = query;
+    const skip = start;
+    const limit = length;
+
+    const baseWhere: any = {};
+    let where = { ...baseWhere };
+
+    if (search && search.value) {
+      // Busca em IDs de venda e IDs de ordem
+      const idsByOrder = await getIdsByNumericPartialMatch(
+        this.prisma,
+        'ordens_producao',
+        ['id', 'venda_id'],
+        search.value,
+      );
+
+      const searchFilter = buildSearchFilter(search.value, [
+        'venda.cliente.nome',
+        'venda.modeloCasa.nome',
+        'status',
+      ]);
+
+      if (idsByOrder.length > 0) {
+        if (searchFilter.OR) {
+          searchFilter.OR.push({ id: { in: idsByOrder } });
+        } else {
+          searchFilter.OR = [{ id: { in: idsByOrder } }];
+        }
+      }
+
+      where = { ...baseWhere, ...searchFilter };
+    }
+
+    const [data, total, filtered] = await Promise.all([
+      this.prisma.ordemProducao.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { id: 'desc' },
+        include: includeRelations,
+      }),
+      this.prisma.ordemProducao.count({ where: baseWhere }),
+      this.prisma.ordemProducao.count({ where }),
+    ]);
+
+    const requestedFields = (query.columns
+      ?.map((c) => c.data)
+      .filter((d) => d && d !== 'null') || []) as string[];
+
+    const finalData = data.map((ordem: any) => {
+      const flatObj: any = {
+        id: ordem.id,
+        status: ordem.status,
+        dataAgendamento: ordem.dataAgendamento,
+        vendaId: ordem.venda?.id || null,
+        clienteNome: ordem.venda?.cliente?.nome || 'N/A',
+        modeloNome: ordem.venda?.modeloCasa?.nome || 'N/A',
+        venda: ordem.venda,
+        ordensProducaoHistorico: ordem.ordensProducaoHistorico,
+      };
+
+      if (requestedFields.length === 0) return flatObj;
+
+      const result: any = {};
+      requestedFields.forEach((field) => {
+        if (flatObj[field] !== undefined) {
+          result[field] = flatObj[field];
+        }
+      });
+      return result;
+    });
+
+    return {
+      draw: query.draw || 1,
+      data: finalData,
+      recordsTotal: total,
+      recordsFiltered: filtered,
+    };
+  }
+
   async findOne(id: number, tx?: Prisma.TransactionClient) {
     const prisma = tx ?? this.prisma;
-    const ordem = await prisma.ordens_producao.findUnique({
+    const ordem = await prisma.ordemProducao.findUnique({
       where: { id },
       include: includeRelations,
     });
@@ -72,7 +170,7 @@ export class ProducaoService {
       const internalClient =
         await this.clientesService.findOrCreateInternalClient();
 
-      const modelo = await tx.modelo_casa.findUnique({
+      const modelo = await tx.modeloCasa.findUnique({
         where: { id: dto.modeloId },
       });
 
@@ -82,30 +180,30 @@ export class ProducaoService {
         );
       }
 
-      const internalVenda = await tx.vendas.create({
+      const internalVenda = await tx.venda.create({
         data: {
-          cliente_id: internalClient.id,
-          modelo_id: modelo.id,
-          data_venda: new Date(),
+          clienteId: internalClient.id,
+          modeloId: modelo.id,
+          dataVenda: new Date(),
           preco: modelo.preco, // O preço pode ser zero ou o preço de custo
-          endereco_entrega: 'Uso Interno',
-          status: status_venda.PRODUCAO_AGENDADA, // Status direto
-          status_pagamento: status_pagamento_venda.PAGO, // Já está "pago"
-          is_internal: true,
+          enderecoEntrega: 'Uso Interno',
+          status: StatusVenda.PRODUCAO_AGENDADA, // Status direto
+          statusPagamento: StatusPagamentoVenda.PAGO, // Já está "pago"
+          isInternal: true,
         },
       });
 
-      const novaOrdemProducao = await tx.ordens_producao.create({
+      const novaOrdemProducao = await tx.ordemProducao.create({
         data: {
-          venda_id: internalVenda.id,
-          status: status_producao.MATERIAIS_PENDENTES, // Começa como pendente
+          vendaId: internalVenda.id,
+          status: StatusProducao.MATERIAIS_PENDENTES, // Começa como pendente
         },
       });
 
-      await tx.ordens_producao_historico.create({
+      await tx.ordemProducaoHistorico.create({
         data: {
-          ordem_producao_id: novaOrdemProducao.id,
-          status_novo: novaOrdemProducao.status,
+          ordemProducaoId: novaOrdemProducao.id,
+          statusNovo: novaOrdemProducao.status,
           notas: 'Ordem de produção interna.',
         },
       });
@@ -125,7 +223,7 @@ export class ProducaoService {
       if (ordem.status === dto.status) return ordem; // Nenhuma alteração necessária
 
       // Impede a alteração para PRONTO_PARA_ENVIO por este método
-      if (dto.status === status_producao.PRONTO_PARA_ENVIO) {
+      if (dto.status === StatusProducao.PRONTO_PARA_ENVIO) {
         throw new ConflictException(
           'Utilize a ação "Finalizar Produção" para alterar o status para PRONTO_PARA_ENVIO.',
         );
@@ -133,73 +231,95 @@ export class ProducaoService {
 
       // LÓGICA DE ALOCAÇÃO DE ESTOQUE
       if (
-        ordem.status === status_producao.MATERIAIS_PENDENTES &&
-        dto.status === status_producao.EM_ESPERA
+        ordem.status === StatusProducao.MATERIAIS_PENDENTES &&
+        dto.status === StatusProducao.EM_ESPERA
       ) {
-        if (!ordem.vendas.modelo_casa) {
+        if (!ordem.venda.modeloCasa) {
           throw new ConflictException(
             `Não é possível alocar materiais pois a venda ou o modelo de casa associado não foram encontrados.`,
           );
         }
 
-        const { materiais_modelo_casa, placas_modelo_casa } =
-          ordem.vendas.modelo_casa;
+        const { materiaisModeloCasa } = ordem.venda.modeloCasa;
 
         // 1. Validar estoque de materiais
-        for (const item of materiais_modelo_casa) {
-          if (item.materiais_estoque.quantidade < item.qt_modelo) {
+        for (const item of materiaisModeloCasa) {
+          if (item.materiaPrima.quantidade < item.qtModelo) {
             throw new ConflictException(
-              `Estoque insuficiente para o material "${item.materiais_estoque.item}".`,
+              `Estoque insuficiente para o material "${item.materiaPrima.item}".`,
             );
           }
         }
 
-        // 2. Validar estoque de placas
-        for (const item of placas_modelo_casa) {
-          if ((item.placas.qt_pronta ?? 0) < item.qt_placa) {
-            throw new ConflictException(
-              `Estoque insuficiente para a placa "${item.placas.nome}".`,
-            );
-          }
-        }
-
-        // 3. Debitar estoque de materiais
-        for (const item of materiais_modelo_casa) {
-          await tx.materiais_estoque.update({
-            where: { id: item.material_id },
-            data: { quantidade: { decrement: item.qt_modelo } },
+        // 2. Debitar estoque de materiais
+        for (const item of materiaisModeloCasa) {
+          await tx.materiaPrima.update({
+            where: { id: item.materiaPrimaId },
+            data: { quantidade: { decrement: item.qtModelo } },
           });
         }
 
-        // 4. Debitar estoque de placas
-        for (const item of placas_modelo_casa) {
-          await tx.placas.update({
-            where: { id: item.placa_id },
-            data: { qt_pronta: { decrement: item.qt_placa } },
-          });
-        }
+        // Nota: A alocação de placas físicas é feita separadamente na tela de produção
       }
 
       // Atualiza a ordem de produção
-      const ordemAtualizada = await tx.ordens_producao.update({
+      const ordemAtualizada = await tx.ordemProducao.update({
         where: { id },
         data: {
           status: dto.status,
-          data_agendamento: dto.data_agendamento
-            ? new Date(dto.data_agendamento)
-            : ordem.data_agendamento,
+          dataAgendamento: dto.dataAgendamento
+            ? new Date(dto.dataAgendamento)
+            : ordem.dataAgendamento,
         },
       });
 
       // Adiciona o registro no histórico
-      await tx.ordens_producao_historico.create({
+      await tx.ordemProducaoHistorico.create({
         data: {
-          ordem_producao_id: id,
-          status_anterior: ordem.status,
-          status_novo: dto.status,
+          ordemProducaoId: id,
+          statusAnterior: ordem.status,
+          statusNovo: dto.status,
           notas: dto.notas,
         },
       });
+
+      // Mapeamento e atualização do status da Venda (sincronização)
+      let novoStatusVenda:
+        | import('../generated/prisma/client').StatusVenda
+        | null = null;
+      if (dto.status === StatusProducao.AGENDADO)
+        novoStatusVenda = 'PRODUCAO_AGENDADA';
+      else if (dto.status === StatusProducao.MATERIAIS_PENDENTES)
+        novoStatusVenda = 'AGUARDANDO_AGENDAMENTO_PRODUCAO';
+      else if (
+        dto.status === StatusProducao.PREPARANDO_MATERIAIS ||
+        dto.status === StatusProducao.EM_ESPERA
+      )
+        novoStatusVenda = 'MATERIAIS_ALOCADOS';
+      else if (dto.status === StatusProducao.MONTANDO_KIT)
+        novoStatusVenda = 'KIT_EM_PREPARACAO';
+      else if (dto.status === StatusProducao.CANCELADO)
+        novoStatusVenda = 'CANCELADA';
+
+      if (novoStatusVenda && ordem.vendaId) {
+        // O TS do prisma pode acusar se pegarmos o enum direto de venda, faremos o query
+        const vendaAtual = await tx.venda.findUnique({
+          where: { id: ordem.vendaId },
+        });
+        if (vendaAtual && vendaAtual.status !== novoStatusVenda) {
+          await tx.venda.update({
+            where: { id: ordem.vendaId },
+            data: { status: novoStatusVenda },
+          });
+          await tx.vendaHistorico.create({
+            data: {
+              vendaId: ordem.vendaId,
+              statusAnterior: vendaAtual.status,
+              statusNovo: novoStatusVenda,
+            },
+          });
+        }
+      }
 
       return ordemAtualizada;
     });
@@ -213,57 +333,167 @@ export class ProducaoService {
           `Ordem de produção com ID ${id} não encontrada.`,
         );
       }
-      if (ordem.status === status_producao.PRONTO_PARA_ENVIO) {
+      if (ordem.status === StatusProducao.PRONTO_PARA_ENVIO) {
         return ordem; // Ação idempotente
       }
-      if (ordem.status === status_producao.MATERIAIS_PENDENTES) {
+      if (ordem.status === StatusProducao.MATERIAIS_PENDENTES) {
         throw new ConflictException(
           'A produção precisa ser iniciada antes de ser finalizada.',
         );
       }
 
       // LÓGICA DE INTEGRAÇÃO: Cria a entrega automaticamente
-      if (!ordem.vendas) {
+      if (!ordem.venda) {
         throw new ConflictException(
           'Não é possível criar a entrega: a venda associada não foi encontrada.',
         );
       }
 
-      const entregaExistente = await tx.entregas.findUnique({
-        where: { venda_id: ordem.venda_id },
+      const entregaExistente = await tx.entrega.findUnique({
+        where: { vendaId: ordem.vendaId },
       });
 
       if (!entregaExistente) {
         await this.entregasService.create({
-          venda_id: ordem.venda_id,
-          endereco_entrega: ordem.vendas.endereco_entrega,
-          previsao_entrega: new Date(
+          vendaId: ordem.vendaId,
+          enderecoEntrega: ordem.venda.enderecoEntrega,
+          previsaoEntrega: new Date(
             new Date().setDate(new Date().getDate() + 7),
           ).toISOString(),
         });
       }
 
-      const ordemAtualizada = await tx.ordens_producao.update({
+      const ordemAtualizada = await tx.ordemProducao.update({
         where: { id },
-        data: { status: status_producao.PRONTO_PARA_ENVIO },
+        data: { status: StatusProducao.PRONTO_PARA_ENVIO },
       });
 
-      await tx.ordens_producao_historico.create({
+      await tx.ordemProducaoHistorico.create({
         data: {
-          ordem_producao_id: id,
-          status_anterior: ordem.status,
-          status_novo: status_producao.PRONTO_PARA_ENVIO,
+          ordemProducaoId: id,
+          statusAnterior: ordem.status,
+          statusNovo: StatusProducao.PRONTO_PARA_ENVIO,
           notas: 'Produção finalizada e pronta para envio.',
         },
       });
+
+      // Atualiza o status da Venda associada para PRONTO_PARA_ENVIO
+      const vendaAtual = await tx.venda.findUnique({
+        where: { id: ordem.vendaId },
+      });
+      if (vendaAtual && vendaAtual.status !== 'PRONTO_PARA_ENVIO') {
+        await tx.venda.update({
+          where: { id: ordem.vendaId },
+          data: { status: 'PRONTO_PARA_ENVIO' },
+        });
+        await tx.vendaHistorico.create({
+          data: {
+            vendaId: ordem.vendaId,
+            statusAnterior: vendaAtual.status,
+            statusNovo: 'PRONTO_PARA_ENVIO',
+          },
+        });
+      }
 
       return ordemAtualizada;
     });
   }
 
+  async findCompatiblePlates(requisitoId: number) {
+    const req = await this.prisma.vendaRequisito.findUnique({
+      where: { id: requisitoId },
+      include: { corte: true },
+    });
+    if (!req) throw new NotFoundException('Requisito não encontrado');
+
+    let minW = Number(req.largura || 0);
+    let minH = Number(req.altura || 0);
+
+    // Se for corte, as dimensões mínimas vêm da bounding box do percurso (já salvo no req ou no corte)
+    // Para simplificar agora, usamos as dimensões salvas no requisito.
+
+    const placas = await this.prisma.placa.findMany({
+      where: {
+        statusPlaca: 'DISPONIVEL',
+        statusProducao: 'FINALIZADA',
+        deletedAt: null,
+      },
+    });
+
+    return placas.filter((p) => {
+      const pW = Number(p.largura);
+      const pH = Number(p.altura);
+
+      // Compatível se cabe normal OU rotacionada 90º
+      const cabeNormal = pW >= minW && pH >= minH;
+      const cabeRotacionada = pW >= minH && pH >= minW;
+
+      return cabeNormal || cabeRotacionada;
+    });
+  }
+
+  async alocarPlaca(requisitoId: number, placaId: number) {
+    return this.prisma.$transaction(async (tx) => {
+      const req = await tx.vendaRequisito.findUnique({
+        where: { id: requisitoId },
+      });
+      if (!req) throw new NotFoundException('Requisito não encontrado');
+
+      const placa = await tx.placa.findUnique({ where: { id: placaId } });
+      if (!placa) throw new NotFoundException('Placa não encontrada');
+      if (placa.statusPlaca !== 'DISPONIVEL') {
+        throw new ConflictException(
+          'Esta placa não está disponível para alocação.',
+        );
+      }
+
+      // Desaloca placa anterior se existir
+      if (req.placaAlocadaId) {
+        await tx.placa.update({
+          where: { id: req.placaAlocadaId },
+          data: { statusPlaca: 'DISPONIVEL' },
+        });
+      }
+
+      // Aloca nova placa
+      await tx.vendaRequisito.update({
+        where: { id: requisitoId },
+        data: { placaAlocadaId: placaId },
+      });
+
+      await tx.placa.update({
+        where: { id: placaId },
+        data: { statusPlaca: 'ALOCADA' },
+      });
+
+      return { success: true };
+    });
+  }
+
+  async desalocarPlaca(requisitoId: number) {
+    return this.prisma.$transaction(async (tx) => {
+      const req = await tx.vendaRequisito.findUnique({
+        where: { id: requisitoId },
+      });
+      if (!req || !req.placaAlocadaId) return { success: true };
+
+      await tx.placa.update({
+        where: { id: req.placaAlocadaId },
+        data: { statusPlaca: 'DISPONIVEL' },
+      });
+
+      await tx.vendaRequisito.update({
+        where: { id: requisitoId },
+        data: { placaAlocadaId: null },
+      });
+
+      return { success: true };
+    });
+  }
+
   async remove(id: number) {
     await this.findOne(id); // Garante que a ordem existe
-    return this.prisma.ordens_producao.delete({
+    return this.prisma.ordemProducao.delete({
       where: { id },
     });
   }

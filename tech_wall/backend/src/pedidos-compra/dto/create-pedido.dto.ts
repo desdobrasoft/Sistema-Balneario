@@ -8,13 +8,13 @@ import {
 } from 'class-validator';
 
 export class CreatePedidoDto {
-  @IsString()
+  @IsInt()
   @IsNotEmpty()
-  materialId: string;
+  materiaPrimaId: number;
 
   @IsInt()
   @IsPositive()
-  qt_solicitada: number;
+  qtSolicitada: number;
 
   @IsOptional()
   @IsString()
@@ -23,5 +23,5 @@ export class CreatePedidoDto {
   @IsOptional()
   @IsNumber()
   @IsPositive()
-  valor_unitario?: number;
+  valorUnitario?: number;
 }

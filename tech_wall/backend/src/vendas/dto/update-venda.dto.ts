@@ -1,12 +1,18 @@
-import { status_pagamento_venda, status_venda } from '@prisma/client';
 import { IsEnum, IsOptional } from 'class-validator';
+import {
+  StatusPagamentoVenda,
+  StatusVenda,
+} from '../../generated/prisma/client';
 
 export class UpdateVendaDto {
   @IsOptional()
-  @IsEnum(status_venda)
-  status?: status_venda;
+  @IsEnum(StatusVenda)
+  status?: StatusVenda;
 
   @IsOptional()
-  @IsEnum(status_pagamento_venda)
-  status_pagamento?: status_pagamento_venda;
+  @IsEnum(StatusPagamentoVenda)
+  statusPagamento?: StatusPagamentoVenda;
+
+  @IsOptional()
+  suprimentosObra?: any[];
 }

@@ -7,38 +7,45 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RolesGuard } from './auth/roles.guard';
 import { ClientesModule } from './clientes/clientes.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { EntregasModule } from './entregas/entregas.module';
 import { FinanceiroModule } from './financeiro/financeiro.module';
-import { MateriaisEstoqueModule } from './materiais-estoque/materiais-estoque.module';
+import { MateriaPrimaModule } from './materia-prima/materia-prima.module';
 import { ModeloCasaModule } from './modelo-casa/modelo-casa.module';
 import { MovimentacaoModule } from './movimentacao-materiais/movimentacao.module';
+import { NotasFiscaisModule } from './notas-fiscais/notas-fiscais.module';
 import { PedidosCompraModule } from './pedidos-compra/pedidos-compra.module';
+import { PlacasModule } from './placas/placas.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProducaoModule } from './producao/producao.module';
-import { TiposMateriaisModule } from './tipos-materiais/tipos-materiais.module';
+import { RolesModule } from './roles/roles.module';
+import { TramasModule } from './tramas/tramas.module';
 import { UsersModule } from './users/users.module';
 import { VendasModule } from './vendas/vendas.module';
-import { PlacasModule } from './placas/placas.module';
-import { DashboardModule } from './dashboard/dashboard.module';
+import { CortesModule } from './cortes/cortes.module';
 
 @Module({
   imports: [
     AuthModule,
     UsersModule,
+    RolesModule,
     PrismaModule,
     ConfigModule.forRoot({ isGlobal: true }),
     ClientesModule,
     ModeloCasaModule,
     VendasModule,
     MovimentacaoModule,
-    MateriaisEstoqueModule,
+    MateriaPrimaModule,
     FinanceiroModule,
     ProducaoModule,
     EntregasModule,
     PedidosCompraModule,
-    TiposMateriaisModule,
+    NotasFiscaisModule,
+
     DashboardModule,
     PlacasModule,
+    TramasModule,
+    CortesModule,
   ],
   controllers: [AppController],
   providers: [

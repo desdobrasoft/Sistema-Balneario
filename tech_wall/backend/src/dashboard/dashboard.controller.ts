@@ -7,13 +7,8 @@ import { DashboardService } from './dashboard.service';
 export class DashboardController {
   constructor(private readonly service: DashboardService) {}
 
-  @Get('stats/avg-delivery-time')
-  getAvgDeliveryTime() {
-    return this.service.getAverageDeliveryTime();
-  }
-
-  @Get('stats/delivery-time-analysis')
-  getDeliveryTimeAnalysis() {
-    return this.service.getDeliveryTimeAnalysis();
+  @Get('stats')
+  getDashboardStats() {
+    return this.service.getStats();
   }
 }

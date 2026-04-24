@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
-import { CurrentUser } from 'src/auth/current-user.decorator';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 
@@ -16,15 +16,21 @@ export class MeController {
     if (!fullUser) return null;
 
     // Retorna apenas os dados desejados
+    // Unifica as permissões de todas as roles do usuário (sem duplicatas)
+    const permissions = [
+      ...new Set(fullUser.roles.flatMap((ur) => ur.role.permissions || [])),
+    ];
+
     return {
       id: fullUser.id,
-      full_name: fullUser.full_name,
+      fullName: fullUser.fullName,
       username: fullUser.username,
       email: fullUser.email,
-      is_active: fullUser.is_active,
-      created_at: fullUser.created_at,
-      updated_at: fullUser.updated_at,
-      roles: fullUser.user_roles.map((ur) => ur.roles.role),
+      isActive: fullUser.isActive,
+      createdAt: fullUser.createdAt,
+      updatedAt: fullUser.updatedAt,
+      roles: fullUser.roles.map((ur) => ur.role.role),
+      permissions,
     };
   }
 

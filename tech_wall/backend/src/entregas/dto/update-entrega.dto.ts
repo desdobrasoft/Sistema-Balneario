@@ -1,10 +1,10 @@
-import { status_entrega } from '@prisma/client';
 import { IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
+import { StatusEntrega } from '../../generated/prisma/client';
 
 export class UpdateEntregaDto {
   @IsOptional()
-  @IsEnum(status_entrega)
-  status?: status_entrega;
+  @IsEnum(StatusEntrega)
+  status?: StatusEntrega;
 
   @IsOptional()
   @IsString()
@@ -12,7 +12,7 @@ export class UpdateEntregaDto {
 
   @IsOptional()
   @IsDateString()
-  previsao_entrega?: string;
+  previsaoEntrega?: string;
 
   @IsOptional()
   @IsString()

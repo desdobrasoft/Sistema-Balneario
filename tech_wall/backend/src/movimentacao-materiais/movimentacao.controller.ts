@@ -13,12 +13,13 @@ import {
 import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 import { CreateMovimentacaoDto } from './dto/create-movimentacao.dto';
 import { UpdateMovimentacaoDto } from './dto/update-movimentacao.dto';
 import { MovimentacaoService } from './movimentacao.service';
 
-@UseGuards(JwtAuthGuard) // Protege todas as rotas do controller
-@Roles('admin', 'estoque') // Exemplo de roles que podem acessar
+@UseGuards(JwtAuthGuard, RolesGuard) // Protege todas as rotas do controller
+@Roles('estoque') // Permissão de módulo
 @Controller('movimentacoes-materiais')
 export class MovimentacaoController {
   constructor(private readonly service: MovimentacaoService) {}

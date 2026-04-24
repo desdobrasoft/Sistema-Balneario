@@ -9,7 +9,7 @@ import {
 export class UpdateUserDto {
   @IsOptional()
   @IsString()
-  full_name?: string;
+  fullName?: string;
 
   @IsOptional()
   @IsString()

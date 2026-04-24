@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   ParseIntPipe,
   Patch,
@@ -10,19 +11,22 @@ import {
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { Roles } from 'src/auth/roles.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+import { DataTableParamsDto } from '../common/dto/data-table.dto';
+import { AlocacaoDto } from './dto/alocacao.dto';
 import { CreateInternalOrderDto } from './dto/create-internal-order.dto';
 import { UpdateOrdemProducaoDto } from './dto/update-ordem-producao.dto';
 import { ProducaoService } from './producao.service';
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('producao')
 @Controller('producao')
 export class ProducaoController {
   constructor(private readonly producaoService: ProducaoService) {}
 
   @Post('internal-order')
-  @Roles('admin', 'producao')
   createInternalOrder(@Body(ValidationPipe) dto: CreateInternalOrderDto) {
     return this.producaoService.createInternalOrder(dto);
   }
@@ -31,16 +35,21 @@ export class ProducaoController {
    * Retorna uma lista de todas as ordens de produção.
    */
   @Get()
-  @Roles('admin', 'producao', 'vendedor') // Vendedores podem querer ver o status
   findAll() {
     return this.producaoService.findAll();
+  }
+
+  @Post('datatable')
+  @HttpCode(200)
+  async datatable(@Body() body: DataTableParamsDto) {
+    const result = await this.producaoService.findDatatable(body);
+    return result;
   }
 
   /**
    * Retorna os detalhes de uma ordem de produção específica.
    */
   @Get(':id')
-  @Roles('admin', 'producao', 'vendedor')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.producaoService.findOne(id);
   }
@@ -50,7 +59,6 @@ export class ProducaoController {
    * Este é o principal endpoint para o gerente de produção.
    */
   @Patch(':id')
-  @Roles('admin', 'producao') // Apenas admin e produção podem alterar
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body(ValidationPipe) updateOrdemProducaoDto: UpdateOrdemProducaoDto,
@@ -59,14 +67,27 @@ export class ProducaoController {
   }
 
   @Post(':id/finalizar')
-  @Roles('admin', 'producao')
   finalizarProducao(@Param('id', ParseIntPipe) id: number) {
     return this.producaoService.finalizarProducao(id);
   }
 
   @Delete(':id')
-  @Roles('admin', 'producao')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.producaoService.remove(id);
+  }
+
+  @Get('requisitos/:reqId/compatible-plates')
+  findCompatiblePlates(@Param('reqId', ParseIntPipe) reqId: number) {
+    return this.producaoService.findCompatiblePlates(reqId);
+  }
+
+  @Post('alocar')
+  alocarPlaca(@Body(ValidationPipe) dto: AlocacaoDto) {
+    return this.producaoService.alocarPlaca(dto.requisitoId, dto.placaId);
+  }
+
+  @Post('desalocar')
+  desalocarPlaca(@Body('requisitoId', ParseIntPipe) requisitoId: number) {
+    return this.producaoService.desalocarPlaca(requisitoId);
   }
 }

@@ -4,6 +4,7 @@ import {
   Delete,
   ForbiddenException,
   Get,
+  HttpCode,
   Param,
   ParseIntPipe,
   Patch,
@@ -11,20 +12,21 @@ import {
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
-import { CurrentUser } from 'src/auth/current-user.decorator';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { Roles } from 'src/auth/roles.decorator';
-import { RolesGuard } from 'src/auth/roles.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+import { DataTableParamsDto } from '../common/dto/data-table.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('admin')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
   @Post()
   async create(
     @Body(new ValidationPipe({ skipMissingProperties: true }))
@@ -33,32 +35,30 @@ export class UsersController {
     return this.usersService.createUser(dto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get()
   async findAll() {
-    const users = await this.usersService.findAllWithRoles();
-
-    return users.map((user) => ({
-      id: user.id,
-      full_name: user.full_name,
-      username: user.username,
-      email: user.email,
-      roles: user.user_roles.map((ur) => ur.roles.role),
-      is_active: user.is_active,
-      created_at: user.created_at,
-      updated_at: user.updated_at,
-    }));
+    return this.usersService.findAll();
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Post('datatable')
+  @HttpCode(200)
+  async datatable(@Body() body: DataTableParamsDto) {
+    const result = await this.usersService.findDatatable(body);
+    return result;
+  }
+
+  @Get(':id')
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.findByIdWithRoles(id);
+  }
+
   @Delete(':id')
   async remove(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.deleteUser(id);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id')
+  @Roles() // Sobrescreve o @Roles da classe, permitindo que a lógica interna decida (isSelf ou isAdmin)
   async update(
     @CurrentUser() currentUser: any,
     @Param('id', ParseIntPipe) id: number,
@@ -71,6 +71,10 @@ export class UsersController {
       throw new ForbiddenException(
         'Apenas administradores podem editar outros usuários.',
       );
+    }
+
+    if (isSelf && !isAdmin) {
+      return this.usersService.updateOwnUser(id, dto);
     }
 
     return this.usersService.updateUser(id, dto);

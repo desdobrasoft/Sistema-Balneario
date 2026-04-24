@@ -10,15 +10,15 @@ import {
 } from 'class-validator';
 
 export class CreateMovimentacaoDto {
-  @IsString()
+  @IsInt()
   @IsNotEmpty()
-  materialId: string;
+  materiaPrimaId: number;
 
   @IsIn(['I', 'O'])
-  tipo_movimentacao: 'I' | 'O';
+  tipoMovimentacao: 'I' | 'O';
 
   @IsDateString()
-  data_movimentacao: string;
+  dataMovimentacao: string;
 
   @IsInt()
   @IsPositive()

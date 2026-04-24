@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -30,11 +30,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException();
     }
 
-    // Inclui as roles no objeto retornado para ser usado no request.user
+    // Inclui as roles e permissões no objeto retornado para ser usado no request.user
     return {
       id: user.id,
       username: user.username ?? user.email,
-      roles: user.user_roles.map((ur) => ur.roles.role),
+      roles: user.roles.map((ur) => ur.role.role),
+      permissions: user.roles.flatMap((ur) => ur.role.permissions || []),
     };
   }
 }

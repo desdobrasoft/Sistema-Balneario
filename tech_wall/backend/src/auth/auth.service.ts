@@ -22,7 +22,7 @@ export class AuthService {
     }
 
     // Verifica se a senha criptografada corresponde à entrada de login.
-    const isPasswordValid = await bcrypt.compare(senha, user.password_hash);
+    const isPasswordValid = await bcrypt.compare(senha, user.passwordHash);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Senha incorreta');
     }
@@ -34,9 +34,7 @@ export class AuthService {
     // Payload do Access Token (curto, com mais informações)
     const accessTokenPayload = {
       sub: user.id,
-      roles: user.user_roles.map(
-        (ur: { roles: { role: any } }) => ur.roles.role,
-      ),
+      roles: user.roles.map((ur: { role: { role: any } }) => ur.role.role),
     };
 
     // Payload do Refresh Token (longo, com menos informações)
@@ -69,19 +67,19 @@ export class AuthService {
 
   async logout(userId: number) {
     // Remove o hash do refresh token do banco de dados
-    return this.usersService.update(userId, { refresh_token_hash: null });
+    return this.usersService.update(userId, { refreshTokenHash: null });
   }
 
   // Gera um novo access token usando o refresh token
   async refreshToken(userId: number, refreshToken: string) {
     const user = await this.usersService.findByIdWithRoles(userId);
-    if (!user || !user.refresh_token_hash) {
+    if (!user || !user.refreshTokenHash) {
       throw new ForbiddenException('Acesso Negado');
     }
 
     const tokensMatch = await bcrypt.compare(
       refreshToken,
-      user.refresh_token_hash,
+      user.refreshTokenHash,
     );
     if (!tokensMatch) {
       throw new ForbiddenException('Acesso Negado');
@@ -90,7 +88,7 @@ export class AuthService {
     // Gera um novo Access Token com o payload original
     const newAccessTokenPayload = {
       sub: user.id,
-      roles: user.user_roles.map((ur) => ur.roles.role),
+      roles: user.roles.map((ur) => ur.role.role),
     };
 
     const newAccessToken = await this.jwtService.signAsync(
@@ -107,6 +105,6 @@ export class AuthService {
   // Faz o hash e salva o refresh token
   private async updateRefreshTokenHash(userId: number, refreshToken: string) {
     const hash = await bcrypt.hash(refreshToken, 10);
-    await this.usersService.update(userId, { refresh_token_hash: hash });
+    await this.usersService.update(userId, { refreshTokenHash: hash });
   }
 }

@@ -4,39 +4,181 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import {
+  DataTableParamsDto,
+  DataTableResult,
+} from '../common/dto/data-table.dto';
+import { PrismaDatatableHelper } from '../common/utils/datatable.helper';
+import { getIdsByNumericPartialMatch } from '../common/utils/prisma-search.utils';
+import {
   Prisma,
-  status_pagamento_venda,
-  status_producao,
-  status_venda,
-  tipo_lancamento,
-} from '@prisma/client';
+  StatusPagamentoVenda,
+  StatusProducao,
+  StatusVenda,
+  TipoLancamento,
+} from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateVendaDto } from './dto/create-venda.dto';
 import { UpdateVendaDto } from './dto/update-venda.dto';
 
 // Bloco de 'include' reutilizável para consistência
 const includeRelations = {
-  clientes: true,
-  modelo_casa: true,
-  users: { select: { id: true, full_name: true, username: true } },
-  vendas_historico: { orderBy: { data_alteracao: 'asc' } },
+  cliente: true,
+  modeloCasa: true,
+  user: { select: { id: true, fullName: true, username: true } },
+  vendasHistorico: { orderBy: { dataAlteracao: 'asc' } },
 } as const;
 
 @Injectable()
 export class VendasService {
   constructor(private prisma: PrismaService) {}
 
+  async findAll(excludeStatus?: StatusVenda) {
+    const baseWhere: Prisma.VendaWhereInput = { isInternal: false };
+    if (excludeStatus) {
+      baseWhere.status = { not: excludeStatus };
+    }
+
+    return this.prisma.venda.findMany({
+      where: baseWhere,
+      orderBy: { id: 'desc' },
+      include: includeRelations,
+    });
+  }
+
+  async findDatatable(
+    query: DataTableParamsDto,
+    excludeStatus?: StatusVenda,
+  ): Promise<DataTableResult<any>> {
+    const baseWhere: any = { isInternal: false };
+    if (excludeStatus) {
+      baseWhere.status = { not: excludeStatus };
+    }
+
+    const {
+      skip,
+      take,
+      where: generatedWhere,
+      orderBy,
+    } = PrismaDatatableHelper.buildPrismaQuery(
+      query,
+      ['cliente.nome', 'modeloCasa.nome', 'enderecoEntrega'],
+      baseWhere,
+    );
+
+    let where = { ...generatedWhere };
+
+    if (query.search?.value) {
+      const searchValueStr = query.search.value.toUpperCase();
+      const searchValueClean = query.search.value
+        .replace(/\s+/g, '_')
+        .toUpperCase();
+
+      const matchedStatuses = Object.values(StatusVenda).filter(
+        (val) =>
+          String(val).toUpperCase().includes(searchValueStr) ||
+          String(val).toUpperCase().includes(searchValueClean),
+      ) as StatusVenda[];
+
+      const matchedPagamentos = Object.values(StatusPagamentoVenda).filter(
+        (val) =>
+          String(val).toUpperCase().includes(searchValueStr) ||
+          String(val).toUpperCase().includes(searchValueClean),
+      ) as StatusPagamentoVenda[];
+
+      const idsByPrice = await getIdsByNumericPartialMatch(
+        this.prisma,
+        'vendas',
+        ['preco'],
+        query.search.value,
+      );
+
+      if (!where.OR) {
+        where.OR = [];
+      }
+
+      if (idsByPrice.length > 0) {
+        where.OR.push({ id: { in: idsByPrice } });
+      }
+
+      if (matchedStatuses.length > 0) {
+        where.OR.push({ status: { in: matchedStatuses } });
+      }
+
+      if (matchedPagamentos.length > 0) {
+        where.OR.push({ statusPagamento: { in: matchedPagamentos } });
+      }
+    }
+
+    const [rawData, total, filtered] = await Promise.all([
+      this.prisma.venda.findMany({
+        where,
+        skip,
+        take,
+        orderBy: Object.keys(orderBy).length ? orderBy : { id: 'desc' },
+        select: {
+          id: true,
+          preco: true,
+          status: true,
+          statusPagamento: true,
+          dataVenda: true,
+          cliente: { select: { nome: true } },
+          modeloCasa: { select: { nome: true } },
+        },
+      }),
+      this.prisma.venda.count({ where: baseWhere }),
+      this.prisma.venda.count({ where }),
+    ]);
+
+    const requestedFields = (query.columns
+      ?.map((c) => c.data)
+      .filter((d) => d && d !== 'null') || []) as string[];
+
+    const data = rawData.map((item) => {
+      const flatObj: any = {
+        id: item.id,
+        preco: item.preco,
+        status: item.status,
+        statusPagamento: item.statusPagamento,
+        dataVenda: item.dataVenda,
+        clienteNome: item.cliente?.nome || 'N/A',
+        modeloNome: item.modeloCasa?.nome || 'N/A',
+      };
+
+      if (requestedFields.length === 0) return flatObj;
+
+      const result: any = {};
+      requestedFields.forEach((field) => {
+        if (flatObj[field] !== undefined) {
+          result[field] = flatObj[field];
+        }
+      });
+      return result;
+    });
+
+    return {
+      draw: query.draw || 1,
+      data,
+      recordsTotal: total,
+      recordsFiltered: filtered,
+    };
+  }
+
   async create(dto: CreateVendaDto, userId: number) {
     return this.prisma.$transaction(async (tx) => {
       const isCustomized = dto.itensOverride && dto.itensOverride.length > 0;
 
       // Validação de existência do modelo base
-      const modelo = await tx.modelo_casa.findUnique({
-        where: { id: dto.modeloId, deleted_at: null },
+      const modelo = await tx.modeloCasa.findUnique({
+        where: { id: dto.modeloId, deletedAt: null },
         include: {
-          materiais_modelo_casa: {
+          materiaisModeloCasa: {
             include: {
-              materiais_estoque: true,
+              materiaPrima: true,
+            },
+          },
+          requisitos: {
+            include: {
+              corte: true,
             },
           },
         },
@@ -48,261 +190,282 @@ export class VendasService {
       }
 
       // Lógica de verificação de estoque
-      let statusProducaoInicial: status_producao = status_producao.AGENDADO;
+      let statusProducaoInicial: StatusProducao = StatusProducao.AGENDADO;
       if (isCustomized && dto.itensOverride) {
         for (const item of dto.itensOverride) {
-          const materialEstoque = await tx.materiais_estoque.findUnique({
-            where: { id: item.materialId },
+          const materiaPrima = await tx.materiaPrima.findUnique({
+            where: { id: item.materiaPrimaId },
           });
-          if (!materialEstoque || materialEstoque.quantidade < item.qtFinal) {
-            statusProducaoInicial = status_producao.MATERIAIS_PENDENTES;
+          if (!materiaPrima || materiaPrima.quantidade < item.qtFinal) {
+            statusProducaoInicial = StatusProducao.MATERIAIS_PENDENTES;
             break;
           }
         }
       } else {
-        for (const item of modelo.materiais_modelo_casa) {
-          if (item.materiais_estoque.quantidade < item.qt_modelo) {
-            statusProducaoInicial = status_producao.MATERIAIS_PENDENTES;
+        // Verifica estoque de materiais brutos diretamente associados ao modelo
+        for (const item of modelo.materiaisModeloCasa) {
+          if (item.materiaPrima.quantidade < item.qtModelo) {
+            statusProducaoInicial = StatusProducao.MATERIAIS_PENDENTES;
             break;
           }
         }
       }
 
-      const statusInicial: status_venda =
-        status_venda.AGUARDANDO_AGENDAMENTO_PRODUCAO;
+      const statusInicial: StatusVenda =
+        StatusVenda.AGUARDANDO_AGENDAMENTO_PRODUCAO;
 
-      const novaVenda = await tx.vendas.create({
+      const novaVenda = await tx.venda.create({
         data: {
-          cliente_id: dto.clienteId,
-          modelo_id: dto.modeloId,
-          user_id: userId,
-          data_venda: new Date(dto.data_venda),
+          clienteId: dto.clienteId,
+          modeloId: dto.modeloId,
+          userId: userId,
+          dataVenda: new Date(dto.dataVenda),
           preco: dto.preco,
-          endereco_entrega: dto.endereco_entrega,
+          enderecoEntrega: dto.enderecoEntrega,
           status: statusInicial,
-          status_pagamento: status_pagamento_venda.PENDENTE,
+          statusPagamento: StatusPagamentoVenda.PENDENTE,
+          suprimentosObra: (dto.suprimentosOverride ||
+            modelo.suprimentosObra ||
+            []) as any,
         },
       });
 
+      // Copiar receita (requisitos) do modelo para VendaRequisito
+      const finalRequisitos = dto.requisitosOverride || modelo.requisitos;
+      if (finalRequisitos && finalRequisitos.length > 0) {
+        await tx.vendaRequisito.createMany({
+          data: finalRequisitos.map((r: any) => ({
+            vendaId: novaVenda.id,
+            tipo: r.tipo,
+            alias: r.alias,
+            parede: r.parede,
+            largura: r.largura,
+            altura: r.altura,
+            espessura: r.espessura,
+            tramaEsquerdaId: r.tramaEsquerdaId,
+            tramaDireitaId: r.tramaDireitaId,
+            tramaSuperiorId: r.tramaSuperiorId,
+            tramaInferiorId: r.tramaInferiorId,
+            corteId: r.corteId,
+          })),
+        });
+      }
+
+      // Copiar suprimentos de obra para VendaSuprimentoOverride
+      const finalSuprimentos =
+        dto.suprimentosOverride || (modelo.suprimentosObra as any[]) || [];
+      if (finalSuprimentos.length > 0) {
+        await tx.vendaSuprimentoOverride.createMany({
+          data: finalSuprimentos.map((s: any) => ({
+            vendaId: novaVenda.id,
+            nome: s.nome || s.name || '',
+            quantidade: s.quantidade || s.qty || 0,
+            unidade: s.unidade || s.unit || '',
+            momento: s.momento || s.when || null,
+          })),
+        });
+      }
+
       // Se for customizado, salva os itens na tabela de override
       if (isCustomized && dto.itensOverride) {
-        await tx.venda_itens_override.createMany({
+        await tx.vendaItemOverride.createMany({
           data: dto.itensOverride.map((item) => ({
-            venda_id: novaVenda.id,
-            material_id: item.materialId,
-            qt_final: item.qtFinal,
+            vendaId: novaVenda.id,
+            materiaPrimaId: item.materiaPrimaId,
+            qtFinal: item.qtFinal,
           })),
         });
       }
 
       // Registra o primeiro status no histórico
-      await tx.vendas_historico.create({
+      await tx.vendaHistorico.create({
         data: {
-          venda_id: novaVenda.id,
-          status_anterior: null,
-          status_novo: statusInicial,
+          vendaId: novaVenda.id,
+          statusAnterior: null,
+          statusNovo: statusInicial,
         },
       });
 
-      const novaOrdemProducao = await tx.ordens_producao.create({
+      const novaOrdemProducao = await tx.ordemProducao.create({
         data: {
-          venda_id: novaVenda.id,
+          vendaId: novaVenda.id,
           status: statusProducaoInicial,
         },
       });
 
       // Cria o primeiro registro no histórico de produção
-      await tx.ordens_producao_historico.create({
+      await tx.ordemProducaoHistorico.create({
         data: {
-          ordem_producao_id: novaOrdemProducao.id,
-          status_anterior: null,
-          status_novo: statusProducaoInicial,
+          ordemProducaoId: novaOrdemProducao.id,
+          statusAnterior: null,
+          statusNovo: statusProducaoInicial,
           notas: `Ordem de produção criada a partir da Venda #${novaVenda.id}.`,
         },
       });
 
       // Cria o lançamento financeiro
-      await tx.lancamentos_financeiros.create({
+      await tx.lancamentoFinanceiro.create({
         data: {
-          tipo: tipo_lancamento.R,
+          tipo: TipoLancamento.R,
           descricao: `Receita referente à Venda #${novaVenda.id}`,
-          valor_total: novaVenda.preco,
-          valor_pendente: novaVenda.preco,
-          venda_id: novaVenda.id,
-          status_pagamento: status_pagamento_venda.PENDENTE,
+          valorTotal: novaVenda.preco,
+          valorPendente: novaVenda.preco,
+          vendaId: novaVenda.id,
+          statusPagamento: StatusPagamentoVenda.PENDENTE,
         },
       });
 
       // Atualiza os contadores de venda
-      await tx.clientes.update({
+      await tx.cliente.update({
         where: { id: dto.clienteId },
-        data: { historico_vendas: { increment: 1 } },
+        data: { historicoVendas: { increment: 1 } },
       });
-      await tx.users.update({
+      await tx.user.update({
         where: { id: userId },
-        data: { qt_vendas: { increment: 1 } },
+        data: { qtVendas: { increment: 1 } },
       });
-      await tx.modelo_casa.update({
+      await tx.modeloCasa.update({
         where: { id: dto.modeloId },
-        data: { qt_vendido: { increment: 1 } },
+        data: { qtVendido: { increment: 1 } },
       });
 
       return this.findOne(novaVenda.id, tx);
     });
   }
-
   async estornar(id: number) {
     return this.prisma.$transaction(async (tx) => {
       // 1. Valida a venda
-      const venda = await tx.vendas.findUnique({
+      const venda = await tx.venda.findUnique({
         where: { id },
-        include: { ordens_producao: true },
+        include: { ordemProducao: true },
       });
 
       if (!venda) {
         throw new NotFoundException(`Venda com ID ${id} não encontrada.`);
       }
-      if (venda.status === status_venda.CANCELADA) {
+      if (venda.status === StatusVenda.CANCELADA) {
         throw new ConflictException(`A Venda #${id} já está cancelada.`);
       }
 
       // 2. Cancela a Ordem de Produção associada
-      const ordemProducao = await tx.ordens_producao.findFirst({
-        where: { venda_id: id },
+      const ordemProducao = await tx.ordemProducao.findFirst({
+        where: { vendaId: id },
         include: {
-          vendas: {
+          venda: {
             include: {
-              modelo_casa: { include: { materiais_modelo_casa: true } },
+              modeloCasa: { include: { materiaisModeloCasa: true } },
             },
           },
         },
       });
 
-      if (ordemProducao && ordemProducao.status !== status_producao.CANCELADO) {
+      if (ordemProducao && ordemProducao.status !== StatusProducao.CANCELADO) {
         // Reverte o estoque se necessário
         if (
-          ordemProducao.status === status_producao.PREPARANDO_MATERIAIS &&
-          ordemProducao.vendas &&
-          ordemProducao.vendas.modelo_casa
+          ordemProducao.status === StatusProducao.PREPARANDO_MATERIAIS &&
+          ordemProducao.venda &&
+          ordemProducao.venda.modeloCasa
         ) {
-          for (const item of ordemProducao.vendas.modelo_casa
-            .materiais_modelo_casa) {
-            await tx.materiais_estoque.update({
-              where: { id: item.material_id },
-              data: { quantidade: { increment: item.qt_modelo } },
+          for (const item of ordemProducao.venda.modeloCasa
+            .materiaisModeloCasa) {
+            await tx.materiaPrima.update({
+              where: { id: item.materiaPrimaId },
+              data: { quantidade: { increment: item.qtModelo } },
             });
           }
         }
         // Atualiza o status da ordem
-        await tx.ordens_producao.update({
+        await tx.ordemProducao.update({
           where: { id: ordemProducao.id },
-          data: { status: status_producao.CANCELADO },
+          data: { status: StatusProducao.CANCELADO },
         });
         // Cria o histórico
-        await tx.ordens_producao_historico.create({
+        await tx.ordemProducaoHistorico.create({
           data: {
-            ordem_producao_id: ordemProducao.id,
-            status_anterior: ordemProducao.status,
-            status_novo: status_producao.CANCELADO,
+            ordemProducaoId: ordemProducao.id,
+            statusAnterior: ordemProducao.status,
+            statusNovo: StatusProducao.CANCELADO,
             notas: `Ordem cancelada devido ao estorno da Venda #${id}.`,
           },
         });
       }
 
       // 3. Cancela a Entrega associada
-      const entrega = await tx.entregas.findFirst({ where: { venda_id: id } });
+      const entrega = await tx.entrega.findFirst({ where: { vendaId: id } });
       if (entrega && entrega.status !== 'CANCELADA') {
-        await tx.entregas.update({
+        await tx.entrega.update({
           where: { id: entrega.id },
           data: { status: 'CANCELADA' },
         });
-        await tx.entregas_historico.create({
+        await tx.entregaHistorico.create({
           data: {
-            entrega_id: entrega.id,
-            status_anterior: entrega.status,
-            status_novo: 'CANCELADA',
+            entregaId: entrega.id,
+            statusAnterior: entrega.status,
+            statusNovo: 'CANCELADA',
             notas: `Entrega cancelada devido ao estorno da Venda #${id}.`,
           },
         });
       }
 
       // 4. Estorna os lançamentos financeiros
-      await tx.lancamentos_financeiros.updateMany({
-        where: { venda_id: id, tipo: tipo_lancamento.R },
-        data: { status_pagamento: status_pagamento_venda.CANCELADO },
+      await tx.lancamentoFinanceiro.updateMany({
+        where: { vendaId: id, tipo: TipoLancamento.R },
+        data: { statusPagamento: StatusPagamentoVenda.CANCELADO },
       });
-      await tx.lancamentos_financeiros.create({
+      await tx.lancamentoFinanceiro.create({
         data: {
-          tipo: tipo_lancamento.D,
+          tipo: TipoLancamento.D,
           descricao: `Estorno referente à Venda #${venda.id}`,
-          valor_total: venda.preco,
-          valor_pendente: 0,
-          venda_id: venda.id,
-          status_pagamento: status_pagamento_venda.CANCELADO,
+          valorTotal: venda.preco,
+          valorPendente: 0,
+          vendaId: venda.id,
+          statusPagamento: StatusPagamentoVenda.CANCELADO,
         },
       });
 
       // 5. Decrementa contadores
-      if (venda.cliente_id) {
-        await tx.clientes.update({
-          where: { id: venda.cliente_id },
-          data: { historico_vendas: { decrement: 1 } },
+      if (venda.clienteId) {
+        await tx.cliente.update({
+          where: { id: venda.clienteId },
+          data: { historicoVendas: { decrement: 1 } },
         });
       }
-      if (venda.user_id) {
-        await tx.users.update({
-          where: { id: venda.user_id },
-          data: { qt_vendas: { decrement: 1 } },
+      if (venda.userId) {
+        await tx.user.update({
+          where: { id: venda.userId },
+          data: { qtVendas: { decrement: 1 } },
         });
       }
-      if (venda.modelo_id) {
-        await tx.modelo_casa.update({
-          where: { id: venda.modelo_id },
-          data: { qt_vendido: { decrement: 1 } },
+      if (venda.modeloId) {
+        await tx.modeloCasa.update({
+          where: { id: venda.modeloId },
+          data: { qtVendido: { decrement: 1 } },
         });
       }
 
       // 6. Adiciona histórico e atualiza a venda
-      await tx.vendas_historico.create({
+      await tx.vendaHistorico.create({
         data: {
-          venda_id: id,
-          status_anterior: venda.status,
-          status_novo: status_venda.CANCELADA,
+          vendaId: id,
+          statusAnterior: venda.status,
+          statusNovo: StatusVenda.CANCELADA,
         },
       });
 
-      return tx.vendas.update({
+      return tx.venda.update({
         where: { id },
         data: {
-          status: status_venda.CANCELADA,
-          status_pagamento: status_pagamento_venda.CANCELADO,
+          status: StatusVenda.CANCELADA,
+          statusPagamento: StatusPagamentoVenda.CANCELADO,
         },
         include: includeRelations,
       });
     });
   }
 
-  findAll(excludeStatus?: status_venda) {
-    const where: Prisma.vendasWhereInput = {
-      is_internal: false, // Excluir vendas internas por padrão
-    };
-
-    if (excludeStatus) {
-      where.status = {
-        not: excludeStatus,
-      };
-    }
-
-    return this.prisma.vendas.findMany({
-      where,
-      orderBy: { id: 'asc' },
-      include: includeRelations,
-    });
-  }
-
   async findOne(id: number, tx?: Prisma.TransactionClient) {
     const prisma = tx ?? this.prisma;
-    const venda = await prisma.vendas.findUnique({
+    const venda = await prisma.venda.findUnique({
       where: { id },
       include: includeRelations,
     });
@@ -313,7 +476,7 @@ export class VendasService {
 
   async update(id: number, dto: UpdateVendaDto) {
     await this.findOne(id);
-    return this.prisma.vendas.update({
+    return this.prisma.venda.update({
       where: { id },
       data: dto,
       include: includeRelations,
@@ -321,19 +484,65 @@ export class VendasService {
   }
 
   async findCustomization(id: number) {
-    const items = await this.prisma.venda_itens_override.findMany({
-      where: { venda_id: id },
+    const items = await this.prisma.vendaItemOverride.findMany({
+      where: { vendaId: id },
       include: {
-        materiais_estoque: true,
+        materiaPrima: true,
       },
     });
 
     return items.map((item) => {
-      const { materiais_estoque, ...rest } = item;
+      const { materiaPrima, ...rest } = item;
       return {
         ...rest,
-        material: materiais_estoque,
+        material: materiaPrima,
       };
+    });
+  }
+
+  async registrarCompraSuprimento(
+    vendaId: number,
+    dto: { suprimentoId: string; precoPago: number },
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      const venda = await tx.venda.findUnique({ where: { id: vendaId } });
+      if (!venda) throw new NotFoundException('Venda não encontrada');
+
+      const suprimentos = (venda.suprimentosObra as any[]) || [];
+      const itemIndex = suprimentos.findIndex((s) => s.id === dto.suprimentoId);
+
+      if (itemIndex === -1) {
+        throw new NotFoundException('Suprimento não encontrado nesta venda');
+      }
+
+      // Atualiza o item no JSON
+      suprimentos[itemIndex] = {
+        ...suprimentos[itemIndex],
+        status: 'ADQUIRIDO',
+        precoPago: dto.precoPago,
+        dataCompra: new Date(),
+      };
+
+      // Salva a venda com o JSON atualizado
+      await tx.venda.update({
+        where: { id: vendaId },
+        data: { suprimentosObra: suprimentos },
+      });
+
+      // Cria o lançamento financeiro (SAÍDA)
+      await tx.lancamentoFinanceiro.create({
+        data: {
+          tipo: TipoLancamento.D,
+          descricao: `Compra de ${suprimentos[itemIndex].nome} - Venda #${vendaId}`,
+          valorTotal: dto.precoPago,
+          valorPendente: 0,
+          vendaId: vendaId,
+          statusPagamento: StatusPagamentoVenda.PAGO,
+          dataUltimoPagamento: new Date(),
+        },
+      });
+
+      return { message: 'Compra registrada com sucesso' };
     });
   }
 }

@@ -7,7 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { AuthenticatedUser, RefreshTokenUser } from '../types/express';
+import type { AuthenticatedUser, RefreshTokenUser } from '../types/express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';

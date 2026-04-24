@@ -8,7 +8,7 @@ RUN apk add --no-cache openssl
 
 COPY package*.json ./
 
-RUN npm install
+RUN npm ci
 
 COPY . .
 
@@ -22,8 +22,13 @@ FROM node:24-alpine
 
 WORKDIR /usr/src/app
 
-# Copia os node_modules da etapa de build
-COPY --from=builder /usr/src/app/node_modules ./node_modules
+# Instala apenas as dependências de produção
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+# Copia o cliente Prisma gerado do builder (necessário em runtime)
+COPY --from=builder /usr/src/app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /usr/src/app/node_modules/@prisma ./node_modules/@prisma
 
 # Copia a build da aplicação
 COPY --from=builder /usr/src/app/dist ./dist
@@ -34,6 +39,9 @@ COPY --from=builder /usr/src/app/prisma ./prisma
 # Copia o script de entrypoint e o torna executável
 COPY --from=builder /usr/src/app/docker-entrypoint.sh .
 RUN chmod +x docker-entrypoint.sh
+
+# Roda como usuário não-root por segurança
+USER node
 
 EXPOSE 3000
 

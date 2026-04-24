@@ -1,4 +1,3 @@
-import { status_pagamento_venda } from '@prisma/client';
 import {
   IsDateString,
   IsEnum,
@@ -7,11 +6,12 @@ import {
   IsString,
   Min,
 } from 'class-validator';
+import { StatusPagamentoVenda } from '../../../generated/prisma/client';
 
 export class UpdateLancamentoDto {
   @IsOptional()
-  @IsEnum(status_pagamento_venda)
-  status_pagamento?: status_pagamento_venda;
+  @IsEnum(StatusPagamentoVenda)
+  statusPagamento?: StatusPagamentoVenda;
 
   @IsOptional()
   @IsString()
@@ -20,9 +20,9 @@ export class UpdateLancamentoDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  valor_pago?: number;
+  valorPago?: number;
 
   @IsOptional()
   @IsDateString()
-  data_vencimento?: string;
+  dataVencimento?: string;
 }
