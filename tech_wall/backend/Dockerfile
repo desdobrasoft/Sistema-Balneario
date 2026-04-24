@@ -15,7 +15,18 @@ COPY . .
 # Gera o cliente Prisma para o ambiente Alpine
 RUN npx prisma generate
 
+# Build da aplicação NestJS (SWC, compila apenas src/)
 RUN npm run build
+
+# Compila o seed separadamente para JS (não é coberto pelo nest build)
+RUN npx ts-node --transpile-only -e "" 2>/dev/null; \
+    npx tsc prisma/seed.ts \
+      --outDir dist \
+      --esModuleInterop \
+      --skipLibCheck \
+      --module commonjs \
+      --target ES2023 \
+      --resolveJsonModule
 
 # Stage 2: Production
 FROM node:24-alpine
@@ -30,10 +41,10 @@ RUN npm ci --omit=dev
 COPY --from=builder /usr/src/app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /usr/src/app/node_modules/@prisma ./node_modules/@prisma
 
-# Copia a build da aplicação
+# Copia a build da aplicação (inclui seed compilado)
 COPY --from=builder /usr/src/app/dist ./dist
 
-# Copia o schema do Prisma para a imagem de produção
+# Copia o schema e migrations do Prisma para a imagem de produção
 COPY --from=builder /usr/src/app/prisma ./prisma
 
 # Copia o script de entrypoint e o torna executável

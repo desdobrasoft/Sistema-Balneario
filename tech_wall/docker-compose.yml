@@ -39,6 +39,25 @@ services:
       timeout: 5s
       retries: 5
 
+  # Serviço de migração: roda uma vez, aplica migrations e seed, depois para.
+  backend-migrate:
+    build: ./backend
+    restart: "no"
+    secrets:
+      - db-password
+      - jwt-secret
+      - jwt-refresh-secret
+      - admin-user
+      - admin-password
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env.production
+    environment:
+      - RUN_MIGRATIONS=true
+    command: ["echo", "Migrations concluídas."]
+
   backend:
     build: ./backend
     restart: always
@@ -52,6 +71,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      backend-migrate:
+        condition: service_completed_successfully
     env_file:
       - ./backend/.env.production
     labels:
@@ -92,3 +113,7 @@ secrets:
     file: ~/secrets/jwt_secret.txt
   jwt-refresh-secret:
     file: ~/secrets/jwt_refresh_secret.txt
+  admin-user:
+    file: ~/secrets/admin_user.txt
+  admin-password:
+    file: ~/secrets/admin_password.txt

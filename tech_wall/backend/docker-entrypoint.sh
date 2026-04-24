@@ -12,5 +12,27 @@ export JWT_REFRESH_SECRET=$(cat /run/secrets/jwt-refresh-secret)
 # Exporta a DATABASE_URL completa, agora com a senha lida do segredo
 export DATABASE_URL="postgresql://tech_wall:${DB_PASSWORD}@db:5432/tech_wall?schema=public"
 
+# Aplica migrations e seed apenas se a variável RUN_MIGRATIONS estiver definida.
+# Isso evita race conditions quando múltiplas réplicas iniciam ao mesmo tempo.
+if [ "${RUN_MIGRATIONS}" = "true" ]; then
+  echo "[entrypoint] Aplicando migrations..."
+  npx prisma migrate deploy --schema=./prisma/schema.prisma
+
+  # Lê credenciais do admin dos secrets (se disponíveis)
+  if [ -f /run/secrets/admin-user ]; then
+    export ADMIN_USER=$(cat /run/secrets/admin-user)
+  fi
+  if [ -f /run/secrets/admin-password ]; then
+    export ADMIN_PASSWORD=$(cat /run/secrets/admin-password)
+  fi
+
+  echo "[entrypoint] Executando seed..."
+  node dist/prisma/seed.js
+
+  echo "[entrypoint] Inicialização do banco concluída."
+fi
+
+echo "[entrypoint] Iniciando aplicação..."
+
 # Executa o comando original do contêiner (iniciar a aplicação)
 exec "$@"
