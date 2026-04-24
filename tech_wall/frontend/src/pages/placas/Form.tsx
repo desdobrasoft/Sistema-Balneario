@@ -524,7 +524,7 @@ const PlacasForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
                         fullWidth
                         size="small"
                         error={
-                          formik.touched.materiais?.[index]?.materiaPrimaId &&
+                          (formik.touched.materiais as any)?.[index]?.materiaPrimaId &&
                           Boolean(
                             (formik.errors.materiais?.[index] as any)
                               ?.materiaPrimaId,
@@ -565,7 +565,7 @@ const PlacasForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
                         value={material.quantidade}
                         onChange={formik.handleChange}
                         error={
-                          formik.touched.materiais?.[index]?.quantidade &&
+                          (formik.touched.materiais as any)?.[index]?.quantidade &&
                           Boolean(
                             (formik.errors.materiais?.[index] as any)
                               ?.quantidade,

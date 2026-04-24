@@ -333,7 +333,7 @@ const Placas: React.FC = () => {
                 <Tooltip title="Excluir Placa">
                   <IconButton
                     color="error"
-                    onClick={() => handleDelete(row.id)}
+                    onClick={() => handleDelete(row.id as number)}
                   >
                     <DeleteIcon fontSize="small" />
                   </IconButton>
