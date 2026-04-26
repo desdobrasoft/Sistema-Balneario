@@ -1,0 +1,92 @@
+services:
+  reverse-proxy:
+    image: traefik:latest
+    container_name: tech_wall_proxy_local
+    command:
+      - "--providers.docker"
+      - "--providers.docker.exposedbydefault=false"
+      - "--api.insecure=true"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080" # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  db:
+    image: postgres:16-alpine
+    container_name: tech_wall_db_local
+    restart: always
+    ports:
+      - "5432:5432"
+    env_file:
+      - ./backend/.env.local
+    volumes:
+      - ./postgres-data-local:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tech_wall -d tech_wall"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend-migrate:
+    build: ./backend
+    container_name: tech_wall_migrate_local
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env.local
+    environment:
+      - RUN_MIGRATIONS=true
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        echo '[entrypoint local] Aplicando migrations...'
+        npx prisma migrate deploy --schema=./prisma/schema.prisma
+        echo '[entrypoint local] Executando seed...'
+        node dist/prisma/seed.js
+        echo '[entrypoint local] Migrations concluídas.'
+
+  backend:
+    build: ./backend
+    container_name: tech_wall_backend_local
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      backend-migrate:
+        condition: service_completed_successfully
+    env_file:
+      - ./backend/.env.local
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        echo '[entrypoint local] Iniciando aplicação...'
+        exec node dist/main
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend-router.rule=Host(`localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend-router.entrypoints=web"
+      - "traefik.http.services.backend-service.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.strip-api-prefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.backend-router.middlewares=strip-api-prefix"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+    container_name: tech_wall_frontend_local
+    restart: always
+    depends_on:
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend-router.rule=Host(`localhost`)"
+      - "traefik.http.routers.frontend-router.entrypoints=web"
+      - "traefik.http.services.frontend-service.loadbalancer.server.port=80"
