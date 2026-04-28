@@ -67,16 +67,12 @@ export type PlacaMinAggregateOutputType = {
   espessura: runtime.Decimal | null
   tramaEsquerdaAtiva: boolean | null
   tramaEsquerdaId: number | null
-  tramaEsquerdaOrientacao: string | null
   tramaDireitaAtiva: boolean | null
   tramaDireitaId: number | null
-  tramaDireitaOrientacao: string | null
   tramaSuperiorAtiva: boolean | null
   tramaSuperiorId: number | null
-  tramaSuperiorOrientacao: string | null
   tramaInferiorAtiva: boolean | null
   tramaInferiorId: number | null
-  tramaInferiorOrientacao: string | null
   statusProducao: $Enums.StatusProducaoPlaca | null
   statusPlaca: $Enums.StatusPlaca | null
   updatedAt: Date | null
@@ -97,16 +93,12 @@ export type PlacaMaxAggregateOutputType = {
   espessura: runtime.Decimal | null
   tramaEsquerdaAtiva: boolean | null
   tramaEsquerdaId: number | null
-  tramaEsquerdaOrientacao: string | null
   tramaDireitaAtiva: boolean | null
   tramaDireitaId: number | null
-  tramaDireitaOrientacao: string | null
   tramaSuperiorAtiva: boolean | null
   tramaSuperiorId: number | null
-  tramaSuperiorOrientacao: string | null
   tramaInferiorAtiva: boolean | null
   tramaInferiorId: number | null
-  tramaInferiorOrientacao: string | null
   statusProducao: $Enums.StatusProducaoPlaca | null
   statusPlaca: $Enums.StatusPlaca | null
   updatedAt: Date | null
@@ -127,16 +119,12 @@ export type PlacaCountAggregateOutputType = {
   espessura: number
   tramaEsquerdaAtiva: number
   tramaEsquerdaId: number
-  tramaEsquerdaOrientacao: number
   tramaDireitaAtiva: number
   tramaDireitaId: number
-  tramaDireitaOrientacao: number
   tramaSuperiorAtiva: number
   tramaSuperiorId: number
-  tramaSuperiorOrientacao: number
   tramaInferiorAtiva: number
   tramaInferiorId: number
-  tramaInferiorOrientacao: number
   statusProducao: number
   statusPlaca: number
   materiaisConsumidos: number
@@ -192,16 +180,12 @@ export type PlacaMinAggregateInputType = {
   espessura?: true
   tramaEsquerdaAtiva?: true
   tramaEsquerdaId?: true
-  tramaEsquerdaOrientacao?: true
   tramaDireitaAtiva?: true
   tramaDireitaId?: true
-  tramaDireitaOrientacao?: true
   tramaSuperiorAtiva?: true
   tramaSuperiorId?: true
-  tramaSuperiorOrientacao?: true
   tramaInferiorAtiva?: true
   tramaInferiorId?: true
-  tramaInferiorOrientacao?: true
   statusProducao?: true
   statusPlaca?: true
   updatedAt?: true
@@ -222,16 +206,12 @@ export type PlacaMaxAggregateInputType = {
   espessura?: true
   tramaEsquerdaAtiva?: true
   tramaEsquerdaId?: true
-  tramaEsquerdaOrientacao?: true
   tramaDireitaAtiva?: true
   tramaDireitaId?: true
-  tramaDireitaOrientacao?: true
   tramaSuperiorAtiva?: true
   tramaSuperiorId?: true
-  tramaSuperiorOrientacao?: true
   tramaInferiorAtiva?: true
   tramaInferiorId?: true
-  tramaInferiorOrientacao?: true
   statusProducao?: true
   statusPlaca?: true
   updatedAt?: true
@@ -252,16 +232,12 @@ export type PlacaCountAggregateInputType = {
   espessura?: true
   tramaEsquerdaAtiva?: true
   tramaEsquerdaId?: true
-  tramaEsquerdaOrientacao?: true
   tramaDireitaAtiva?: true
   tramaDireitaId?: true
-  tramaDireitaOrientacao?: true
   tramaSuperiorAtiva?: true
   tramaSuperiorId?: true
-  tramaSuperiorOrientacao?: true
   tramaInferiorAtiva?: true
   tramaInferiorId?: true
-  tramaInferiorOrientacao?: true
   statusProducao?: true
   statusPlaca?: true
   materiaisConsumidos?: true
@@ -370,16 +346,12 @@ export type PlacaGroupByOutputType = {
   espessura: runtime.Decimal | null
   tramaEsquerdaAtiva: boolean
   tramaEsquerdaId: number | null
-  tramaEsquerdaOrientacao: string | null
   tramaDireitaAtiva: boolean
   tramaDireitaId: number | null
-  tramaDireitaOrientacao: string | null
   tramaSuperiorAtiva: boolean
   tramaSuperiorId: number | null
-  tramaSuperiorOrientacao: string | null
   tramaInferiorAtiva: boolean
   tramaInferiorId: number | null
-  tramaInferiorOrientacao: string | null
   statusProducao: $Enums.StatusProducaoPlaca
   statusPlaca: $Enums.StatusPlaca
   materiaisConsumidos: runtime.JsonValue | null
@@ -424,16 +396,12 @@ export type PlacaWhereInput = {
   espessura?: Prisma.DecimalNullableFilter<"Placa"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFilter<"Placa"> | boolean
   tramaEsquerdaId?: Prisma.IntNullableFilter<"Placa"> | number | null
-  tramaEsquerdaOrientacao?: Prisma.StringNullableFilter<"Placa"> | string | null
   tramaDireitaAtiva?: Prisma.BoolFilter<"Placa"> | boolean
   tramaDireitaId?: Prisma.IntNullableFilter<"Placa"> | number | null
-  tramaDireitaOrientacao?: Prisma.StringNullableFilter<"Placa"> | string | null
   tramaSuperiorAtiva?: Prisma.BoolFilter<"Placa"> | boolean
   tramaSuperiorId?: Prisma.IntNullableFilter<"Placa"> | number | null
-  tramaSuperiorOrientacao?: Prisma.StringNullableFilter<"Placa"> | string | null
   tramaInferiorAtiva?: Prisma.BoolFilter<"Placa"> | boolean
   tramaInferiorId?: Prisma.IntNullableFilter<"Placa"> | number | null
-  tramaInferiorOrientacao?: Prisma.StringNullableFilter<"Placa"> | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFilter<"Placa"> | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFilter<"Placa"> | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.JsonNullableFilter<"Placa">
@@ -464,16 +432,12 @@ export type PlacaOrderByWithRelationInput = {
   espessura?: Prisma.SortOrderInput | Prisma.SortOrder
   tramaEsquerdaAtiva?: Prisma.SortOrder
   tramaEsquerdaId?: Prisma.SortOrderInput | Prisma.SortOrder
-  tramaEsquerdaOrientacao?: Prisma.SortOrderInput | Prisma.SortOrder
   tramaDireitaAtiva?: Prisma.SortOrder
   tramaDireitaId?: Prisma.SortOrderInput | Prisma.SortOrder
-  tramaDireitaOrientacao?: Prisma.SortOrderInput | Prisma.SortOrder
   tramaSuperiorAtiva?: Prisma.SortOrder
   tramaSuperiorId?: Prisma.SortOrderInput | Prisma.SortOrder
-  tramaSuperiorOrientacao?: Prisma.SortOrderInput | Prisma.SortOrder
   tramaInferiorAtiva?: Prisma.SortOrder
   tramaInferiorId?: Prisma.SortOrderInput | Prisma.SortOrder
-  tramaInferiorOrientacao?: Prisma.SortOrderInput | Prisma.SortOrder
   statusProducao?: Prisma.SortOrder
   statusPlaca?: Prisma.SortOrder
   materiaisConsumidos?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -507,16 +471,12 @@ export type PlacaWhereUniqueInput = Prisma.AtLeast<{
   espessura?: Prisma.DecimalNullableFilter<"Placa"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFilter<"Placa"> | boolean
   tramaEsquerdaId?: Prisma.IntNullableFilter<"Placa"> | number | null
-  tramaEsquerdaOrientacao?: Prisma.StringNullableFilter<"Placa"> | string | null
   tramaDireitaAtiva?: Prisma.BoolFilter<"Placa"> | boolean
   tramaDireitaId?: Prisma.IntNullableFilter<"Placa"> | number | null
-  tramaDireitaOrientacao?: Prisma.StringNullableFilter<"Placa"> | string | null
   tramaSuperiorAtiva?: Prisma.BoolFilter<"Placa"> | boolean
   tramaSuperiorId?: Prisma.IntNullableFilter<"Placa"> | number | null
-  tramaSuperiorOrientacao?: Prisma.StringNullableFilter<"Placa"> | string | null
   tramaInferiorAtiva?: Prisma.BoolFilter<"Placa"> | boolean
   tramaInferiorId?: Prisma.IntNullableFilter<"Placa"> | number | null
-  tramaInferiorOrientacao?: Prisma.StringNullableFilter<"Placa"> | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFilter<"Placa"> | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFilter<"Placa"> | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.JsonNullableFilter<"Placa">
@@ -547,16 +507,12 @@ export type PlacaOrderByWithAggregationInput = {
   espessura?: Prisma.SortOrderInput | Prisma.SortOrder
   tramaEsquerdaAtiva?: Prisma.SortOrder
   tramaEsquerdaId?: Prisma.SortOrderInput | Prisma.SortOrder
-  tramaEsquerdaOrientacao?: Prisma.SortOrderInput | Prisma.SortOrder
   tramaDireitaAtiva?: Prisma.SortOrder
   tramaDireitaId?: Prisma.SortOrderInput | Prisma.SortOrder
-  tramaDireitaOrientacao?: Prisma.SortOrderInput | Prisma.SortOrder
   tramaSuperiorAtiva?: Prisma.SortOrder
   tramaSuperiorId?: Prisma.SortOrderInput | Prisma.SortOrder
-  tramaSuperiorOrientacao?: Prisma.SortOrderInput | Prisma.SortOrder
   tramaInferiorAtiva?: Prisma.SortOrder
   tramaInferiorId?: Prisma.SortOrderInput | Prisma.SortOrder
-  tramaInferiorOrientacao?: Prisma.SortOrderInput | Prisma.SortOrder
   statusProducao?: Prisma.SortOrder
   statusPlaca?: Prisma.SortOrder
   materiaisConsumidos?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -586,16 +542,12 @@ export type PlacaScalarWhereWithAggregatesInput = {
   espessura?: Prisma.DecimalNullableWithAggregatesFilter<"Placa"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolWithAggregatesFilter<"Placa"> | boolean
   tramaEsquerdaId?: Prisma.IntNullableWithAggregatesFilter<"Placa"> | number | null
-  tramaEsquerdaOrientacao?: Prisma.StringNullableWithAggregatesFilter<"Placa"> | string | null
   tramaDireitaAtiva?: Prisma.BoolWithAggregatesFilter<"Placa"> | boolean
   tramaDireitaId?: Prisma.IntNullableWithAggregatesFilter<"Placa"> | number | null
-  tramaDireitaOrientacao?: Prisma.StringNullableWithAggregatesFilter<"Placa"> | string | null
   tramaSuperiorAtiva?: Prisma.BoolWithAggregatesFilter<"Placa"> | boolean
   tramaSuperiorId?: Prisma.IntNullableWithAggregatesFilter<"Placa"> | number | null
-  tramaSuperiorOrientacao?: Prisma.StringNullableWithAggregatesFilter<"Placa"> | string | null
   tramaInferiorAtiva?: Prisma.BoolWithAggregatesFilter<"Placa"> | boolean
   tramaInferiorId?: Prisma.IntNullableWithAggregatesFilter<"Placa"> | number | null
-  tramaInferiorOrientacao?: Prisma.StringNullableWithAggregatesFilter<"Placa"> | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaWithAggregatesFilter<"Placa"> | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaWithAggregatesFilter<"Placa"> | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.JsonNullableWithAggregatesFilter<"Placa">
@@ -615,13 +567,9 @@ export type PlacaCreateInput = {
   largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -650,16 +598,12 @@ export type PlacaUncheckedCreateInput = {
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
   tramaEsquerdaId?: number | null
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
   tramaDireitaId?: number | null
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
   tramaSuperiorId?: number | null
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
   tramaInferiorId?: number | null
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -682,13 +626,9 @@ export type PlacaUpdateInput = {
   largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -717,16 +657,12 @@ export type PlacaUncheckedUpdateInput = {
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -751,16 +687,12 @@ export type PlacaCreateManyInput = {
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
   tramaEsquerdaId?: number | null
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
   tramaDireitaId?: number | null
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
   tramaSuperiorId?: number | null
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
   tramaInferiorId?: number | null
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -780,13 +712,9 @@ export type PlacaUpdateManyMutationInput = {
   largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -806,16 +734,12 @@ export type PlacaUncheckedUpdateManyInput = {
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -857,16 +781,12 @@ export type PlacaCountOrderByAggregateInput = {
   espessura?: Prisma.SortOrder
   tramaEsquerdaAtiva?: Prisma.SortOrder
   tramaEsquerdaId?: Prisma.SortOrder
-  tramaEsquerdaOrientacao?: Prisma.SortOrder
   tramaDireitaAtiva?: Prisma.SortOrder
   tramaDireitaId?: Prisma.SortOrder
-  tramaDireitaOrientacao?: Prisma.SortOrder
   tramaSuperiorAtiva?: Prisma.SortOrder
   tramaSuperiorId?: Prisma.SortOrder
-  tramaSuperiorOrientacao?: Prisma.SortOrder
   tramaInferiorAtiva?: Prisma.SortOrder
   tramaInferiorId?: Prisma.SortOrder
-  tramaInferiorOrientacao?: Prisma.SortOrder
   statusProducao?: Prisma.SortOrder
   statusPlaca?: Prisma.SortOrder
   materiaisConsumidos?: Prisma.SortOrder
@@ -904,16 +824,12 @@ export type PlacaMaxOrderByAggregateInput = {
   espessura?: Prisma.SortOrder
   tramaEsquerdaAtiva?: Prisma.SortOrder
   tramaEsquerdaId?: Prisma.SortOrder
-  tramaEsquerdaOrientacao?: Prisma.SortOrder
   tramaDireitaAtiva?: Prisma.SortOrder
   tramaDireitaId?: Prisma.SortOrder
-  tramaDireitaOrientacao?: Prisma.SortOrder
   tramaSuperiorAtiva?: Prisma.SortOrder
   tramaSuperiorId?: Prisma.SortOrder
-  tramaSuperiorOrientacao?: Prisma.SortOrder
   tramaInferiorAtiva?: Prisma.SortOrder
   tramaInferiorId?: Prisma.SortOrder
-  tramaInferiorOrientacao?: Prisma.SortOrder
   statusProducao?: Prisma.SortOrder
   statusPlaca?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -934,16 +850,12 @@ export type PlacaMinOrderByAggregateInput = {
   espessura?: Prisma.SortOrder
   tramaEsquerdaAtiva?: Prisma.SortOrder
   tramaEsquerdaId?: Prisma.SortOrder
-  tramaEsquerdaOrientacao?: Prisma.SortOrder
   tramaDireitaAtiva?: Prisma.SortOrder
   tramaDireitaId?: Prisma.SortOrder
-  tramaDireitaOrientacao?: Prisma.SortOrder
   tramaSuperiorAtiva?: Prisma.SortOrder
   tramaSuperiorId?: Prisma.SortOrder
-  tramaSuperiorOrientacao?: Prisma.SortOrder
   tramaInferiorAtiva?: Prisma.SortOrder
   tramaInferiorId?: Prisma.SortOrder
-  tramaInferiorOrientacao?: Prisma.SortOrder
   statusProducao?: Prisma.SortOrder
   statusPlaca?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -1284,13 +1196,9 @@ export type PlacaCreateWithoutMateriaisPlacaInput = {
   largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1318,16 +1226,12 @@ export type PlacaUncheckedCreateWithoutMateriaisPlacaInput = {
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
   tramaEsquerdaId?: number | null
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
   tramaDireitaId?: number | null
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
   tramaSuperiorId?: number | null
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
   tramaInferiorId?: number | null
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1365,13 +1269,9 @@ export type PlacaUpdateWithoutMateriaisPlacaInput = {
   largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1399,16 +1299,12 @@ export type PlacaUncheckedUpdateWithoutMateriaisPlacaInput = {
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1430,13 +1326,9 @@ export type PlacaCreateWithoutPlacasDerivadasInput = {
   largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1464,16 +1356,12 @@ export type PlacaUncheckedCreateWithoutPlacasDerivadasInput = {
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
   tramaEsquerdaId?: number | null
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
   tramaDireitaId?: number | null
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
   tramaSuperiorId?: number | null
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
   tramaInferiorId?: number | null
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1500,13 +1388,9 @@ export type PlacaCreateWithoutDerivadaDeInput = {
   largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1534,16 +1418,12 @@ export type PlacaUncheckedCreateWithoutDerivadaDeInput = {
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
   tramaEsquerdaId?: number | null
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
   tramaDireitaId?: number | null
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
   tramaSuperiorId?: number | null
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
   tramaInferiorId?: number | null
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1586,13 +1466,9 @@ export type PlacaUpdateWithoutPlacasDerivadasInput = {
   largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1620,16 +1496,12 @@ export type PlacaUncheckedUpdateWithoutPlacasDerivadasInput = {
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1672,16 +1544,12 @@ export type PlacaScalarWhereInput = {
   espessura?: Prisma.DecimalNullableFilter<"Placa"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFilter<"Placa"> | boolean
   tramaEsquerdaId?: Prisma.IntNullableFilter<"Placa"> | number | null
-  tramaEsquerdaOrientacao?: Prisma.StringNullableFilter<"Placa"> | string | null
   tramaDireitaAtiva?: Prisma.BoolFilter<"Placa"> | boolean
   tramaDireitaId?: Prisma.IntNullableFilter<"Placa"> | number | null
-  tramaDireitaOrientacao?: Prisma.StringNullableFilter<"Placa"> | string | null
   tramaSuperiorAtiva?: Prisma.BoolFilter<"Placa"> | boolean
   tramaSuperiorId?: Prisma.IntNullableFilter<"Placa"> | number | null
-  tramaSuperiorOrientacao?: Prisma.StringNullableFilter<"Placa"> | string | null
   tramaInferiorAtiva?: Prisma.BoolFilter<"Placa"> | boolean
   tramaInferiorId?: Prisma.IntNullableFilter<"Placa"> | number | null
-  tramaInferiorOrientacao?: Prisma.StringNullableFilter<"Placa"> | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFilter<"Placa"> | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFilter<"Placa"> | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.JsonNullableFilter<"Placa">
@@ -1701,13 +1569,9 @@ export type PlacaCreateWithoutFormaCorteInput = {
   largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1735,16 +1599,12 @@ export type PlacaUncheckedCreateWithoutFormaCorteInput = {
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
   tramaEsquerdaId?: number | null
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
   tramaDireitaId?: number | null
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
   tramaSuperiorId?: number | null
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
   tramaInferiorId?: number | null
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1792,13 +1652,9 @@ export type PlacaCreateWithoutVendaRequisitosInput = {
   largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1826,16 +1682,12 @@ export type PlacaUncheckedCreateWithoutVendaRequisitosInput = {
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
   tramaEsquerdaId?: number | null
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
   tramaDireitaId?: number | null
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
   tramaSuperiorId?: number | null
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
   tramaInferiorId?: number | null
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1873,13 +1725,9 @@ export type PlacaUpdateWithoutVendaRequisitosInput = {
   largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1907,16 +1755,12 @@ export type PlacaUncheckedUpdateWithoutVendaRequisitosInput = {
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1938,13 +1782,9 @@ export type PlacaCreateWithoutTramaEsquerdaInput = {
   largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1971,16 +1811,12 @@ export type PlacaUncheckedCreateWithoutTramaEsquerdaInput = {
   largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
   tramaDireitaId?: number | null
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
   tramaSuperiorId?: number | null
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
   tramaInferiorId?: number | null
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2013,13 +1849,9 @@ export type PlacaCreateWithoutTramaDireitaInput = {
   largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2047,15 +1879,11 @@ export type PlacaUncheckedCreateWithoutTramaDireitaInput = {
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
   tramaEsquerdaId?: number | null
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
   tramaSuperiorId?: number | null
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
   tramaInferiorId?: number | null
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2088,13 +1916,9 @@ export type PlacaCreateWithoutTramaSuperiorInput = {
   largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2122,15 +1946,11 @@ export type PlacaUncheckedCreateWithoutTramaSuperiorInput = {
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
   tramaEsquerdaId?: number | null
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
   tramaDireitaId?: number | null
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
   tramaInferiorId?: number | null
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2163,13 +1983,9 @@ export type PlacaCreateWithoutTramaInferiorInput = {
   largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2197,15 +2013,11 @@ export type PlacaUncheckedCreateWithoutTramaInferiorInput = {
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
   tramaEsquerdaId?: number | null
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
   tramaDireitaId?: number | null
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
   tramaSuperiorId?: number | null
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2304,16 +2116,12 @@ export type PlacaCreateManyDerivadaDeInput = {
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
   tramaEsquerdaId?: number | null
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
   tramaDireitaId?: number | null
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
   tramaSuperiorId?: number | null
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
   tramaInferiorId?: number | null
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2332,13 +2140,9 @@ export type PlacaUpdateWithoutDerivadaDeInput = {
   largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2366,16 +2170,12 @@ export type PlacaUncheckedUpdateWithoutDerivadaDeInput = {
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2399,16 +2199,12 @@ export type PlacaUncheckedUpdateManyWithoutDerivadaDeInput = {
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2429,16 +2225,12 @@ export type PlacaCreateManyFormaCorteInput = {
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
   tramaEsquerdaId?: number | null
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
   tramaDireitaId?: number | null
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
   tramaSuperiorId?: number | null
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
   tramaInferiorId?: number | null
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2457,13 +2249,9 @@ export type PlacaUpdateWithoutFormaCorteInput = {
   largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2491,16 +2279,12 @@ export type PlacaUncheckedUpdateWithoutFormaCorteInput = {
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2524,16 +2308,12 @@ export type PlacaUncheckedUpdateManyWithoutFormaCorteInput = {
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2553,16 +2333,12 @@ export type PlacaCreateManyTramaEsquerdaInput = {
   largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
   tramaDireitaId?: number | null
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
   tramaSuperiorId?: number | null
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
   tramaInferiorId?: number | null
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2584,15 +2360,11 @@ export type PlacaCreateManyTramaDireitaInput = {
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
   tramaEsquerdaId?: number | null
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
   tramaSuperiorId?: number | null
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
   tramaInferiorId?: number | null
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2614,15 +2386,11 @@ export type PlacaCreateManyTramaSuperiorInput = {
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
   tramaEsquerdaId?: number | null
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
   tramaDireitaId?: number | null
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
   tramaInferiorId?: number | null
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2644,15 +2412,11 @@ export type PlacaCreateManyTramaInferiorInput = {
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: boolean
   tramaEsquerdaId?: number | null
-  tramaEsquerdaOrientacao?: string | null
   tramaDireitaAtiva?: boolean
   tramaDireitaId?: number | null
-  tramaDireitaOrientacao?: string | null
   tramaSuperiorAtiva?: boolean
   tramaSuperiorId?: number | null
-  tramaSuperiorOrientacao?: string | null
   tramaInferiorAtiva?: boolean
-  tramaInferiorOrientacao?: string | null
   statusProducao?: $Enums.StatusProducaoPlaca
   statusPlaca?: $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2672,13 +2436,9 @@ export type PlacaUpdateWithoutTramaEsquerdaInput = {
   largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2705,16 +2465,12 @@ export type PlacaUncheckedUpdateWithoutTramaEsquerdaInput = {
   largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2738,16 +2494,12 @@ export type PlacaUncheckedUpdateManyWithoutTramaEsquerdaInput = {
   largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2767,13 +2519,9 @@ export type PlacaUpdateWithoutTramaDireitaInput = {
   largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2801,15 +2549,11 @@ export type PlacaUncheckedUpdateWithoutTramaDireitaInput = {
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2834,15 +2578,11 @@ export type PlacaUncheckedUpdateManyWithoutTramaDireitaInput = {
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2862,13 +2602,9 @@ export type PlacaUpdateWithoutTramaSuperiorInput = {
   largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2896,15 +2632,11 @@ export type PlacaUncheckedUpdateWithoutTramaSuperiorInput = {
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2929,15 +2661,11 @@ export type PlacaUncheckedUpdateManyWithoutTramaSuperiorInput = {
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2957,13 +2685,9 @@ export type PlacaUpdateWithoutTramaInferiorInput = {
   largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2991,15 +2715,11 @@ export type PlacaUncheckedUpdateWithoutTramaInferiorInput = {
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -3024,15 +2744,11 @@ export type PlacaUncheckedUpdateManyWithoutTramaInferiorInput = {
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   tramaEsquerdaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaEsquerdaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaDireitaAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaDireitaOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaSuperiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaSuperiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tramaInferiorAtiva?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tramaInferiorOrientacao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusProducao?: Prisma.EnumStatusProducaoPlacaFieldUpdateOperationsInput | $Enums.StatusProducaoPlaca
   statusPlaca?: Prisma.EnumStatusPlacaFieldUpdateOperationsInput | $Enums.StatusPlaca
   materiaisConsumidos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -3103,16 +2819,12 @@ export type PlacaSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   espessura?: boolean
   tramaEsquerdaAtiva?: boolean
   tramaEsquerdaId?: boolean
-  tramaEsquerdaOrientacao?: boolean
   tramaDireitaAtiva?: boolean
   tramaDireitaId?: boolean
-  tramaDireitaOrientacao?: boolean
   tramaSuperiorAtiva?: boolean
   tramaSuperiorId?: boolean
-  tramaSuperiorOrientacao?: boolean
   tramaInferiorAtiva?: boolean
   tramaInferiorId?: boolean
-  tramaInferiorOrientacao?: boolean
   statusProducao?: boolean
   statusPlaca?: boolean
   materiaisConsumidos?: boolean
@@ -3144,16 +2856,12 @@ export type PlacaSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   espessura?: boolean
   tramaEsquerdaAtiva?: boolean
   tramaEsquerdaId?: boolean
-  tramaEsquerdaOrientacao?: boolean
   tramaDireitaAtiva?: boolean
   tramaDireitaId?: boolean
-  tramaDireitaOrientacao?: boolean
   tramaSuperiorAtiva?: boolean
   tramaSuperiorId?: boolean
-  tramaSuperiorOrientacao?: boolean
   tramaInferiorAtiva?: boolean
   tramaInferiorId?: boolean
-  tramaInferiorOrientacao?: boolean
   statusProducao?: boolean
   statusPlaca?: boolean
   materiaisConsumidos?: boolean
@@ -3181,16 +2889,12 @@ export type PlacaSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   espessura?: boolean
   tramaEsquerdaAtiva?: boolean
   tramaEsquerdaId?: boolean
-  tramaEsquerdaOrientacao?: boolean
   tramaDireitaAtiva?: boolean
   tramaDireitaId?: boolean
-  tramaDireitaOrientacao?: boolean
   tramaSuperiorAtiva?: boolean
   tramaSuperiorId?: boolean
-  tramaSuperiorOrientacao?: boolean
   tramaInferiorAtiva?: boolean
   tramaInferiorId?: boolean
-  tramaInferiorOrientacao?: boolean
   statusProducao?: boolean
   statusPlaca?: boolean
   materiaisConsumidos?: boolean
@@ -3218,16 +2922,12 @@ export type PlacaSelectScalar = {
   espessura?: boolean
   tramaEsquerdaAtiva?: boolean
   tramaEsquerdaId?: boolean
-  tramaEsquerdaOrientacao?: boolean
   tramaDireitaAtiva?: boolean
   tramaDireitaId?: boolean
-  tramaDireitaOrientacao?: boolean
   tramaSuperiorAtiva?: boolean
   tramaSuperiorId?: boolean
-  tramaSuperiorOrientacao?: boolean
   tramaInferiorAtiva?: boolean
   tramaInferiorId?: boolean
-  tramaInferiorOrientacao?: boolean
   statusProducao?: boolean
   statusPlaca?: boolean
   materiaisConsumidos?: boolean
@@ -3240,7 +2940,7 @@ export type PlacaSelectScalar = {
   corteRotacao?: boolean
 }
 
-export type PlacaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nome" | "descricao" | "altura" | "largura" | "espessura" | "tramaEsquerdaAtiva" | "tramaEsquerdaId" | "tramaEsquerdaOrientacao" | "tramaDireitaAtiva" | "tramaDireitaId" | "tramaDireitaOrientacao" | "tramaSuperiorAtiva" | "tramaSuperiorId" | "tramaSuperiorOrientacao" | "tramaInferiorAtiva" | "tramaInferiorId" | "tramaInferiorOrientacao" | "statusProducao" | "statusPlaca" | "materiaisConsumidos" | "updatedAt" | "deletedAt" | "derivadaDePlacaId" | "formaCorteId" | "corteOrigemX" | "corteOrigemY" | "corteRotacao", ExtArgs["result"]["placa"]>
+export type PlacaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nome" | "descricao" | "altura" | "largura" | "espessura" | "tramaEsquerdaAtiva" | "tramaEsquerdaId" | "tramaDireitaAtiva" | "tramaDireitaId" | "tramaSuperiorAtiva" | "tramaSuperiorId" | "tramaInferiorAtiva" | "tramaInferiorId" | "statusProducao" | "statusPlaca" | "materiaisConsumidos" | "updatedAt" | "deletedAt" | "derivadaDePlacaId" | "formaCorteId" | "corteOrigemX" | "corteOrigemY" | "corteRotacao", ExtArgs["result"]["placa"]>
 export type PlacaInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tramaEsquerda?: boolean | Prisma.Placa$tramaEsquerdaArgs<ExtArgs>
   tramaDireita?: boolean | Prisma.Placa$tramaDireitaArgs<ExtArgs>
@@ -3292,16 +2992,12 @@ export type $PlacaPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     espessura: runtime.Decimal | null
     tramaEsquerdaAtiva: boolean
     tramaEsquerdaId: number | null
-    tramaEsquerdaOrientacao: string | null
     tramaDireitaAtiva: boolean
     tramaDireitaId: number | null
-    tramaDireitaOrientacao: string | null
     tramaSuperiorAtiva: boolean
     tramaSuperiorId: number | null
-    tramaSuperiorOrientacao: string | null
     tramaInferiorAtiva: boolean
     tramaInferiorId: number | null
-    tramaInferiorOrientacao: string | null
     statusProducao: $Enums.StatusProducaoPlaca
     statusPlaca: $Enums.StatusPlaca
     materiaisConsumidos: runtime.JsonValue | null
@@ -3752,16 +3448,12 @@ export interface PlacaFieldRefs {
   readonly espessura: Prisma.FieldRef<"Placa", 'Decimal'>
   readonly tramaEsquerdaAtiva: Prisma.FieldRef<"Placa", 'Boolean'>
   readonly tramaEsquerdaId: Prisma.FieldRef<"Placa", 'Int'>
-  readonly tramaEsquerdaOrientacao: Prisma.FieldRef<"Placa", 'String'>
   readonly tramaDireitaAtiva: Prisma.FieldRef<"Placa", 'Boolean'>
   readonly tramaDireitaId: Prisma.FieldRef<"Placa", 'Int'>
-  readonly tramaDireitaOrientacao: Prisma.FieldRef<"Placa", 'String'>
   readonly tramaSuperiorAtiva: Prisma.FieldRef<"Placa", 'Boolean'>
   readonly tramaSuperiorId: Prisma.FieldRef<"Placa", 'Int'>
-  readonly tramaSuperiorOrientacao: Prisma.FieldRef<"Placa", 'String'>
   readonly tramaInferiorAtiva: Prisma.FieldRef<"Placa", 'Boolean'>
   readonly tramaInferiorId: Prisma.FieldRef<"Placa", 'Int'>
-  readonly tramaInferiorOrientacao: Prisma.FieldRef<"Placa", 'String'>
   readonly statusProducao: Prisma.FieldRef<"Placa", 'StatusProducaoPlaca'>
   readonly statusPlaca: Prisma.FieldRef<"Placa", 'StatusPlaca'>
   readonly materiaisConsumidos: Prisma.FieldRef<"Placa", 'Json'>

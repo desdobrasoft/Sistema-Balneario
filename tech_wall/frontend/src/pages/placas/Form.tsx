@@ -43,6 +43,8 @@ interface PlacaModel {
   largura?: number;
   espessura?: number;
   statusProducao?: string;
+  statusPlaca?: string;
+  statusExibicao?: string;
 
   tramaEsquerdaAtiva?: boolean;
   tramaEsquerdaId?: number;
@@ -210,31 +212,7 @@ const PlacasForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
     <DataTableDialog<PlacaModel>
       open={open}
       onClose={onClose}
-      onSubmit={async (values) => {
-        if (values.modoBatch && !item) {
-          const { nome, modoBatch, ...batchData } = values;
-
-          // Limpa campos opcionais se estiverem vazios
-          if (batchData.algarismos === "" || batchData.algarismos === null) {
-            delete batchData.algarismos;
-          }
-
-          // Garante que os campos numéricos sejam números
-          const payload = {
-            ...batchData,
-            valorInicial: Number(batchData.valorInicial),
-            quantidade: Number(batchData.quantidade),
-            algarismos: batchData.algarismos
-              ? Number(batchData.algarismos)
-              : undefined,
-          };
-
-          return api
-            .post(`${ENDPOINTS.PLACAS}/batch`, payload)
-            .then(() => onClose());
-        }
-        return onSubmit(values);
-      }}
+      onSubmit={onSubmit}
       title={item ? "Editar Placa" : "Nova Placa"}
       maxWidth="lg"
       item={item}
@@ -397,10 +375,10 @@ const PlacasForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
               <Grid size={{ xs: 12, md: 4 }}>
                 <TextField
                   fullWidth
-                  name="altura"
-                  label="Altura"
+                  name="largura"
+                  label="Largura"
                   type="number"
-                  value={formik.values.altura}
+                  value={formik.values.largura}
                   onChange={formik.handleChange}
                   size="small"
                   slotProps={{
@@ -416,10 +394,10 @@ const PlacasForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
               <Grid size={{ xs: 12, md: 4 }}>
                 <TextField
                   fullWidth
-                  name="largura"
-                  label="Largura"
+                  name="altura"
+                  label="Altura"
                   type="number"
-                  value={formik.values.largura}
+                  value={formik.values.altura}
                   onChange={formik.handleChange}
                   size="small"
                   slotProps={{
@@ -524,7 +502,8 @@ const PlacasForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
                         fullWidth
                         size="small"
                         error={
-                          (formik.touched.materiais as any)?.[index]?.materiaPrimaId &&
+                          (formik.touched.materiais as any)?.[index]
+                            ?.materiaPrimaId &&
                           Boolean(
                             (formik.errors.materiais?.[index] as any)
                               ?.materiaPrimaId,
@@ -565,7 +544,8 @@ const PlacasForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
                         value={material.quantidade}
                         onChange={formik.handleChange}
                         error={
-                          (formik.touched.materiais as any)?.[index]?.quantidade &&
+                          (formik.touched.materiais as any)?.[index]
+                            ?.quantidade &&
                           Boolean(
                             (formik.errors.materiais?.[index] as any)
                               ?.quantidade,

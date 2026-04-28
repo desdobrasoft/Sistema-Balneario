@@ -3,6 +3,13 @@ import { NestFactory } from '@nestjs/core';
 import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 
+/** TODOs:
+ * - No cadastro notas fiscais, o sistema não está buscando pedidos de compra nem pagamentos parciais
+ *
+ * - Implementar desalocamento de placas
+ * - Nâo exibir placas que geraram cortes na lista de vínculos
+ */
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 

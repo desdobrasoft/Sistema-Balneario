@@ -108,9 +108,7 @@ const MateriaPrima: React.FC = () => {
   ) => {
     if (material) {
       try {
-        const res = await api.get(
-          `${ENDPOINTS.MATERIA_PRIMA}/${material.id}`,
-        );
+        const res = await api.get(`${ENDPOINTS.MATERIA_PRIMA}/${material.id}`);
         setSelectedMaterial(res.data);
       } catch (error) {
         handleError(error);
@@ -321,9 +319,9 @@ const MateriaPrima: React.FC = () => {
             message: "Movimentação registrada com sucesso!",
             severity: "success",
           });
+          tableRef.current?.reload();
           setMovDialogOpen(false);
           setMovPreSelected(null);
-          tableRef.current?.reload();
         }}
       />
 

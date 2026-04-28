@@ -52,7 +52,19 @@ const SuprimentosDialog: React.FC<SuprimentosDialogProps> = ({
   /* eslint-disable react-hooks/set-state-in-effect -- Intentional: initializing suprimentos from venda on dialog open */
   useEffect(() => {
     if (open && venda) {
-      setSuprimentos(venda.suprimentosObra || []);
+      // Prioriza suprimentos da venda, fallback para o modelo da casa
+      const list =
+        venda.suprimentosObra && venda.suprimentosObra.length > 0
+          ? venda.suprimentosObra
+          : venda.modeloCasa?.suprimentosObra || [];
+
+      // Normaliza para garantir que todos tenham um ID (usa nome como fallback)
+      const normalized = list.map((s: any) => ({
+        ...s,
+        id: s.id || s.nome || "sem-id",
+      }));
+
+      setSuprimentos(normalized);
     }
   }, [open, venda]);
   /* eslint-enable react-hooks/set-state-in-effect */
@@ -83,8 +95,8 @@ const SuprimentosDialog: React.FC<SuprimentosDialogProps> = ({
         prev.map((s) =>
           s.id === buyingItem.id
             ? { ...s, status: "ADQUIRIDO", precoPago: parseFloat(price) }
-            : s
-        )
+            : s,
+        ),
       );
 
       setBuyingItem(null);
@@ -105,7 +117,8 @@ const SuprimentosDialog: React.FC<SuprimentosDialogProps> = ({
       </DialogTitle>
       <DialogContent dividers>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Gerencie os materiais externos necessários para a construção deste modelo ({venda?.modeloCasa?.nome}).
+          Gerencie os materiais externos necessários para a construção deste
+          modelo ({venda?.modeloCasa?.nome}).
         </Typography>
 
         <Stack spacing={2}>
@@ -120,7 +133,10 @@ const SuprimentosDialog: React.FC<SuprimentosDialogProps> = ({
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                bgcolor: item.status === "ADQUIRIDO" ? "action.hover" : "background.paper",
+                bgcolor:
+                  item.status === "ADQUIRIDO"
+                    ? "action.hover"
+                    : "background.paper",
               }}
             >
               <Box>
@@ -131,20 +147,40 @@ const SuprimentosDialog: React.FC<SuprimentosDialogProps> = ({
                   {item.quantidade} {item.unidade}
                 </Typography>
                 {item.status === "ADQUIRIDO" && item.precoPago && (
-                  <Typography variant="caption" color="success.main" sx={{ display: "block" }}>
-                    Comprado por: {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(item.precoPago)}
+                  <Typography
+                    variant="caption"
+                    color="success.main"
+                    sx={{ display: "block" }}
+                  >
+                    Comprado por:{" "}
+                    {new Intl.NumberFormat("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    }).format(item.precoPago)}
                   </Typography>
                 )}
               </Box>
 
-              <Box sx={{ textAlign: "right", display: "flex", flexDirection: "column", gap: 1, alignItems: "flex-end" }}>
+              <Box
+                sx={{
+                  textAlign: "right",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 1,
+                  alignItems: "flex-end",
+                }}
+              >
                 <Chip
                   size="small"
-                  label={item.status}
+                  label={item.status === "ADQUIRIDO" ? "ADQUIRIDO" : "PENDENTE"}
                   color={item.status === "ADQUIRIDO" ? "success" : "warning"}
-                  icon={item.status === "ADQUIRIDO" ? <CheckCircleIcon /> : undefined}
+                  icon={
+                    item.status === "ADQUIRIDO" ? (
+                      <CheckCircleIcon />
+                    ) : undefined
+                  }
                 />
-                {item.status === "PENDENTE" && (
+                {item.status !== "ADQUIRIDO" && (
                   <Button
                     size="small"
                     variant="outlined"
@@ -159,7 +195,12 @@ const SuprimentosDialog: React.FC<SuprimentosDialogProps> = ({
           ))}
 
           {suprimentos.length === 0 && (
-            <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 4 }}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              align="center"
+              sx={{ py: 4 }}
+            >
               Não há suprimentos de obra cadastrados para este modelo.
             </Typography>
           )}
@@ -172,7 +213,12 @@ const SuprimentosDialog: React.FC<SuprimentosDialogProps> = ({
       </DialogActions>
 
       {/* Mini Diálogo de Preço */}
-      <Dialog open={!!buyingItem} onClose={() => setBuyingItem(null)} maxWidth="xs" fullWidth>
+      <Dialog
+        open={!!buyingItem}
+        onClose={() => setBuyingItem(null)}
+        maxWidth="xs"
+        fullWidth
+      >
         <DialogTitle>Registrar Compra</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ mb: 2 }}>
@@ -187,7 +233,9 @@ const SuprimentosDialog: React.FC<SuprimentosDialogProps> = ({
             onChange={(e) => setPrice(e.target.value)}
             slotProps={{
               input: {
-                startAdornment: <InputAdornment position="start">R$</InputAdornment>,
+                startAdornment: (
+                  <InputAdornment position="start">R$</InputAdornment>
+                ),
               },
             }}
           />

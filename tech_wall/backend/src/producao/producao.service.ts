@@ -11,7 +11,9 @@ import {
   StatusProducao,
   StatusVenda,
 } from '../generated/prisma/client';
+import { GeometriaPlaca } from '../placas/utils/geometria.utils';
 import { PrismaService } from '../prisma/prisma.service';
+import { BulkAlocacaoDto } from './dto/bulk-alocacao.dto';
 import { CreateInternalOrderDto } from './dto/create-internal-order.dto';
 import { UpdateOrdemProducaoDto } from './dto/update-ordem-producao.dto';
 
@@ -33,10 +35,19 @@ const includeRelations = {
           },
         },
       },
+      vendaItensOverride: {
+        include: {
+          materiaPrima: true,
+        },
+      },
       vendaRequisitos: {
         include: {
           corte: true,
           placaAlocada: true,
+          tramaEsquerda: true,
+          tramaDireita: true,
+          tramaSuperior: true,
+          tramaInferior: true,
         },
       },
     },
@@ -185,18 +196,47 @@ export class ProducaoService {
           clienteId: internalClient.id,
           modeloId: modelo.id,
           dataVenda: new Date(),
-          preco: modelo.preco, // O preço pode ser zero ou o preço de custo
+          preco: modelo.preco,
           enderecoEntrega: 'Uso Interno',
-          status: StatusVenda.PRODUCAO_AGENDADA, // Status direto
-          statusPagamento: StatusPagamentoVenda.PAGO, // Já está "pago"
+          status: StatusVenda.PRODUCAO_AGENDADA,
+          statusPagamento: StatusPagamentoVenda.PAGO,
           isInternal: true,
+          suprimentosObra: (modelo.suprimentosObra || []) as any,
         },
       });
+
+      // Busca os requisitos do modelo para clonar para a venda
+      const modeloComRequisitos = await tx.modeloCasa.findUnique({
+        where: { id: modelo.id },
+        include: { requisitos: true },
+      });
+
+      if (
+        modeloComRequisitos?.requisitos &&
+        modeloComRequisitos.requisitos.length > 0
+      ) {
+        await tx.vendaRequisito.createMany({
+          data: modeloComRequisitos.requisitos.map((r: any) => ({
+            vendaId: internalVenda.id,
+            tipo: r.tipo,
+            alias: r.alias,
+            parede: r.parede,
+            largura: r.largura,
+            altura: r.altura,
+            espessura: r.espessura,
+            tramaEsquerdaId: r.tramaEsquerdaId,
+            tramaDireitaId: r.tramaDireitaId,
+            tramaSuperiorId: r.tramaSuperiorId,
+            tramaInferiorId: r.tramaInferiorId,
+            corteId: r.corteId,
+          })),
+        });
+      }
 
       const novaOrdemProducao = await tx.ordemProducao.create({
         data: {
           vendaId: internalVenda.id,
-          status: StatusProducao.MATERIAIS_PENDENTES, // Começa como pendente
+          status: StatusProducao.MATERIAIS_PENDENTES,
         },
       });
 
@@ -406,11 +446,30 @@ export class ProducaoService {
     });
     if (!req) throw new NotFoundException('Requisito não encontrado');
 
-    let minW = Number(req.largura || 0);
-    let minH = Number(req.altura || 0);
+    const isCorte = req.tipo === 'CORTE_ESPECIFICO';
+    const percurso = isCorte ? (req.corte?.percurso as any[]) : null;
 
-    // Se for corte, as dimensões mínimas vêm da bounding box do percurso (já salvo no req ou no corte)
-    // Para simplificar agora, usamos as dimensões salvas no requisito.
+    const reqW = Number(req.largura || 0);
+    const reqH = Number(req.altura || 0);
+    const reqTramas = {
+      L: req.tramaEsquerdaId,
+      R: req.tramaDireitaId,
+      T: req.tramaSuperiorId,
+      B: req.tramaInferiorId,
+    };
+
+    // Um requisito é considerado "retangular" se for PLACA_LISA ou se o corte for retangular.
+    // Se for retangular, permitimos troca de lados (simetria) e rotação.
+    let isRetangular = !isCorte;
+    if (isCorte && percurso) {
+      isRetangular = GeometriaPlaca.eRetangulo(percurso);
+      // Fallback: se o percurso não for estritamente retangular (ex: fechamento redundante),
+      // mas as dimensões do requisito batem com o que foi informado, tratamos como retangular.
+      if (!isRetangular && reqW > 0 && reqH > 0) {
+        // Se temos largura/altura e o percurso tem pelo menos 4 pontos, consideramos retangular para fins de simetria
+        if (percurso.length >= 4) isRetangular = true;
+      }
+    }
 
     const placas = await this.prisma.placa.findMany({
       where: {
@@ -420,15 +479,137 @@ export class ProducaoService {
       },
     });
 
-    return placas.filter((p) => {
-      const pW = Number(p.largura);
-      const pH = Number(p.altura);
+    const normalizeTrama = (val: any) => {
+      if (val === null || val === undefined) return 0;
+      const n = Number(val);
+      return isNaN(n) ? 0 : n;
+    };
 
-      // Compatível se cabe normal OU rotacionada 90º
-      const cabeNormal = pW >= minW && pH >= minH;
-      const cabeRotacionada = pW >= minH && pH >= minW;
+    const compareSets = (set1: any[], set2: any[]) => {
+      const s1 = set1.map(normalizeTrama).sort((a, b) => a - b);
+      const s2 = set2.map(normalizeTrama).sort((a, b) => a - b);
+      return s1[0] === s2[0] && s1[1] === s2[1];
+    };
 
-      return cabeNormal || cabeRotacionada;
+    const results = placas.filter((p) => {
+      const pW = Number(p.largura || 0);
+      const pH = Number(p.altura || 0);
+      const pTramas = {
+        L: p.tramaEsquerdaAtiva ? p.tramaEsquerdaId : null,
+        R: p.tramaDireitaAtiva ? p.tramaDireitaId : null,
+        T: p.tramaSuperiorAtiva ? p.tramaSuperiorId : null,
+        B: p.tramaInferiorAtiva ? p.tramaInferiorId : null,
+      };
+
+      if (isRetangular) {
+        // Opção 1: Dimensões Batem (0º ou 180º ou Flip)
+        if (Math.abs(pW - reqW) < 0.1 && Math.abs(pH - reqH) < 0.1) {
+          const horizMatch = compareSets(
+            [pTramas.L, pTramas.R],
+            [reqTramas.L, reqTramas.R],
+          );
+          const vertMatch = compareSets(
+            [pTramas.T, pTramas.B],
+            [reqTramas.T, reqTramas.B],
+          );
+          if (horizMatch && vertMatch) return true;
+        }
+
+        // Opção 2: Dimensões Invertidas (90º ou 270º)
+        if (Math.abs(pW - reqH) < 0.1 && Math.abs(pH - reqW) < 0.1) {
+          // Horizontal da placa (L/R) vs Vertical do requisito (T/B)
+          const horizMatch = compareSets(
+            [pTramas.L, pTramas.R],
+            [reqTramas.T, reqTramas.B],
+          );
+          // Vertical da placa (T/B) vs Horizontal do requisito (L/R)
+          const vertMatch = compareSets(
+            [pTramas.T, pTramas.B],
+            [reqTramas.L, reqTramas.R],
+          );
+          if (horizMatch && vertMatch) return true;
+        }
+      } else {
+        // CORTE COMPLEXO: Exige mesmo ID de corte e tramas nas posições exatas
+        if (p.formaCorteId !== req.corteId) return false;
+        const match =
+          normalizeTrama(pTramas.L) === normalizeTrama(reqTramas.L) &&
+          normalizeTrama(pTramas.R) === normalizeTrama(reqTramas.R) &&
+          normalizeTrama(pTramas.T) === normalizeTrama(reqTramas.T) &&
+          normalizeTrama(pTramas.B) === normalizeTrama(reqTramas.B);
+        return match;
+      }
+
+      return false;
+    });
+
+    return results;
+  }
+
+  async bulkAlocar(dto: BulkAlocacaoDto) {
+    return this.prisma.$transaction(async (tx) => {
+      for (const item of dto.itens) {
+        if (item.placaId) {
+          // Reutiliza a lógica de alocação
+          const req = await tx.vendaRequisito.findUnique({
+            where: { id: item.requisitoId },
+          });
+          if (!req)
+            throw new NotFoundException(
+              `Requisito #${item.requisitoId} não encontrado`,
+            );
+
+          const placa = await tx.placa.findUnique({
+            where: { id: item.placaId },
+          });
+          if (!placa)
+            throw new NotFoundException(
+              `Placa #${item.placaId} não encontrada`,
+            );
+          if (
+            placa.statusPlaca !== 'DISPONIVEL' &&
+            req.placaAlocadaId !== item.placaId
+          ) {
+            throw new ConflictException(
+              `A placa #${item.placaId} não está disponível para alocação.`,
+            );
+          }
+
+          // Desaloca placa anterior se existir e for diferente
+          if (req.placaAlocadaId && req.placaAlocadaId !== item.placaId) {
+            await tx.placa.update({
+              where: { id: req.placaAlocadaId },
+              data: { statusPlaca: 'DISPONIVEL' },
+            });
+          }
+
+          // Aloca a nova
+          await tx.placa.update({
+            where: { id: item.placaId },
+            data: { statusPlaca: 'ALOCADA' },
+          });
+          await tx.vendaRequisito.update({
+            where: { id: item.requisitoId },
+            data: { placaAlocadaId: item.placaId },
+          });
+        } else {
+          // Lógica de desalocação
+          const req = await tx.vendaRequisito.findUnique({
+            where: { id: item.requisitoId },
+          });
+          if (req?.placaAlocadaId) {
+            await tx.placa.update({
+              where: { id: req.placaAlocadaId },
+              data: { statusPlaca: 'DISPONIVEL' },
+            });
+            await tx.vendaRequisito.update({
+              where: { id: item.requisitoId },
+              data: { placaAlocadaId: null },
+            });
+          }
+        }
+      }
+      return { success: true, count: dto.itens.length };
     });
   }
 

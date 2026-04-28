@@ -285,21 +285,17 @@ model Placa {
   espessura Decimal? @db.Decimal(10, 2)
 
   // Trama por aresta
-  tramaEsquerdaAtiva      Boolean @default(false) @map("trama_esquerda")
-  tramaEsquerdaId         Int?    @map("trama_esquerda_id")
-  tramaEsquerdaOrientacao String? @map("trama_esquerda_orientacao")
+  tramaEsquerdaAtiva Boolean @default(false) @map("trama_esquerda")
+  tramaEsquerdaId    Int?    @map("trama_esquerda_id")
 
-  tramaDireitaAtiva      Boolean @default(false) @map("trama_direita")
-  tramaDireitaId         Int?    @map("trama_direita_id")
-  tramaDireitaOrientacao String? @map("trama_direita_orientacao")
+  tramaDireitaAtiva Boolean @default(false) @map("trama_direita")
+  tramaDireitaId    Int?    @map("trama_direita_id")
 
-  tramaSuperiorAtiva      Boolean @default(false) @map("trama_superior")
-  tramaSuperiorId         Int?    @map("trama_superior_id")
-  tramaSuperiorOrientacao String? @map("trama_superior_orientacao")
+  tramaSuperiorAtiva Boolean @default(false) @map("trama_superior")
+  tramaSuperiorId    Int?    @map("trama_superior_id")
 
-  tramaInferiorAtiva      Boolean @default(false) @map("trama_inferior")
-  tramaInferiorId         Int?    @map("trama_inferior_id")
-  tramaInferiorOrientacao String? @map("trama_inferior_orientacao")
+  tramaInferiorAtiva Boolean @default(false) @map("trama_inferior")
+  tramaInferiorId    Int?    @map("trama_inferior_id")
 
   tramaEsquerda Trama? @relation("TramaEsquerdaSide", fields: [tramaEsquerdaId], references: [id])
   tramaDireita  Trama? @relation("TramaDireitaSide", fields: [tramaDireitaId], references: [id])
@@ -386,8 +382,12 @@ model RequisitoModeloCasa {
   // Campos para CORTE_ESPECIFICO
   corteId Int? @map("corte_id")
 
-  modeloCasa ModeloCasa @relation(fields: [modeloCasaId], references: [id], onDelete: Cascade)
-  corte      Corte?     @relation(fields: [corteId], references: [id])
+  modeloCasa    ModeloCasa @relation(fields: [modeloCasaId], references: [id], onDelete: Cascade)
+  corte         Corte?     @relation(fields: [corteId], references: [id])
+  tramaEsquerda Trama?     @relation("ReqModTramaEsq", fields: [tramaEsquerdaId], references: [id])
+  tramaDireita  Trama?     @relation("ReqModTramaDir", fields: [tramaDireitaId], references: [id])
+  tramaSuperior Trama?     @relation("ReqModTramaSup", fields: [tramaSuperiorId], references: [id])
+  tramaInferior Trama?     @relation("ReqModTramaInf", fields: [tramaInferiorId], references: [id])
 
   @@map("requisitos_modelo_casa")
 }
@@ -411,9 +411,13 @@ model VendaRequisito {
   corteId        Int? @map("corte_id")
   placaAlocadaId Int? @map("placa_alocada_id")
 
-  venda        Venda  @relation(fields: [vendaId], references: [id], onDelete: Cascade)
-  corte        Corte? @relation(fields: [corteId], references: [id])
-  placaAlocada Placa? @relation(fields: [placaAlocadaId], references: [id])
+  venda         Venda  @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+  corte         Corte? @relation(fields: [corteId], references: [id])
+  placaAlocada  Placa? @relation(fields: [placaAlocadaId], references: [id])
+  tramaEsquerda Trama? @relation("VendaReqTramaEsq", fields: [tramaEsquerdaId], references: [id])
+  tramaDireita  Trama? @relation("VendaReqTramaDir", fields: [tramaDireitaId], references: [id])
+  tramaSuperior Trama? @relation("VendaReqTramaSup", fields: [tramaSuperiorId], references: [id])
+  tramaInferior Trama? @relation("VendaReqTramaInf", fields: [tramaInferiorId], references: [id])
 
   @@map("venda_requisitos")
 }
@@ -446,6 +450,16 @@ model Trama {
   placasDireita  Placa[] @relation("TramaDireitaSide")
   placasSuperior Placa[] @relation("TramaSuperiorSide")
   placasInferior Placa[] @relation("TramaInferiorSide")
+
+  vendaReqsEsquerda VendaRequisito[] @relation("VendaReqTramaEsq")
+  vendaReqsDireita  VendaRequisito[] @relation("VendaReqTramaDir")
+  vendaReqsSuperior VendaRequisito[] @relation("VendaReqTramaSup")
+  vendaReqsInferior VendaRequisito[] @relation("VendaReqTramaInf")
+
+  reqModEsquerda RequisitoModeloCasa[] @relation("ReqModTramaEsq")
+  reqModDireita  RequisitoModeloCasa[] @relation("ReqModTramaDir")
+  reqModSuperior RequisitoModeloCasa[] @relation("ReqModTramaSup")
+  reqModInferior RequisitoModeloCasa[] @relation("ReqModTramaInf")
 
   @@map("tramas")
 }

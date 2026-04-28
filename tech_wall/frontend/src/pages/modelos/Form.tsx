@@ -32,6 +32,7 @@ import DataTableDialog from "components/datatable/DataTableDialog";
 import { ENDPOINTS } from "config/endpoints";
 import { useDialog } from "hooks/useDialog";
 import api from "services/api";
+import BatchRequisitosDialog from "./BatchRequisitosDialog";
 
 interface SuprimentoObra {
   id: string;
@@ -48,7 +49,7 @@ interface MaterialRequerido {
   materiaPrima?: any;
 }
 
-interface RequisitoRequerido {
+export interface RequisitoRequerido {
   tipo: "PLACA_LISA" | "CORTE_ESPECIFICO";
   alias?: string;
   parede: string;
@@ -128,6 +129,8 @@ const ModelosForm: React.FC<FormProps> = ({
   const [loadingCortes, setLoadingCortes] = useState(false);
   const [loadingTramas, setLoadingTramas] = useState(false);
   const [loadingMateriais, setLoadingMateriais] = useState(false);
+  const [batchOpen, setBatchOpen] = useState(false);
+  const [batchParede, setBatchParede] = useState("");
 
   const fetchCortes = useCallback(async () => {
     setLoadingCortes(true);
@@ -219,14 +222,14 @@ const ModelosForm: React.FC<FormProps> = ({
       item={
         item
           ? {
-            ...item,
-            descricao: item.descricao || "",
-            preco: Number(item.preco).toFixed(2).replace(".", ","),
-            imagemBase64: item.imagemBase64 || "",
-            requisitos: item.requisitos || [],
-            materiais: item.materiaisModeloCasa || [],
-            suprimentosObra: item.suprimentosObra || [],
-          }
+              ...item,
+              descricao: item.descricao || "",
+              preco: Number(item.preco).toFixed(2).replace(".", ","),
+              imagemBase64: item.imagemBase64 || "",
+              requisitos: item.requisitos || [],
+              materiais: item.materiaisModeloCasa || [],
+              suprimentosObra: item.suprimentosObra || [],
+            }
           : null
       }
       initialValues={initialValues}
@@ -949,12 +952,34 @@ const ModelosForm: React.FC<FormProps> = ({
                               >
                                 Adicionar Requisito
                               </Button>
+                              <Button
+                                size="small"
+                                startIcon={<AddIcon />}
+                                color="secondary"
+                                onClick={() => {
+                                  setBatchParede(pNome);
+                                  setBatchOpen(true);
+                                }}
+                              >
+                                Adicionar em Lote
+                              </Button>
                             </Grid>
                           </Grid>
                         </CardContent>
                       </Card>
                     </Grid>
                   ))}
+                  <BatchRequisitosDialog
+                    open={batchOpen}
+                    onClose={() => setBatchOpen(false)}
+                    parede={batchParede}
+                    onSubmit={(novos) => {
+                      formik.setFieldValue("requisitos", [
+                        ...formik.values.requisitos,
+                        ...novos,
+                      ]);
+                    }}
+                  />
                   <Grid size={12}>
                     <Button
                       variant="outlined"

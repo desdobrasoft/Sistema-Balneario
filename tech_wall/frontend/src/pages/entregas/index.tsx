@@ -61,7 +61,8 @@ const Entregas: React.FC = () => {
         render: (data: StatusEntrega) => {
           const isSuccess = data === StatusEntrega.ENTREGUE;
           const color = isSuccess ? "#2e7d32" : "#1976d2";
-          const label = typeof data === 'string' ? data.replace(/_/g, " ") : "PENDENTE";
+          const label =
+            typeof data === "string" ? data.replace(/_/g, " ") : "PENDENTE";
           return `<span style="display:inline-block;padding:2px 8px;border-radius:16px;font-size:0.75rem;font-weight:bold;background:${color}20;color:${color};border:1px solid ${color};">${label}</span>`;
         },
       },
@@ -70,7 +71,10 @@ const Entregas: React.FC = () => {
   );
 
   const handleFetchData = useCallback(async (data: any) => {
-    const res = await api.post(`${ENDPOINTS.ENTREGAS}${ENDPOINTS.DATATABLE}`, data);
+    const res = await api.post(
+      `${ENDPOINTS.ENTREGAS}${ENDPOINTS.DATATABLE}`,
+      data,
+    );
 
     return {
       draw: res.data.draw,
@@ -141,15 +145,21 @@ const Entregas: React.FC = () => {
           }}
           item={selectedEntrega}
           onSubmit={async (values) => {
-            await api.patch(`${ENDPOINTS.ENTREGAS}/${selectedEntrega.id}`, {
-              status: values.status,
-              transportadora: values.transportadora,
-              previsaoEntrega: values.previsaoEntrega
-                ? new Date(values.previsaoEntrega).toISOString()
-                : null,
-              notas: values.notas,
-            });
-            tableRef.current?.reload();
+            try {
+              await api.patch(`${ENDPOINTS.ENTREGAS}/${selectedEntrega.id}`, {
+                status: values.status,
+                transportadora: values.transportadora,
+                previsaoEntrega: values.previsaoEntrega
+                  ? new Date(values.previsaoEntrega).toISOString()
+                  : null,
+                notas: values.notas,
+              });
+              tableRef.current?.reload();
+              setUpdateOpen(false);
+              setSelectedEntrega(null);
+            } catch (error) {
+              handleError(error);
+            }
           }}
         />
       )}

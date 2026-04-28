@@ -43,10 +43,12 @@ const Placas: React.FC = () => {
   const columns = useMemo(
     () => [
       { data: "id", visible: false },
+      { data: "statusPlaca", visible: false },
+      { data: "statusProducao", visible: false },
       { title: "Nome", data: "nome" },
       { title: "Dimensões (cm)", data: "dimensoes" },
       { title: "Espessura (cm)", data: "espessuraFormatada" },
-      { title: "Status", data: "statusProducao" },
+      { title: "Status", data: "statusExibicao" },
     ],
     [],
   );
@@ -65,189 +67,270 @@ const Placas: React.FC = () => {
     };
   }, []);
 
-  const handleOpenDialog = async (placa: PlacaModel | null = null) => {
-    if (placa) {
-      try {
-        const res = await api.get(`${ENDPOINTS.PLACAS}/${placa.id}`);
-        const data = res.data;
-        // Map backend relation 'materiaisPlaca' to frontend expected 'materiais'
-        if (data.materiaisPlaca) {
-          data.materiais = data.materiaisPlaca.map((m: any) => ({
-            materiaPrimaId: m.materiaPrimaId,
-            quantidade: m.quantidade,
-            materiaPrima: m.materiaPrima,
-          }));
+  const handleOpenDialog = useCallback(
+    async (placa: PlacaModel | null = null) => {
+      if (placa) {
+        try {
+          const res = await api.get(`${ENDPOINTS.PLACAS}/${placa.id}`);
+          const data = res.data;
+          // Map backend relation 'materiaisPlaca' to frontend expected 'materiais'
+          if (data.materiaisPlaca) {
+            data.materiais = data.materiaisPlaca.map((m: any) => ({
+              materiaPrimaId: m.materiaPrimaId,
+              quantidade: m.quantidade,
+              materiaPrima: m.materiaPrima,
+            }));
+          }
+          // Mapa status para checkbox retalhoDescartado
+          data.retalhoDescartado = data.statusPlaca === "DESCARTADA";
+
+          setSelectedPlaca(data);
+        } catch (error) {
+          handleError(error);
         }
-        setSelectedPlaca(data);
+      } else {
+        setSelectedPlaca(null);
+      }
+      setDialogOpen(true);
+    },
+    [handleError],
+  );
+
+  const handleCloseDialog = useCallback(() => {
+    setDialogOpen(false);
+    setSelectedPlaca(null);
+  }, []);
+
+  const salvar = useCallback(
+    async (payload: any) => {
+      try {
+        if (selectedPlaca) {
+          await api.patch(`${ENDPOINTS.PLACAS}/${selectedPlaca.id}`, payload);
+          showSnackbar({
+            message: "Placa atualizada com sucesso!",
+            severity: "success",
+          });
+        } else {
+          await api.post(ENDPOINTS.PLACAS, payload);
+          showSnackbar({
+            message: "Placa registrada com sucesso!",
+            severity: "success",
+          });
+        }
+        tableRef.current?.reload();
+        handleCloseDialog();
       } catch (error) {
         handleError(error);
       }
-    } else {
-      setSelectedPlaca(null);
-    }
-    setDialogOpen(true);
-  };
+    },
+    [selectedPlaca, showSnackbar, handleCloseDialog, handleError],
+  );
 
-  const handleCloseDialog = () => {
-    setDialogOpen(false);
-    setSelectedPlaca(null);
-  };
+  const handleSubmit = useCallback(
+    async (values: any) => {
+      if (values.modoBatch && !selectedPlaca) {
+        const {
+          nome,
+          modoBatch,
+          id,
+          statusProducao,
+          createdAt,
+          updatedAt,
+          ...batchData
+        } = values;
 
-  const handleSubmit = async (values: any) => {
-    // Sanitizar payload: Enviar apenas o que o DTO espera
-    const { id, statusProducao, createdAt, updatedAt, ...rest } = values;
+        const batchPayload = {
+          ...batchData,
+          valorInicial: Number(batchData.valorInicial),
+          quantidade: Number(batchData.quantidade),
+          algarismos: batchData.algarismos
+            ? Number(batchData.algarismos)
+            : undefined,
+          altura:
+            batchData.altura === "" || batchData.altura === 0
+              ? undefined
+              : Number(batchData.altura),
+          largura:
+            batchData.largura === "" || batchData.largura === 0
+              ? undefined
+              : Number(batchData.largura),
+          espessura:
+            batchData.espessura === "" || batchData.espessura === 0
+              ? undefined
+              : Number(batchData.espessura),
+          tramaEsquerdaId: batchData.tramaEsquerdaId || undefined,
+          tramaDireitaId: batchData.tramaDireitaId || undefined,
+          tramaSuperiorId: batchData.tramaSuperiorId || undefined,
+          tramaInferiorId: batchData.tramaInferiorId || undefined,
+          materiais: batchData.materiais?.map((m: any) => ({
+            materiaPrimaId: Number(m.materiaPrimaId),
+            quantidade: Number(m.quantidade),
+          })),
+        };
 
-    const payload = {
-      nome: rest.nome,
-      descricao: rest.descricao,
-      altura:
-        rest.altura === "" || rest.altura === 0
-          ? undefined
-          : Number(rest.altura),
-      largura:
-        rest.largura === "" || rest.largura === 0
-          ? undefined
-          : Number(rest.largura),
-      espessura:
-        rest.espessura === "" || rest.espessura === 0
-          ? undefined
-          : Number(rest.espessura),
-      retalhoDescartado: undefined,
-      tramaEsquerdaAtiva: rest.tramaEsquerdaAtiva,
-      tramaEsquerdaId: rest.tramaEsquerdaId || undefined,
-      tramaDireitaAtiva: rest.tramaDireitaAtiva,
-      tramaDireitaId: rest.tramaDireitaId || undefined,
-      tramaSuperiorAtiva: rest.tramaSuperiorAtiva,
-      tramaSuperiorId: rest.tramaSuperiorId || undefined,
-      tramaInferiorAtiva: rest.tramaInferiorAtiva,
-      tramaInferiorId: rest.tramaInferiorId || undefined,
-      darBaixaImediata: rest.darBaixaImediata,
-      materiais: rest.materiais?.map((m: any) => ({
-        materiaPrimaId: Number(m.materiaPrimaId),
-        quantidade: Number(m.quantidade),
-      })),
-    };
+        try {
+          await api.post(`${ENDPOINTS.PLACAS}/batch`, batchPayload);
+          showSnackbar({
+            message: "Lote de placas registrado com sucesso!",
+            severity: "success",
+          });
+          tableRef.current?.reload();
+          handleCloseDialog();
+        } catch (error) {
+          handleError(error);
+        }
+        return;
+      }
 
-    let materiaisMudaram = false;
-    const oldMateriais = selectedPlaca?.materiais || [];
-    const newMateriais = payload.materiais || [];
+      // Sanitizar payload: Enviar apenas o que o DTO espera
+      const { id, statusProducao, createdAt, updatedAt, ...rest } = values;
 
-    if (oldMateriais.length !== newMateriais.length) {
-      materiaisMudaram = true;
-    } else {
-      for (const newMat of newMateriais) {
-        const oldMat = oldMateriais.find(
-          (m: any) => m.materiaPrimaId === newMat.materiaPrimaId,
-        );
-        if (
-          !oldMat ||
-          Number(oldMat.quantidade) !== Number(newMat.quantidade)
-        ) {
-          materiaisMudaram = true;
-          break;
+      const payload = {
+        nome: rest.nome,
+        descricao: rest.descricao,
+        altura:
+          rest.altura === "" || rest.altura === 0
+            ? undefined
+            : Number(rest.altura),
+        largura:
+          rest.largura === "" || rest.largura === 0
+            ? undefined
+            : Number(rest.largura),
+        espessura:
+          rest.espessura === "" || rest.espessura === 0
+            ? undefined
+            : Number(rest.espessura),
+        retalhoDescartado: rest.retalhoDescartado,
+
+        tramaEsquerdaAtiva: rest.tramaEsquerdaAtiva,
+        tramaEsquerdaId: rest.tramaEsquerdaId || undefined,
+        tramaDireitaAtiva: rest.tramaDireitaAtiva,
+        tramaDireitaId: rest.tramaDireitaId || undefined,
+        tramaSuperiorAtiva: rest.tramaSuperiorAtiva,
+        tramaSuperiorId: rest.tramaSuperiorId || undefined,
+        tramaInferiorAtiva: rest.tramaInferiorAtiva,
+        tramaInferiorId: rest.tramaInferiorId || undefined,
+        darBaixaImediata: rest.darBaixaImediata,
+        materiais: rest.materiais?.map((m: any) => ({
+          materiaPrimaId: Number(m.materiaPrimaId),
+          quantidade: Number(m.quantidade),
+        })),
+      };
+
+      let materiaisMudaram = false;
+      const oldMateriais = selectedPlaca?.materiais || [];
+      const newMateriais = payload.materiais || [];
+
+      if (oldMateriais.length !== newMateriais.length) {
+        materiaisMudaram = true;
+      } else {
+        for (const newMat of newMateriais) {
+          const oldMat = oldMateriais.find(
+            (m: any) => m.materiaPrimaId === newMat.materiaPrimaId,
+          );
+          if (
+            !oldMat ||
+            Number(oldMat.quantidade) !== Number(newMat.quantidade)
+          ) {
+            materiaisMudaram = true;
+            break;
+          }
         }
       }
-    }
 
-    if (
-      selectedPlaca &&
-      selectedPlaca.statusProducao === "FINALIZADA" &&
-      materiaisMudaram
-    ) {
+      if (
+        selectedPlaca &&
+        selectedPlaca.statusProducao === "FINALIZADA" &&
+        materiaisMudaram
+      ) {
+        showDialog({
+          title: "Atenção: Placa já Finalizada",
+          body: "Você alterou a receita de materiais de uma placa que já estava finalizada. Deseja que a diferença de material afete o estoque de matéria-prima?",
+          actions: [
+            <Button
+              key="nao"
+              onClick={async () => {
+                closeDialog();
+                try {
+                  await salvar({ ...payload, ajustarEstoqueConsumido: false });
+                } catch (error) {
+                  handleError(error);
+                }
+              }}
+            >
+              Não, manter estoque
+            </Button>,
+            <Button
+              key="sim"
+              variant="contained"
+              onClick={async () => {
+                closeDialog();
+                try {
+                  await salvar({ ...payload, ajustarEstoqueConsumido: true });
+                } catch (error) {
+                  handleError(error);
+                }
+              }}
+            >
+              Sim, ajustar estoque
+            </Button>,
+          ],
+        });
+        return;
+      } else {
+        await salvar(payload);
+      }
+    },
+    [
+      selectedPlaca,
+      showSnackbar,
+      handleCloseDialog,
+      handleError,
+      showDialog,
+      closeDialog,
+      salvar,
+    ],
+  );
+
+  const executeDelete = useCallback(
+    async (id: number) => {
+      closeDialog();
+      try {
+        await api.delete(`${ENDPOINTS.PLACAS}/${id}`);
+        showSnackbar({
+          message: "Placa excluída com sucesso!",
+          severity: "success",
+        });
+        tableRef.current?.reload();
+      } catch (error) {
+        handleError(error);
+      }
+    },
+    [closeDialog, showSnackbar, handleError],
+  );
+
+  const handleDelete = useCallback(
+    (id: number) => {
       showDialog({
-        title: "Atenção: Placa já Finalizada",
-        body: "Você alterou a receita de materiais de uma placa que já estava finalizada. Deseja que a diferença de material afete o estoque de matéria-prima?",
+        title: "Excluir Placa",
+        body: "Deseja realmente excluir esta placa?",
         actions: [
-          <Button
-            key="nao"
-            onClick={async () => {
-              closeDialog();
-              try {
-                await salvar({ ...payload, ajustarEstoqueConsumido: false });
-              } catch (error) {
-                handleError(error);
-              }
-            }}
-          >
-            Não, manter estoque
+          <Button key="cancel" onClick={closeDialog}>
+            Cancelar
           </Button>,
           <Button
-            key="sim"
+            key="confirm"
+            color="error"
             variant="contained"
-            onClick={async () => {
-              closeDialog();
-              try {
-                await salvar({ ...payload, ajustarEstoqueConsumido: true });
-              } catch (error) {
-                handleError(error);
-              }
-            }}
+            onClick={() => executeDelete(id)}
           >
-            Sim, ajustar estoque
+            Excluir
           </Button>,
         ],
       });
-      return;
-    } else {
-      await salvar(payload);
-    }
-  };
-
-  const salvar = async (payload: any) => {
-    try {
-      if (selectedPlaca) {
-        await api.patch(`${ENDPOINTS.PLACAS}/${selectedPlaca.id}`, payload);
-        showSnackbar({
-          message: "Placa atualizada com sucesso!",
-          severity: "success",
-        });
-      } else {
-        await api.post(ENDPOINTS.PLACAS, payload);
-        showSnackbar({
-          message: "Placa registrada com sucesso!",
-          severity: "success",
-        });
-      }
-      tableRef.current?.reload();
-      handleCloseDialog();
-    } catch (error) {
-      handleError(error);
-    }
-  };
-
-  const handleDelete = (id: number) => {
-    showDialog({
-      title: "Excluir Placa",
-      body: "Deseja realmente excluir esta placa?",
-      actions: [
-        <Button key="cancel" onClick={closeDialog}>
-          Cancelar
-        </Button>,
-        <Button
-          key="confirm"
-          color="error"
-          variant="contained"
-          onClick={() => executeDelete(id)}
-        >
-          Excluir
-        </Button>,
-      ],
-    });
-  };
-
-  const executeDelete = async (id: number) => {
-    closeDialog();
-    try {
-      await api.delete(`${ENDPOINTS.PLACAS}/${id}`);
-      showSnackbar({
-        message: "Placa excluída com sucesso!",
-        severity: "success",
-      });
-      tableRef.current?.reload();
-    } catch (error) {
-      handleError(error);
-    }
-  };
+    },
+    [showDialog, closeDialog, executeDelete],
+  );
 
   return (
     <Box>
@@ -276,82 +359,95 @@ const Placas: React.FC = () => {
           columns={columns}
           onFetchData={handleFetchData}
           rowActions={useCallback(
-            (row: PlacaModel) => (
-              <Box sx={{ display: "flex", gap: 1 }}>
-                {row.statusProducao === "AGUARDANDO" && (
-                  <Tooltip title="Iniciar Produção">
+            (row: PlacaModel) => {
+              if (row.statusPlaca === "ALOCADA") return null;
+
+              return (
+                <Box sx={{ display: "flex", gap: 1 }}>
+                  {row.statusPlaca === "DISPONIVEL" &&
+                    row.statusProducao === "AGUARDANDO" && (
+                      <Tooltip title="Iniciar Produção">
+                        <IconButton
+                          color="secondary"
+                          onClick={async () => {
+                            try {
+                              await api.post(
+                                `${ENDPOINTS.PLACAS}/${row.id}/gerenciar-producao`,
+                                { status: "EM_PRODUCAO" },
+                              );
+                              tableRef.current?.reload();
+                            } catch (error) {
+                              handleError(error);
+                            }
+                          }}
+                        >
+                          <PlayCircleIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  {row.statusPlaca === "DISPONIVEL" &&
+                    row.statusProducao === "EM_PRODUCAO" && (
+                      <Tooltip title="Finalizar Produção">
+                        <IconButton
+                          color="success"
+                          onClick={async () => {
+                            try {
+                              const res = await api.get(
+                                `${ENDPOINTS.PLACAS}/${row.id}`,
+                              );
+                              setSelectedPlaca(res.data);
+                              setGerenciarOpen(true);
+                            } catch (error) {
+                              handleError(error);
+                            }
+                          }}
+                        >
+                          <CheckCircleIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  {row.statusPlaca === "DISPONIVEL" && (
+                    <Tooltip title="Aplicar Corte">
+                      <IconButton
+                        color="warning"
+                        onClick={() => {
+                          setPlacaParaCorte(row);
+                          setAplicarCorteOpen(true);
+                        }}
+                      >
+                        <ContentCutIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                  <Tooltip title="Editar Placa">
                     <IconButton
-                      color="secondary"
-                      onClick={async () => {
-                        try {
-                          await api.post(
-                            `${ENDPOINTS.PLACAS}/${row.id}/gerenciar-producao`,
-                            { status: "EM_PRODUCAO" },
-                          );
-                          tableRef.current?.reload();
-                        } catch (error) {
-                          handleError(error);
-                        }
-                      }}
+                      color="primary"
+                      onClick={() => handleOpenDialog(row)}
                     >
-                      <PlayCircleIcon fontSize="small" />
+                      <EditIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>
-                )}
-                {row.statusProducao === "EM_PRODUCAO" && (
-                  <Tooltip title="Finalizar Produção">
+                  <Tooltip title="Excluir Placa">
                     <IconButton
-                      color="success"
-                      onClick={() => {
-                        setSelectedPlaca(row);
-                        setGerenciarOpen(true);
-                      }}
+                      color="error"
+                      onClick={() => handleDelete(row.id as number)}
                     >
-                      <CheckCircleIcon fontSize="small" />
+                      <DeleteIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>
-                )}
-                <Tooltip title="Aplicar Corte">
-                  <IconButton
-                    color="warning"
-                    onClick={() => {
-                      setPlacaParaCorte(row);
-                      setAplicarCorteOpen(true);
-                    }}
-                  >
-                    <ContentCutIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Editar Placa">
-                  <IconButton
-                    color="primary"
-                    onClick={() => handleOpenDialog(row)}
-                  >
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Excluir Placa">
-                  <IconButton
-                    color="error"
-                    onClick={() => handleDelete(row.id as number)}
-                  >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-              </Box>
-            ),
-            [],
+                </Box>
+              );
+            },
+            [handleError, showDialog, closeDialog, handleOpenDialog],
           )}
         />
       </Paper>
-
       <FormDialog
         open={dialogOpen}
         onClose={handleCloseDialog}
         onSubmit={handleSubmit}
         item={selectedPlaca}
       />
-
       <GerenciarProducaoDialog
         open={gerenciarOpen}
         onClose={() => {
@@ -361,7 +457,6 @@ const Placas: React.FC = () => {
         placa={selectedPlaca}
         onSuccess={() => tableRef.current?.reload()}
       />
-
       <PlacasAplicarCorteDialog
         open={aplicarCorteOpen}
         onClose={() => {

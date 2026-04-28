@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -17,7 +18,19 @@ import { UpdateTramaDto } from './dto/update-trama.dto';
 export class TramasService {
   constructor(private prisma: PrismaService) {}
 
+  private validateCortesSum(cortes: number[], alturaBase: number) {
+    if (!cortes || cortes.length === 0) return;
+    const sum = cortes.reduce((acc, val) => acc + Number(val), 0);
+    if (Math.round(sum * 100) !== Math.round(Number(alturaBase) * 100)) {
+      throw new BadRequestException(
+        'A soma dos cortes deve ser exatamente igual à altura base.',
+      );
+    }
+  }
+
   async create(createTramaDto: CreateTramaDto) {
+    this.validateCortesSum(createTramaDto.cortes, createTramaDto.alturaBase);
+
     const tramaExists = await this.prisma.trama.findUnique({
       where: { nome: createTramaDto.nome },
     });
@@ -129,7 +142,13 @@ export class TramasService {
   }
 
   async update(id: number, updateTramaDto: UpdateTramaDto) {
-    await this.findOne(id);
+    const trama = await this.findOne(id);
+
+    const newCortes = updateTramaDto.cortes ?? trama.cortes;
+    const newAlturaBase = updateTramaDto.alturaBase ?? Number(trama.alturaBase);
+
+    this.validateCortesSum(newCortes as number[], Number(newAlturaBase));
+
     return this.prisma.trama.update({
       where: { id },
       data: updateTramaDto,

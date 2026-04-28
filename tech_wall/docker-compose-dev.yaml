@@ -1,0 +1,117 @@
+services:
+  reverse-proxy:
+    image: traefik:latest
+    container_name: tech_wall_proxy_dev
+    command:
+      - "--providers.docker"
+      - "--providers.docker.exposedbydefault=false"
+      - "--api.insecure=true"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080" # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  db:
+    image: postgres:16-alpine
+    container_name: tech_wall_db_dev
+    restart: always
+    ports:
+      - "5432:5432"
+    env_file:
+      - ./backend/.env.dev
+    volumes:
+      - ./postgres-data-dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tech_wall -d tech_wall"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend-migrate:
+    build:
+      context: ./backend
+      target: builder # Usa o stage que já tem o openssl e o node_modules instalados
+    container_name: tech_wall_migrate_dev
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env.dev
+    environment:
+      - RUN_MIGRATIONS=true
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules # Isola o node_modules do container para não conflitar com o Windows
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        echo '[entrypoint dev] Gerando client Prisma...'
+        npx prisma generate
+        echo '[entrypoint dev] Aplicando migrations...'
+        npx prisma migrate deploy --schema=./prisma/schema.prisma
+        echo '[entrypoint dev] Executando seed...'
+        npx ts-node prisma/seed.ts
+        echo '[entrypoint dev] Migrations concluídas.'
+
+  backend:
+    build:
+      context: ./backend
+      target: builder
+    container_name: tech_wall_backend_dev
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      backend-migrate:
+        condition: service_completed_successfully
+    env_file:
+      - ./backend/.env.dev
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules # Impede que o host sobrescreva com módulos do Windows
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        echo '[entrypoint dev] Gerando client Prisma...'
+        npx prisma generate
+        echo '[entrypoint dev] Iniciando backend em modo watch (hot-reload)...'
+        npm run start:dev
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend-router.rule=Host(`localhost`) &&
+        PathPrefix(`/api`)"
+      - "traefik.http.routers.backend-router.entrypoints=web"
+      - "traefik.http.services.backend-service.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.strip-api-prefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.backend-router.middlewares=strip-api-prefix"
+
+  frontend:
+    build:
+      context: ./frontend
+      target: builder # Usa apenas o stage inicial (Vite), sem Nginx
+      args:
+        VITE_API_URL: /api
+    container_name: tech_wall_frontend_dev
+    restart: always
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Mesma regra do backend
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        echo '[entrypoint dev] Iniciando frontend (Vite) em modo watch...'
+        npm run dev -- --host 0.0.0.0 --port 5173
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend-router.rule=Host(`localhost`)"
+      - "traefik.http.routers.frontend-router.entrypoints=web"
+      # Aponta para a porta de dev do Vite ao invés da porta 80 do Nginx
+      - "traefik.http.services.frontend-service.loadbalancer.server.port=5173"

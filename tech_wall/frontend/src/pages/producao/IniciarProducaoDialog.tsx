@@ -53,6 +53,9 @@ const IniciarProducaoDialog: React.FC<IniciarProducaoDialogProps> = ({
   const [compatiblePlatesMap, setCompatiblePlatesMap] = useState<
     Record<number, any[]>
   >({});
+  const [localAllocations, setLocalAllocations] = useState<Record<number, any>>(
+    {},
+  );
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -61,6 +64,15 @@ const IniciarProducaoDialog: React.FC<IniciarProducaoDialogProps> = ({
       const res = await api.get(`${ENDPOINTS.PRODUCAO}/${ordem.id}`);
       const data = res.data;
       setFullOrdem(data);
+
+      // Inicializa alocações locais com o que já está no banco
+      const initialAllocations: Record<number, any> = {};
+      data.venda?.vendaRequisitos?.forEach((r: any) => {
+        if (r.placaAlocada) {
+          initialAllocations[r.id] = r.placaAlocada;
+        }
+      });
+      setLocalAllocations(initialAllocations);
 
       // Busca placas compatíveis para cada requisito não alocado (ou todos para permitir trocar)
       if (data.venda?.vendaRequisitos) {
@@ -92,37 +104,17 @@ const IniciarProducaoDialog: React.FC<IniciarProducaoDialogProps> = ({
   }, [open, ordem, fetchData]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  const handleAlocar = async (requisitoId: number, placaId: number | null) => {
-    try {
-      if (placaId) {
-        await api.post(`${ENDPOINTS.PRODUCAO}/alocar`, {
-          requisitoId,
-          placaId,
-        });
-        showSnackbar({
-          title: "Alocação",
-          message: "Placa alocada com sucesso",
-          severity: "success",
-        });
-      } else {
-        await api.post(`${ENDPOINTS.PRODUCAO}/desalocar`, { requisitoId });
-        showSnackbar({
-          title: "Alocação",
-          message: "Alocação removida",
-          severity: "info",
-        });
-      }
-      // Refresh local state to show updated allocation
-      fetchData();
-    } catch (error) {
-      handleError(error);
-    }
+  const handleLocalAlocar = (requisitoId: number, placa: any | null) => {
+    setLocalAllocations((prev) => ({
+      ...prev,
+      [requisitoId]: placa,
+    }));
   };
 
   const handleSubmit = async () => {
     // Verifica se todos os requisitos têm placa alocada
     const reqs = fullOrdem?.venda?.vendaRequisitos || [];
-    const pendentes = reqs.filter((r: any) => !r.placaAlocadaId);
+    const pendentes = reqs.filter((r: any) => !localAllocations[r.id]);
 
     if (pendentes.length > 0) {
       showSnackbar({
@@ -135,10 +127,20 @@ const IniciarProducaoDialog: React.FC<IniciarProducaoDialogProps> = ({
 
     setSubmitting(true);
     try {
+      // 1. Executa alocação em lote
+      await api.post(`${ENDPOINTS.PRODUCAO}/bulk-alocar`, {
+        itens: Object.entries(localAllocations).map(([reqId, placa]) => ({
+          requisitoId: parseInt(reqId),
+          placaId: placa?.id || null,
+        })),
+      });
+
+      // 2. Inicia a produção
       await api.patch(`${ENDPOINTS.PRODUCAO}/${ordem.id}`, {
         status: "EM_ESPERA",
         notas: "Produção iniciada com materiais e placas alocados.",
       });
+
       showSnackbar({
         title: "Sucesso",
         message: "Ordem de produção iniciada. O estoque foi debitado.",
@@ -167,7 +169,17 @@ const IniciarProducaoDialog: React.FC<IniciarProducaoDialogProps> = ({
     );
   }
 
-  const materiais = fullOrdem?.venda?.modeloCasa?.materiaisModeloCasa || [];
+  // Prioriza materiais customizados da venda, caso existam (vendaItensOverride)
+  const itensOverride = fullOrdem?.venda?.vendaItensOverride || [];
+  const materiais =
+    itensOverride.length > 0
+      ? itensOverride.map((it: any) => ({
+          id: it.id,
+          materiaPrima: it.materiaPrima,
+          qtModelo: it.qtFinal, // Na venda chamamos de qtFinal, mas aqui usamos qtModelo para compatibilidade com o layout
+        }))
+      : fullOrdem?.venda?.modeloCasa?.materiaisModeloCasa || [];
+
   const requisitos = fullOrdem?.venda?.vendaRequisitos || [];
 
   return (
@@ -247,7 +259,6 @@ const IniciarProducaoDialog: React.FC<IniciarProducaoDialogProps> = ({
         <Stack spacing={2}>
           {requisitos.map((req: any) => {
             const compatible = compatiblePlatesMap[req.id] || [];
-            const alocada = req.placaAlocada;
 
             return (
               <Box
@@ -260,33 +271,91 @@ const IniciarProducaoDialog: React.FC<IniciarProducaoDialogProps> = ({
                 }}
               >
                 <Grid container spacing={2} sx={{ alignItems: "center" }}>
-                  <Grid size={4}>
+                  <Grid size={5}>
                     <Typography variant="subtitle2" sx={{ fontWeight: "bold" }}>
                       {req.alias} - {req.parede}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ display: "block" }}
+                    >
                       {req.tipo === "PLACA_LISA"
-                        ? `${req.largura}x${req.altura}cm (Placa)`
-                        : `${req.corte?.nome || "Corte Custom"}`}
+                        ? `${Number(req.largura)}x${Number(req.altura)}x${Number(req.espessura)}cm`
+                        : `${req.corte?.nome || "Corte Custom"} (${Number(req.largura)}x${Number(req.altura)}cm)`}
                     </Typography>
+
+                    {/* Exibição das Tramas */}
+                    {(req.tramaEsquerdaId ||
+                      req.tramaDireitaId ||
+                      req.tramaSuperiorId ||
+                      req.tramaInferiorId) && (
+                      <Box
+                        sx={{
+                          mt: 0.5,
+                          display: "flex",
+                          gap: 0.5,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        {req.tramaEsquerda && (
+                          <Chip
+                            label={`E: ${req.tramaEsquerda.nome}`}
+                            size="small"
+                            variant="outlined"
+                            sx={{ fontSize: "0.65rem", height: 20 }}
+                          />
+                        )}
+                        {req.tramaDireita && (
+                          <Chip
+                            label={`D: ${req.tramaDireita.nome}`}
+                            size="small"
+                            variant="outlined"
+                            sx={{ fontSize: "0.65rem", height: 20 }}
+                          />
+                        )}
+                        {req.tramaSuperior && (
+                          <Chip
+                            label={`S: ${req.tramaSuperior.nome}`}
+                            size="small"
+                            variant="outlined"
+                            sx={{ fontSize: "0.65rem", height: 20 }}
+                          />
+                        )}
+                        {req.tramaInferior && (
+                          <Chip
+                            label={`I: ${req.tramaInferior.nome}`}
+                            size="small"
+                            variant="outlined"
+                            sx={{ fontSize: "0.65rem", height: 20 }}
+                          />
+                        )}
+                      </Box>
+                    )}
                   </Grid>
 
-                  <Grid size={8}>
+                  <Grid size={7}>
                     <Autocomplete
                       size="small"
-                      options={compatible}
+                      options={compatible.filter(
+                        (p) =>
+                          !Object.entries(localAllocations).some(
+                            ([rid, aloc]) =>
+                              parseInt(rid) !== req.id && aloc?.id === p.id,
+                          ),
+                      )}
                       getOptionLabel={(o) =>
                         `${o.nome} (${o.largura}x${o.altura}cm)`
                       }
-                      value={alocada || null}
-                      onChange={(_, v) => handleAlocar(req.id, v?.id || null)}
+                      value={localAllocations[req.id] || null}
+                      onChange={(_, v) => handleLocalAlocar(req.id, v)}
                       renderInput={(params) => (
                         <TextField
                           {...params}
                           label="Selecionar Placa do Estoque"
-                          error={!alocada}
+                          error={!localAllocations[req.id]}
                           helperText={
-                            !alocada
+                            !localAllocations[req.id]
                               ? "Alocação obrigatória"
                               : "Placa vinculada"
                           }

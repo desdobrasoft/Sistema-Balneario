@@ -83,10 +83,17 @@ const ProducaoForm: React.FC<ProducaoFormProps> = ({
               value={formik.values.status}
               onChange={formik.handleChange}
               error={formik.touched.status && Boolean(formik.errors.status)}
-              helperText={formik.touched.status && (formik.errors.status as string)}
+              helperText={
+                formik.touched.status && (formik.errors.status as string)
+              }
             >
               {Object.values(StatusProducao)
-                .filter((s) => s !== StatusProducao.PRONTO_PARA_ENVIO)
+                .filter(
+                  (s) =>
+                    s !== StatusProducao.PRONTO_PARA_ENVIO &&
+                    s !== StatusProducao.MATERIAIS_PENDENTES &&
+                    s !== StatusProducao.CANCELADO,
+                )
                 .map((s) => (
                   <MenuItem key={s} value={s}>
                     {StatusProducaoLabels[s] || s}
@@ -118,13 +125,16 @@ const ProducaoForm: React.FC<ProducaoFormProps> = ({
             </Typography>
           </Grid>
 
-          <Grid size={12} sx={{
-            maxHeight: 200,
-            overflow: "auto",
-            border: 1,
-            borderColor: "divider",
-            borderRadius: 1,
-          }}>
+          <Grid
+            size={12}
+            sx={{
+              maxHeight: 200,
+              overflow: "auto",
+              border: 1,
+              borderColor: "divider",
+              borderRadius: 1,
+            }}
+          >
             <List>
               {(item?.ordensProducaoHistorico || [])
                 .slice()
@@ -132,7 +142,9 @@ const ProducaoForm: React.FC<ProducaoFormProps> = ({
                 .map((h: any, idx: number) => (
                   <ListItem
                     key={idx}
-                    divider={idx < (item?.ordensProducaoHistorico?.length || 0) - 1}
+                    divider={
+                      idx < (item?.ordensProducaoHistorico?.length || 0) - 1
+                    }
                   >
                     <ListItemText
                       primary={
@@ -178,10 +190,10 @@ const ProducaoForm: React.FC<ProducaoFormProps> = ({
                 ))}
               {(!item?.ordensProducaoHistorico ||
                 item.ordensProducaoHistorico.length === 0) && (
-                  <ListItem>
-                    <ListItemText primary="Nenhum histórico disponível." />
-                  </ListItem>
-                )}
+                <ListItem>
+                  <ListItemText primary="Nenhum histórico disponível." />
+                </ListItem>
+              )}
             </List>
           </Grid>
         </Grid>

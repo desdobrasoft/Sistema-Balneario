@@ -189,27 +189,8 @@ export class VendasService {
         );
       }
 
-      // Lógica de verificação de estoque
-      let statusProducaoInicial: StatusProducao = StatusProducao.AGENDADO;
-      if (isCustomized && dto.itensOverride) {
-        for (const item of dto.itensOverride) {
-          const materiaPrima = await tx.materiaPrima.findUnique({
-            where: { id: item.materiaPrimaId },
-          });
-          if (!materiaPrima || materiaPrima.quantidade < item.qtFinal) {
-            statusProducaoInicial = StatusProducao.MATERIAIS_PENDENTES;
-            break;
-          }
-        }
-      } else {
-        // Verifica estoque de materiais brutos diretamente associados ao modelo
-        for (const item of modelo.materiaisModeloCasa) {
-          if (item.materiaPrima.quantidade < item.qtModelo) {
-            statusProducaoInicial = StatusProducao.MATERIAIS_PENDENTES;
-            break;
-          }
-        }
-      }
+      // As vendas agora sempre iniciam com materiais pendentes para forçar o vínculo manual de placas na produção
+      const statusProducaoInicial = StatusProducao.MATERIAIS_PENDENTES;
 
       const statusInicial: StatusVenda =
         StatusVenda.AGUARDANDO_AGENDAMENTO_PRODUCAO;
@@ -259,7 +240,7 @@ export class VendasService {
           data: finalSuprimentos.map((s: any) => ({
             vendaId: novaVenda.id,
             nome: s.nome || s.name || '',
-            quantidade: s.quantidade || s.qty || 0,
+            quantidade: parseInt(String(s.quantidade ?? s.qty ?? 0), 10),
             unidade: s.unidade || s.unit || '',
             momento: s.momento || s.when || null,
           })),
@@ -505,11 +486,21 @@ export class VendasService {
     dto: { suprimentoId: string; precoPago: number },
   ) {
     return this.prisma.$transaction(async (tx) => {
-      const venda = await tx.venda.findUnique({ where: { id: vendaId } });
+      const venda = await tx.venda.findUnique({
+        where: { id: vendaId },
+        include: { modeloCasa: true },
+      });
       if (!venda) throw new NotFoundException('Venda não encontrada');
 
-      const suprimentos = (venda.suprimentosObra as any[]) || [];
-      const itemIndex = suprimentos.findIndex((s) => s.id === dto.suprimentoId);
+      // Fallback: se a venda não tem a lista, inicializa com a do modelo
+      let suprimentos = (venda.suprimentosObra as any[]) || [];
+      if (suprimentos.length === 0 && venda.modeloCasa?.suprimentosObra) {
+        suprimentos = (venda.modeloCasa.suprimentosObra as any[]) || [];
+      }
+
+      const itemIndex = suprimentos.findIndex(
+        (s) => (s.id || s.nome) === dto.suprimentoId,
+      );
 
       if (itemIndex === -1) {
         throw new NotFoundException('Suprimento não encontrado nesta venda');

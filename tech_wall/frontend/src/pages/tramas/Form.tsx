@@ -62,14 +62,14 @@ export const validationSchema = yup.object().shape({
     .min(2, "No mínimo 2 cortes para alternar")
     .test(
       "sum-matches-base",
-      "A soma dos cortes não pode ultrapassar a altura base",
-      function (cortes) {
+      "A soma dos cortes deve ser exatamente igual à altura base",
+      function (cortes: number[]) {
         const { alturaBase } = this.parent;
         const sum = (cortes || []).reduce(
           (acc, val) => acc + (Number(val) || 0),
           0,
         );
-        return sum <= alturaBase;
+        return Math.round(sum * 100) === Math.round(alturaBase * 100);
       },
     ),
 });
@@ -133,7 +133,7 @@ const TramaFormContent = ({ formik }: { formik: any }) => {
     <Grid container spacing={3} sx={{ mt: 1 }}>
       <Grid size={{ xs: 12, md: 7 }}>
         <Grid container spacing={2}>
-          <Grid size={12} >
+          <Grid size={12}>
             <TextField
               fullWidth
               name="nome"
@@ -183,7 +183,9 @@ const TramaFormContent = ({ formik }: { formik: any }) => {
 
           <Grid size={6}>
             <FormControl fullWidth>
-              <InputLabel size="small" id="dir-label">Direcionamento</InputLabel>
+              <InputLabel size="small" id="dir-label">
+                Direcionamento
+              </InputLabel>
               <Select
                 labelId="dir-label"
                 name="direcionamento"
@@ -212,8 +214,15 @@ const TramaFormContent = ({ formik }: { formik: any }) => {
             />
           </Grid>
 
-          <Grid container size="grow"
-            sx={{ p: 2, border: "1px solid", borderColor: "divider", borderRadius: 1 }}
+          <Grid
+            container
+            size="grow"
+            sx={{
+              p: 2,
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 1,
+            }}
           >
             <Grid size={12}>
               <FormControlLabel
@@ -242,7 +251,9 @@ const TramaFormContent = ({ formik }: { formik: any }) => {
                       e.target.value === "" ? "" : Number(e.target.value);
                     setFieldValue("numeroDivisoes", val);
                   }}
-                  error={touched.numeroDivisoes && Boolean(errors.numeroDivisoes)}
+                  error={
+                    touched.numeroDivisoes && Boolean(errors.numeroDivisoes)
+                  }
                   helperText={
                     touched.numeroDivisoes && (errors.numeroDivisoes as string)
                   }
@@ -251,9 +262,13 @@ const TramaFormContent = ({ formik }: { formik: any }) => {
             )}
 
             {!values.padronizada && (
-              <Grid container sx={{ alignItems: 'center' }}>
+              <Grid container sx={{ alignItems: "center" }}>
                 <Grid size={12}>
-                  <Typography gutterBottom variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                  <Typography
+                    gutterBottom
+                    variant="subtitle1"
+                    sx={{ fontWeight: "bold" }}
+                  >
                     Cortes Customizados
                   </Typography>
                 </Grid>
@@ -295,14 +310,33 @@ const TramaFormContent = ({ formik }: { formik: any }) => {
                 ))}
 
                 <Grid size="grow">
-                  <Stack direction="row" sx={{ justifyContent: "space-between", mb: 1 }}>
+                  {typeof errors.cortes === "string" && (
+                    <Typography
+                      color="error"
+                      variant="caption"
+                      sx={{ display: "block", mb: 1, fontWeight: "bold" }}
+                    >
+                      {errors.cortes}
+                    </Typography>
+                  )}
+                  <Stack
+                    direction="row"
+                    sx={{ justifyContent: "space-between", mb: 1 }}
+                  >
                     <Typography
                       variant="caption"
                       color={remainingHeight < 0 ? "error" : "text.secondary"}
                       sx={{ fontWeight: "bold" }}
                     >
-                      Progresso da Altura ({currentSum.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} /{" "}
-                      {Number(values.alturaBase).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} cm)
+                      Progresso da Altura (
+                      {currentSum.toLocaleString("pt-BR", {
+                        maximumFractionDigits: 2,
+                      })}{" "}
+                      /{" "}
+                      {Number(values.alturaBase).toLocaleString("pt-BR", {
+                        maximumFractionDigits: 2,
+                      })}{" "}
+                      cm)
                     </Typography>
                     <Typography
                       variant="caption"
@@ -379,12 +413,21 @@ const TramasForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
       title={item ? "Editar Trama" : "Nova Trama"}
       item={
         item
-          ? {
-            ...item,
-            alturaBase: Number(item.alturaBase),
-            profundidadeSaliencia: Number(item.profundidadeSaliencia),
-            cortes: Array.isArray(item.cortes) ? item.cortes.map(Number) : [],
-          }
+          ? (() => {
+              const cortes = Array.isArray(item.cortes)
+                ? item.cortes.map(Number)
+                : [];
+              const padronizada =
+                cortes.length > 0 && cortes.every((c) => c === cortes[0]);
+              return {
+                ...item,
+                alturaBase: Number(item.alturaBase),
+                profundidadeSaliencia: Number(item.profundidadeSaliencia),
+                cortes,
+                padronizada,
+                numeroDivisoes: cortes.length || 4,
+              };
+            })()
           : null
       }
       initialValues={initialValues}

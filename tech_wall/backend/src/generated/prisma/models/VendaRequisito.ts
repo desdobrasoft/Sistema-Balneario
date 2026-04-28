@@ -331,6 +331,10 @@ export type VendaRequisitoWhereInput = {
   venda?: Prisma.XOR<Prisma.VendaScalarRelationFilter, Prisma.VendaWhereInput>
   corte?: Prisma.XOR<Prisma.CorteNullableScalarRelationFilter, Prisma.CorteWhereInput> | null
   placaAlocada?: Prisma.XOR<Prisma.PlacaNullableScalarRelationFilter, Prisma.PlacaWhereInput> | null
+  tramaEsquerda?: Prisma.XOR<Prisma.TramaNullableScalarRelationFilter, Prisma.TramaWhereInput> | null
+  tramaDireita?: Prisma.XOR<Prisma.TramaNullableScalarRelationFilter, Prisma.TramaWhereInput> | null
+  tramaSuperior?: Prisma.XOR<Prisma.TramaNullableScalarRelationFilter, Prisma.TramaWhereInput> | null
+  tramaInferior?: Prisma.XOR<Prisma.TramaNullableScalarRelationFilter, Prisma.TramaWhereInput> | null
 }
 
 export type VendaRequisitoOrderByWithRelationInput = {
@@ -351,6 +355,10 @@ export type VendaRequisitoOrderByWithRelationInput = {
   venda?: Prisma.VendaOrderByWithRelationInput
   corte?: Prisma.CorteOrderByWithRelationInput
   placaAlocada?: Prisma.PlacaOrderByWithRelationInput
+  tramaEsquerda?: Prisma.TramaOrderByWithRelationInput
+  tramaDireita?: Prisma.TramaOrderByWithRelationInput
+  tramaSuperior?: Prisma.TramaOrderByWithRelationInput
+  tramaInferior?: Prisma.TramaOrderByWithRelationInput
 }
 
 export type VendaRequisitoWhereUniqueInput = Prisma.AtLeast<{
@@ -374,6 +382,10 @@ export type VendaRequisitoWhereUniqueInput = Prisma.AtLeast<{
   venda?: Prisma.XOR<Prisma.VendaScalarRelationFilter, Prisma.VendaWhereInput>
   corte?: Prisma.XOR<Prisma.CorteNullableScalarRelationFilter, Prisma.CorteWhereInput> | null
   placaAlocada?: Prisma.XOR<Prisma.PlacaNullableScalarRelationFilter, Prisma.PlacaWhereInput> | null
+  tramaEsquerda?: Prisma.XOR<Prisma.TramaNullableScalarRelationFilter, Prisma.TramaWhereInput> | null
+  tramaDireita?: Prisma.XOR<Prisma.TramaNullableScalarRelationFilter, Prisma.TramaWhereInput> | null
+  tramaSuperior?: Prisma.XOR<Prisma.TramaNullableScalarRelationFilter, Prisma.TramaWhereInput> | null
+  tramaInferior?: Prisma.XOR<Prisma.TramaNullableScalarRelationFilter, Prisma.TramaWhereInput> | null
 }, "id">
 
 export type VendaRequisitoOrderByWithAggregationInput = {
@@ -425,13 +437,13 @@ export type VendaRequisitoCreateInput = {
   largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   altura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  tramaEsquerdaId?: number | null
-  tramaDireitaId?: number | null
-  tramaSuperiorId?: number | null
-  tramaInferiorId?: number | null
   venda: Prisma.VendaCreateNestedOneWithoutVendaRequisitosInput
   corte?: Prisma.CorteCreateNestedOneWithoutVendaRequisitosInput
   placaAlocada?: Prisma.PlacaCreateNestedOneWithoutVendaRequisitosInput
+  tramaEsquerda?: Prisma.TramaCreateNestedOneWithoutVendaReqsEsquerdaInput
+  tramaDireita?: Prisma.TramaCreateNestedOneWithoutVendaReqsDireitaInput
+  tramaSuperior?: Prisma.TramaCreateNestedOneWithoutVendaReqsSuperiorInput
+  tramaInferior?: Prisma.TramaCreateNestedOneWithoutVendaReqsInferiorInput
 }
 
 export type VendaRequisitoUncheckedCreateInput = {
@@ -458,13 +470,13 @@ export type VendaRequisitoUpdateInput = {
   largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   altura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   venda?: Prisma.VendaUpdateOneRequiredWithoutVendaRequisitosNestedInput
   corte?: Prisma.CorteUpdateOneWithoutVendaRequisitosNestedInput
   placaAlocada?: Prisma.PlacaUpdateOneWithoutVendaRequisitosNestedInput
+  tramaEsquerda?: Prisma.TramaUpdateOneWithoutVendaReqsEsquerdaNestedInput
+  tramaDireita?: Prisma.TramaUpdateOneWithoutVendaReqsDireitaNestedInput
+  tramaSuperior?: Prisma.TramaUpdateOneWithoutVendaReqsSuperiorNestedInput
+  tramaInferior?: Prisma.TramaUpdateOneWithoutVendaReqsInferiorNestedInput
 }
 
 export type VendaRequisitoUncheckedUpdateInput = {
@@ -508,10 +520,6 @@ export type VendaRequisitoUpdateManyMutationInput = {
   largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   altura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type VendaRequisitoUncheckedUpdateManyInput = {
@@ -746,6 +754,174 @@ export type VendaRequisitoUncheckedUpdateManyWithoutCorteNestedInput = {
   deleteMany?: Prisma.VendaRequisitoScalarWhereInput | Prisma.VendaRequisitoScalarWhereInput[]
 }
 
+export type VendaRequisitoCreateNestedManyWithoutTramaEsquerdaInput = {
+  create?: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaEsquerdaInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaEsquerdaInput> | Prisma.VendaRequisitoCreateWithoutTramaEsquerdaInput[] | Prisma.VendaRequisitoUncheckedCreateWithoutTramaEsquerdaInput[]
+  connectOrCreate?: Prisma.VendaRequisitoCreateOrConnectWithoutTramaEsquerdaInput | Prisma.VendaRequisitoCreateOrConnectWithoutTramaEsquerdaInput[]
+  createMany?: Prisma.VendaRequisitoCreateManyTramaEsquerdaInputEnvelope
+  connect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+}
+
+export type VendaRequisitoCreateNestedManyWithoutTramaDireitaInput = {
+  create?: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaDireitaInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaDireitaInput> | Prisma.VendaRequisitoCreateWithoutTramaDireitaInput[] | Prisma.VendaRequisitoUncheckedCreateWithoutTramaDireitaInput[]
+  connectOrCreate?: Prisma.VendaRequisitoCreateOrConnectWithoutTramaDireitaInput | Prisma.VendaRequisitoCreateOrConnectWithoutTramaDireitaInput[]
+  createMany?: Prisma.VendaRequisitoCreateManyTramaDireitaInputEnvelope
+  connect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+}
+
+export type VendaRequisitoCreateNestedManyWithoutTramaSuperiorInput = {
+  create?: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaSuperiorInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaSuperiorInput> | Prisma.VendaRequisitoCreateWithoutTramaSuperiorInput[] | Prisma.VendaRequisitoUncheckedCreateWithoutTramaSuperiorInput[]
+  connectOrCreate?: Prisma.VendaRequisitoCreateOrConnectWithoutTramaSuperiorInput | Prisma.VendaRequisitoCreateOrConnectWithoutTramaSuperiorInput[]
+  createMany?: Prisma.VendaRequisitoCreateManyTramaSuperiorInputEnvelope
+  connect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+}
+
+export type VendaRequisitoCreateNestedManyWithoutTramaInferiorInput = {
+  create?: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaInferiorInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaInferiorInput> | Prisma.VendaRequisitoCreateWithoutTramaInferiorInput[] | Prisma.VendaRequisitoUncheckedCreateWithoutTramaInferiorInput[]
+  connectOrCreate?: Prisma.VendaRequisitoCreateOrConnectWithoutTramaInferiorInput | Prisma.VendaRequisitoCreateOrConnectWithoutTramaInferiorInput[]
+  createMany?: Prisma.VendaRequisitoCreateManyTramaInferiorInputEnvelope
+  connect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+}
+
+export type VendaRequisitoUncheckedCreateNestedManyWithoutTramaEsquerdaInput = {
+  create?: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaEsquerdaInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaEsquerdaInput> | Prisma.VendaRequisitoCreateWithoutTramaEsquerdaInput[] | Prisma.VendaRequisitoUncheckedCreateWithoutTramaEsquerdaInput[]
+  connectOrCreate?: Prisma.VendaRequisitoCreateOrConnectWithoutTramaEsquerdaInput | Prisma.VendaRequisitoCreateOrConnectWithoutTramaEsquerdaInput[]
+  createMany?: Prisma.VendaRequisitoCreateManyTramaEsquerdaInputEnvelope
+  connect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+}
+
+export type VendaRequisitoUncheckedCreateNestedManyWithoutTramaDireitaInput = {
+  create?: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaDireitaInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaDireitaInput> | Prisma.VendaRequisitoCreateWithoutTramaDireitaInput[] | Prisma.VendaRequisitoUncheckedCreateWithoutTramaDireitaInput[]
+  connectOrCreate?: Prisma.VendaRequisitoCreateOrConnectWithoutTramaDireitaInput | Prisma.VendaRequisitoCreateOrConnectWithoutTramaDireitaInput[]
+  createMany?: Prisma.VendaRequisitoCreateManyTramaDireitaInputEnvelope
+  connect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+}
+
+export type VendaRequisitoUncheckedCreateNestedManyWithoutTramaSuperiorInput = {
+  create?: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaSuperiorInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaSuperiorInput> | Prisma.VendaRequisitoCreateWithoutTramaSuperiorInput[] | Prisma.VendaRequisitoUncheckedCreateWithoutTramaSuperiorInput[]
+  connectOrCreate?: Prisma.VendaRequisitoCreateOrConnectWithoutTramaSuperiorInput | Prisma.VendaRequisitoCreateOrConnectWithoutTramaSuperiorInput[]
+  createMany?: Prisma.VendaRequisitoCreateManyTramaSuperiorInputEnvelope
+  connect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+}
+
+export type VendaRequisitoUncheckedCreateNestedManyWithoutTramaInferiorInput = {
+  create?: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaInferiorInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaInferiorInput> | Prisma.VendaRequisitoCreateWithoutTramaInferiorInput[] | Prisma.VendaRequisitoUncheckedCreateWithoutTramaInferiorInput[]
+  connectOrCreate?: Prisma.VendaRequisitoCreateOrConnectWithoutTramaInferiorInput | Prisma.VendaRequisitoCreateOrConnectWithoutTramaInferiorInput[]
+  createMany?: Prisma.VendaRequisitoCreateManyTramaInferiorInputEnvelope
+  connect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+}
+
+export type VendaRequisitoUpdateManyWithoutTramaEsquerdaNestedInput = {
+  create?: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaEsquerdaInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaEsquerdaInput> | Prisma.VendaRequisitoCreateWithoutTramaEsquerdaInput[] | Prisma.VendaRequisitoUncheckedCreateWithoutTramaEsquerdaInput[]
+  connectOrCreate?: Prisma.VendaRequisitoCreateOrConnectWithoutTramaEsquerdaInput | Prisma.VendaRequisitoCreateOrConnectWithoutTramaEsquerdaInput[]
+  upsert?: Prisma.VendaRequisitoUpsertWithWhereUniqueWithoutTramaEsquerdaInput | Prisma.VendaRequisitoUpsertWithWhereUniqueWithoutTramaEsquerdaInput[]
+  createMany?: Prisma.VendaRequisitoCreateManyTramaEsquerdaInputEnvelope
+  set?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  disconnect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  delete?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  connect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  update?: Prisma.VendaRequisitoUpdateWithWhereUniqueWithoutTramaEsquerdaInput | Prisma.VendaRequisitoUpdateWithWhereUniqueWithoutTramaEsquerdaInput[]
+  updateMany?: Prisma.VendaRequisitoUpdateManyWithWhereWithoutTramaEsquerdaInput | Prisma.VendaRequisitoUpdateManyWithWhereWithoutTramaEsquerdaInput[]
+  deleteMany?: Prisma.VendaRequisitoScalarWhereInput | Prisma.VendaRequisitoScalarWhereInput[]
+}
+
+export type VendaRequisitoUpdateManyWithoutTramaDireitaNestedInput = {
+  create?: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaDireitaInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaDireitaInput> | Prisma.VendaRequisitoCreateWithoutTramaDireitaInput[] | Prisma.VendaRequisitoUncheckedCreateWithoutTramaDireitaInput[]
+  connectOrCreate?: Prisma.VendaRequisitoCreateOrConnectWithoutTramaDireitaInput | Prisma.VendaRequisitoCreateOrConnectWithoutTramaDireitaInput[]
+  upsert?: Prisma.VendaRequisitoUpsertWithWhereUniqueWithoutTramaDireitaInput | Prisma.VendaRequisitoUpsertWithWhereUniqueWithoutTramaDireitaInput[]
+  createMany?: Prisma.VendaRequisitoCreateManyTramaDireitaInputEnvelope
+  set?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  disconnect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  delete?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  connect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  update?: Prisma.VendaRequisitoUpdateWithWhereUniqueWithoutTramaDireitaInput | Prisma.VendaRequisitoUpdateWithWhereUniqueWithoutTramaDireitaInput[]
+  updateMany?: Prisma.VendaRequisitoUpdateManyWithWhereWithoutTramaDireitaInput | Prisma.VendaRequisitoUpdateManyWithWhereWithoutTramaDireitaInput[]
+  deleteMany?: Prisma.VendaRequisitoScalarWhereInput | Prisma.VendaRequisitoScalarWhereInput[]
+}
+
+export type VendaRequisitoUpdateManyWithoutTramaSuperiorNestedInput = {
+  create?: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaSuperiorInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaSuperiorInput> | Prisma.VendaRequisitoCreateWithoutTramaSuperiorInput[] | Prisma.VendaRequisitoUncheckedCreateWithoutTramaSuperiorInput[]
+  connectOrCreate?: Prisma.VendaRequisitoCreateOrConnectWithoutTramaSuperiorInput | Prisma.VendaRequisitoCreateOrConnectWithoutTramaSuperiorInput[]
+  upsert?: Prisma.VendaRequisitoUpsertWithWhereUniqueWithoutTramaSuperiorInput | Prisma.VendaRequisitoUpsertWithWhereUniqueWithoutTramaSuperiorInput[]
+  createMany?: Prisma.VendaRequisitoCreateManyTramaSuperiorInputEnvelope
+  set?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  disconnect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  delete?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  connect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  update?: Prisma.VendaRequisitoUpdateWithWhereUniqueWithoutTramaSuperiorInput | Prisma.VendaRequisitoUpdateWithWhereUniqueWithoutTramaSuperiorInput[]
+  updateMany?: Prisma.VendaRequisitoUpdateManyWithWhereWithoutTramaSuperiorInput | Prisma.VendaRequisitoUpdateManyWithWhereWithoutTramaSuperiorInput[]
+  deleteMany?: Prisma.VendaRequisitoScalarWhereInput | Prisma.VendaRequisitoScalarWhereInput[]
+}
+
+export type VendaRequisitoUpdateManyWithoutTramaInferiorNestedInput = {
+  create?: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaInferiorInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaInferiorInput> | Prisma.VendaRequisitoCreateWithoutTramaInferiorInput[] | Prisma.VendaRequisitoUncheckedCreateWithoutTramaInferiorInput[]
+  connectOrCreate?: Prisma.VendaRequisitoCreateOrConnectWithoutTramaInferiorInput | Prisma.VendaRequisitoCreateOrConnectWithoutTramaInferiorInput[]
+  upsert?: Prisma.VendaRequisitoUpsertWithWhereUniqueWithoutTramaInferiorInput | Prisma.VendaRequisitoUpsertWithWhereUniqueWithoutTramaInferiorInput[]
+  createMany?: Prisma.VendaRequisitoCreateManyTramaInferiorInputEnvelope
+  set?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  disconnect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  delete?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  connect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  update?: Prisma.VendaRequisitoUpdateWithWhereUniqueWithoutTramaInferiorInput | Prisma.VendaRequisitoUpdateWithWhereUniqueWithoutTramaInferiorInput[]
+  updateMany?: Prisma.VendaRequisitoUpdateManyWithWhereWithoutTramaInferiorInput | Prisma.VendaRequisitoUpdateManyWithWhereWithoutTramaInferiorInput[]
+  deleteMany?: Prisma.VendaRequisitoScalarWhereInput | Prisma.VendaRequisitoScalarWhereInput[]
+}
+
+export type VendaRequisitoUncheckedUpdateManyWithoutTramaEsquerdaNestedInput = {
+  create?: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaEsquerdaInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaEsquerdaInput> | Prisma.VendaRequisitoCreateWithoutTramaEsquerdaInput[] | Prisma.VendaRequisitoUncheckedCreateWithoutTramaEsquerdaInput[]
+  connectOrCreate?: Prisma.VendaRequisitoCreateOrConnectWithoutTramaEsquerdaInput | Prisma.VendaRequisitoCreateOrConnectWithoutTramaEsquerdaInput[]
+  upsert?: Prisma.VendaRequisitoUpsertWithWhereUniqueWithoutTramaEsquerdaInput | Prisma.VendaRequisitoUpsertWithWhereUniqueWithoutTramaEsquerdaInput[]
+  createMany?: Prisma.VendaRequisitoCreateManyTramaEsquerdaInputEnvelope
+  set?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  disconnect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  delete?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  connect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  update?: Prisma.VendaRequisitoUpdateWithWhereUniqueWithoutTramaEsquerdaInput | Prisma.VendaRequisitoUpdateWithWhereUniqueWithoutTramaEsquerdaInput[]
+  updateMany?: Prisma.VendaRequisitoUpdateManyWithWhereWithoutTramaEsquerdaInput | Prisma.VendaRequisitoUpdateManyWithWhereWithoutTramaEsquerdaInput[]
+  deleteMany?: Prisma.VendaRequisitoScalarWhereInput | Prisma.VendaRequisitoScalarWhereInput[]
+}
+
+export type VendaRequisitoUncheckedUpdateManyWithoutTramaDireitaNestedInput = {
+  create?: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaDireitaInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaDireitaInput> | Prisma.VendaRequisitoCreateWithoutTramaDireitaInput[] | Prisma.VendaRequisitoUncheckedCreateWithoutTramaDireitaInput[]
+  connectOrCreate?: Prisma.VendaRequisitoCreateOrConnectWithoutTramaDireitaInput | Prisma.VendaRequisitoCreateOrConnectWithoutTramaDireitaInput[]
+  upsert?: Prisma.VendaRequisitoUpsertWithWhereUniqueWithoutTramaDireitaInput | Prisma.VendaRequisitoUpsertWithWhereUniqueWithoutTramaDireitaInput[]
+  createMany?: Prisma.VendaRequisitoCreateManyTramaDireitaInputEnvelope
+  set?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  disconnect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  delete?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  connect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  update?: Prisma.VendaRequisitoUpdateWithWhereUniqueWithoutTramaDireitaInput | Prisma.VendaRequisitoUpdateWithWhereUniqueWithoutTramaDireitaInput[]
+  updateMany?: Prisma.VendaRequisitoUpdateManyWithWhereWithoutTramaDireitaInput | Prisma.VendaRequisitoUpdateManyWithWhereWithoutTramaDireitaInput[]
+  deleteMany?: Prisma.VendaRequisitoScalarWhereInput | Prisma.VendaRequisitoScalarWhereInput[]
+}
+
+export type VendaRequisitoUncheckedUpdateManyWithoutTramaSuperiorNestedInput = {
+  create?: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaSuperiorInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaSuperiorInput> | Prisma.VendaRequisitoCreateWithoutTramaSuperiorInput[] | Prisma.VendaRequisitoUncheckedCreateWithoutTramaSuperiorInput[]
+  connectOrCreate?: Prisma.VendaRequisitoCreateOrConnectWithoutTramaSuperiorInput | Prisma.VendaRequisitoCreateOrConnectWithoutTramaSuperiorInput[]
+  upsert?: Prisma.VendaRequisitoUpsertWithWhereUniqueWithoutTramaSuperiorInput | Prisma.VendaRequisitoUpsertWithWhereUniqueWithoutTramaSuperiorInput[]
+  createMany?: Prisma.VendaRequisitoCreateManyTramaSuperiorInputEnvelope
+  set?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  disconnect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  delete?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  connect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  update?: Prisma.VendaRequisitoUpdateWithWhereUniqueWithoutTramaSuperiorInput | Prisma.VendaRequisitoUpdateWithWhereUniqueWithoutTramaSuperiorInput[]
+  updateMany?: Prisma.VendaRequisitoUpdateManyWithWhereWithoutTramaSuperiorInput | Prisma.VendaRequisitoUpdateManyWithWhereWithoutTramaSuperiorInput[]
+  deleteMany?: Prisma.VendaRequisitoScalarWhereInput | Prisma.VendaRequisitoScalarWhereInput[]
+}
+
+export type VendaRequisitoUncheckedUpdateManyWithoutTramaInferiorNestedInput = {
+  create?: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaInferiorInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaInferiorInput> | Prisma.VendaRequisitoCreateWithoutTramaInferiorInput[] | Prisma.VendaRequisitoUncheckedCreateWithoutTramaInferiorInput[]
+  connectOrCreate?: Prisma.VendaRequisitoCreateOrConnectWithoutTramaInferiorInput | Prisma.VendaRequisitoCreateOrConnectWithoutTramaInferiorInput[]
+  upsert?: Prisma.VendaRequisitoUpsertWithWhereUniqueWithoutTramaInferiorInput | Prisma.VendaRequisitoUpsertWithWhereUniqueWithoutTramaInferiorInput[]
+  createMany?: Prisma.VendaRequisitoCreateManyTramaInferiorInputEnvelope
+  set?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  disconnect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  delete?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  connect?: Prisma.VendaRequisitoWhereUniqueInput | Prisma.VendaRequisitoWhereUniqueInput[]
+  update?: Prisma.VendaRequisitoUpdateWithWhereUniqueWithoutTramaInferiorInput | Prisma.VendaRequisitoUpdateWithWhereUniqueWithoutTramaInferiorInput[]
+  updateMany?: Prisma.VendaRequisitoUpdateManyWithWhereWithoutTramaInferiorInput | Prisma.VendaRequisitoUpdateManyWithWhereWithoutTramaInferiorInput[]
+  deleteMany?: Prisma.VendaRequisitoScalarWhereInput | Prisma.VendaRequisitoScalarWhereInput[]
+}
+
 export type VendaRequisitoCreateWithoutVendaInput = {
   tipo: $Enums.TipoRequisito
   alias?: string | null
@@ -753,12 +929,12 @@ export type VendaRequisitoCreateWithoutVendaInput = {
   largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   altura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  tramaEsquerdaId?: number | null
-  tramaDireitaId?: number | null
-  tramaSuperiorId?: number | null
-  tramaInferiorId?: number | null
   corte?: Prisma.CorteCreateNestedOneWithoutVendaRequisitosInput
   placaAlocada?: Prisma.PlacaCreateNestedOneWithoutVendaRequisitosInput
+  tramaEsquerda?: Prisma.TramaCreateNestedOneWithoutVendaReqsEsquerdaInput
+  tramaDireita?: Prisma.TramaCreateNestedOneWithoutVendaReqsDireitaInput
+  tramaSuperior?: Prisma.TramaCreateNestedOneWithoutVendaReqsSuperiorInput
+  tramaInferior?: Prisma.TramaCreateNestedOneWithoutVendaReqsInferiorInput
 }
 
 export type VendaRequisitoUncheckedCreateWithoutVendaInput = {
@@ -830,12 +1006,12 @@ export type VendaRequisitoCreateWithoutPlacaAlocadaInput = {
   largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   altura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  tramaEsquerdaId?: number | null
-  tramaDireitaId?: number | null
-  tramaSuperiorId?: number | null
-  tramaInferiorId?: number | null
   venda: Prisma.VendaCreateNestedOneWithoutVendaRequisitosInput
   corte?: Prisma.CorteCreateNestedOneWithoutVendaRequisitosInput
+  tramaEsquerda?: Prisma.TramaCreateNestedOneWithoutVendaReqsEsquerdaInput
+  tramaDireita?: Prisma.TramaCreateNestedOneWithoutVendaReqsDireitaInput
+  tramaSuperior?: Prisma.TramaCreateNestedOneWithoutVendaReqsSuperiorInput
+  tramaInferior?: Prisma.TramaCreateNestedOneWithoutVendaReqsInferiorInput
 }
 
 export type VendaRequisitoUncheckedCreateWithoutPlacaAlocadaInput = {
@@ -887,12 +1063,12 @@ export type VendaRequisitoCreateWithoutCorteInput = {
   largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   altura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  tramaEsquerdaId?: number | null
-  tramaDireitaId?: number | null
-  tramaSuperiorId?: number | null
-  tramaInferiorId?: number | null
   venda: Prisma.VendaCreateNestedOneWithoutVendaRequisitosInput
   placaAlocada?: Prisma.PlacaCreateNestedOneWithoutVendaRequisitosInput
+  tramaEsquerda?: Prisma.TramaCreateNestedOneWithoutVendaReqsEsquerdaInput
+  tramaDireita?: Prisma.TramaCreateNestedOneWithoutVendaReqsDireitaInput
+  tramaSuperior?: Prisma.TramaCreateNestedOneWithoutVendaReqsSuperiorInput
+  tramaInferior?: Prisma.TramaCreateNestedOneWithoutVendaReqsInferiorInput
 }
 
 export type VendaRequisitoUncheckedCreateWithoutCorteInput = {
@@ -937,6 +1113,234 @@ export type VendaRequisitoUpdateManyWithWhereWithoutCorteInput = {
   data: Prisma.XOR<Prisma.VendaRequisitoUpdateManyMutationInput, Prisma.VendaRequisitoUncheckedUpdateManyWithoutCorteInput>
 }
 
+export type VendaRequisitoCreateWithoutTramaEsquerdaInput = {
+  tipo: $Enums.TipoRequisito
+  alias?: string | null
+  parede?: string
+  largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  venda: Prisma.VendaCreateNestedOneWithoutVendaRequisitosInput
+  corte?: Prisma.CorteCreateNestedOneWithoutVendaRequisitosInput
+  placaAlocada?: Prisma.PlacaCreateNestedOneWithoutVendaRequisitosInput
+  tramaDireita?: Prisma.TramaCreateNestedOneWithoutVendaReqsDireitaInput
+  tramaSuperior?: Prisma.TramaCreateNestedOneWithoutVendaReqsSuperiorInput
+  tramaInferior?: Prisma.TramaCreateNestedOneWithoutVendaReqsInferiorInput
+}
+
+export type VendaRequisitoUncheckedCreateWithoutTramaEsquerdaInput = {
+  id?: number
+  vendaId: number
+  tipo: $Enums.TipoRequisito
+  alias?: string | null
+  parede?: string
+  largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  tramaDireitaId?: number | null
+  tramaSuperiorId?: number | null
+  tramaInferiorId?: number | null
+  corteId?: number | null
+  placaAlocadaId?: number | null
+}
+
+export type VendaRequisitoCreateOrConnectWithoutTramaEsquerdaInput = {
+  where: Prisma.VendaRequisitoWhereUniqueInput
+  create: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaEsquerdaInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaEsquerdaInput>
+}
+
+export type VendaRequisitoCreateManyTramaEsquerdaInputEnvelope = {
+  data: Prisma.VendaRequisitoCreateManyTramaEsquerdaInput | Prisma.VendaRequisitoCreateManyTramaEsquerdaInput[]
+  skipDuplicates?: boolean
+}
+
+export type VendaRequisitoCreateWithoutTramaDireitaInput = {
+  tipo: $Enums.TipoRequisito
+  alias?: string | null
+  parede?: string
+  largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  venda: Prisma.VendaCreateNestedOneWithoutVendaRequisitosInput
+  corte?: Prisma.CorteCreateNestedOneWithoutVendaRequisitosInput
+  placaAlocada?: Prisma.PlacaCreateNestedOneWithoutVendaRequisitosInput
+  tramaEsquerda?: Prisma.TramaCreateNestedOneWithoutVendaReqsEsquerdaInput
+  tramaSuperior?: Prisma.TramaCreateNestedOneWithoutVendaReqsSuperiorInput
+  tramaInferior?: Prisma.TramaCreateNestedOneWithoutVendaReqsInferiorInput
+}
+
+export type VendaRequisitoUncheckedCreateWithoutTramaDireitaInput = {
+  id?: number
+  vendaId: number
+  tipo: $Enums.TipoRequisito
+  alias?: string | null
+  parede?: string
+  largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  tramaEsquerdaId?: number | null
+  tramaSuperiorId?: number | null
+  tramaInferiorId?: number | null
+  corteId?: number | null
+  placaAlocadaId?: number | null
+}
+
+export type VendaRequisitoCreateOrConnectWithoutTramaDireitaInput = {
+  where: Prisma.VendaRequisitoWhereUniqueInput
+  create: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaDireitaInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaDireitaInput>
+}
+
+export type VendaRequisitoCreateManyTramaDireitaInputEnvelope = {
+  data: Prisma.VendaRequisitoCreateManyTramaDireitaInput | Prisma.VendaRequisitoCreateManyTramaDireitaInput[]
+  skipDuplicates?: boolean
+}
+
+export type VendaRequisitoCreateWithoutTramaSuperiorInput = {
+  tipo: $Enums.TipoRequisito
+  alias?: string | null
+  parede?: string
+  largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  venda: Prisma.VendaCreateNestedOneWithoutVendaRequisitosInput
+  corte?: Prisma.CorteCreateNestedOneWithoutVendaRequisitosInput
+  placaAlocada?: Prisma.PlacaCreateNestedOneWithoutVendaRequisitosInput
+  tramaEsquerda?: Prisma.TramaCreateNestedOneWithoutVendaReqsEsquerdaInput
+  tramaDireita?: Prisma.TramaCreateNestedOneWithoutVendaReqsDireitaInput
+  tramaInferior?: Prisma.TramaCreateNestedOneWithoutVendaReqsInferiorInput
+}
+
+export type VendaRequisitoUncheckedCreateWithoutTramaSuperiorInput = {
+  id?: number
+  vendaId: number
+  tipo: $Enums.TipoRequisito
+  alias?: string | null
+  parede?: string
+  largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  tramaEsquerdaId?: number | null
+  tramaDireitaId?: number | null
+  tramaInferiorId?: number | null
+  corteId?: number | null
+  placaAlocadaId?: number | null
+}
+
+export type VendaRequisitoCreateOrConnectWithoutTramaSuperiorInput = {
+  where: Prisma.VendaRequisitoWhereUniqueInput
+  create: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaSuperiorInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaSuperiorInput>
+}
+
+export type VendaRequisitoCreateManyTramaSuperiorInputEnvelope = {
+  data: Prisma.VendaRequisitoCreateManyTramaSuperiorInput | Prisma.VendaRequisitoCreateManyTramaSuperiorInput[]
+  skipDuplicates?: boolean
+}
+
+export type VendaRequisitoCreateWithoutTramaInferiorInput = {
+  tipo: $Enums.TipoRequisito
+  alias?: string | null
+  parede?: string
+  largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  venda: Prisma.VendaCreateNestedOneWithoutVendaRequisitosInput
+  corte?: Prisma.CorteCreateNestedOneWithoutVendaRequisitosInput
+  placaAlocada?: Prisma.PlacaCreateNestedOneWithoutVendaRequisitosInput
+  tramaEsquerda?: Prisma.TramaCreateNestedOneWithoutVendaReqsEsquerdaInput
+  tramaDireita?: Prisma.TramaCreateNestedOneWithoutVendaReqsDireitaInput
+  tramaSuperior?: Prisma.TramaCreateNestedOneWithoutVendaReqsSuperiorInput
+}
+
+export type VendaRequisitoUncheckedCreateWithoutTramaInferiorInput = {
+  id?: number
+  vendaId: number
+  tipo: $Enums.TipoRequisito
+  alias?: string | null
+  parede?: string
+  largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  tramaEsquerdaId?: number | null
+  tramaDireitaId?: number | null
+  tramaSuperiorId?: number | null
+  corteId?: number | null
+  placaAlocadaId?: number | null
+}
+
+export type VendaRequisitoCreateOrConnectWithoutTramaInferiorInput = {
+  where: Prisma.VendaRequisitoWhereUniqueInput
+  create: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaInferiorInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaInferiorInput>
+}
+
+export type VendaRequisitoCreateManyTramaInferiorInputEnvelope = {
+  data: Prisma.VendaRequisitoCreateManyTramaInferiorInput | Prisma.VendaRequisitoCreateManyTramaInferiorInput[]
+  skipDuplicates?: boolean
+}
+
+export type VendaRequisitoUpsertWithWhereUniqueWithoutTramaEsquerdaInput = {
+  where: Prisma.VendaRequisitoWhereUniqueInput
+  update: Prisma.XOR<Prisma.VendaRequisitoUpdateWithoutTramaEsquerdaInput, Prisma.VendaRequisitoUncheckedUpdateWithoutTramaEsquerdaInput>
+  create: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaEsquerdaInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaEsquerdaInput>
+}
+
+export type VendaRequisitoUpdateWithWhereUniqueWithoutTramaEsquerdaInput = {
+  where: Prisma.VendaRequisitoWhereUniqueInput
+  data: Prisma.XOR<Prisma.VendaRequisitoUpdateWithoutTramaEsquerdaInput, Prisma.VendaRequisitoUncheckedUpdateWithoutTramaEsquerdaInput>
+}
+
+export type VendaRequisitoUpdateManyWithWhereWithoutTramaEsquerdaInput = {
+  where: Prisma.VendaRequisitoScalarWhereInput
+  data: Prisma.XOR<Prisma.VendaRequisitoUpdateManyMutationInput, Prisma.VendaRequisitoUncheckedUpdateManyWithoutTramaEsquerdaInput>
+}
+
+export type VendaRequisitoUpsertWithWhereUniqueWithoutTramaDireitaInput = {
+  where: Prisma.VendaRequisitoWhereUniqueInput
+  update: Prisma.XOR<Prisma.VendaRequisitoUpdateWithoutTramaDireitaInput, Prisma.VendaRequisitoUncheckedUpdateWithoutTramaDireitaInput>
+  create: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaDireitaInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaDireitaInput>
+}
+
+export type VendaRequisitoUpdateWithWhereUniqueWithoutTramaDireitaInput = {
+  where: Prisma.VendaRequisitoWhereUniqueInput
+  data: Prisma.XOR<Prisma.VendaRequisitoUpdateWithoutTramaDireitaInput, Prisma.VendaRequisitoUncheckedUpdateWithoutTramaDireitaInput>
+}
+
+export type VendaRequisitoUpdateManyWithWhereWithoutTramaDireitaInput = {
+  where: Prisma.VendaRequisitoScalarWhereInput
+  data: Prisma.XOR<Prisma.VendaRequisitoUpdateManyMutationInput, Prisma.VendaRequisitoUncheckedUpdateManyWithoutTramaDireitaInput>
+}
+
+export type VendaRequisitoUpsertWithWhereUniqueWithoutTramaSuperiorInput = {
+  where: Prisma.VendaRequisitoWhereUniqueInput
+  update: Prisma.XOR<Prisma.VendaRequisitoUpdateWithoutTramaSuperiorInput, Prisma.VendaRequisitoUncheckedUpdateWithoutTramaSuperiorInput>
+  create: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaSuperiorInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaSuperiorInput>
+}
+
+export type VendaRequisitoUpdateWithWhereUniqueWithoutTramaSuperiorInput = {
+  where: Prisma.VendaRequisitoWhereUniqueInput
+  data: Prisma.XOR<Prisma.VendaRequisitoUpdateWithoutTramaSuperiorInput, Prisma.VendaRequisitoUncheckedUpdateWithoutTramaSuperiorInput>
+}
+
+export type VendaRequisitoUpdateManyWithWhereWithoutTramaSuperiorInput = {
+  where: Prisma.VendaRequisitoScalarWhereInput
+  data: Prisma.XOR<Prisma.VendaRequisitoUpdateManyMutationInput, Prisma.VendaRequisitoUncheckedUpdateManyWithoutTramaSuperiorInput>
+}
+
+export type VendaRequisitoUpsertWithWhereUniqueWithoutTramaInferiorInput = {
+  where: Prisma.VendaRequisitoWhereUniqueInput
+  update: Prisma.XOR<Prisma.VendaRequisitoUpdateWithoutTramaInferiorInput, Prisma.VendaRequisitoUncheckedUpdateWithoutTramaInferiorInput>
+  create: Prisma.XOR<Prisma.VendaRequisitoCreateWithoutTramaInferiorInput, Prisma.VendaRequisitoUncheckedCreateWithoutTramaInferiorInput>
+}
+
+export type VendaRequisitoUpdateWithWhereUniqueWithoutTramaInferiorInput = {
+  where: Prisma.VendaRequisitoWhereUniqueInput
+  data: Prisma.XOR<Prisma.VendaRequisitoUpdateWithoutTramaInferiorInput, Prisma.VendaRequisitoUncheckedUpdateWithoutTramaInferiorInput>
+}
+
+export type VendaRequisitoUpdateManyWithWhereWithoutTramaInferiorInput = {
+  where: Prisma.VendaRequisitoScalarWhereInput
+  data: Prisma.XOR<Prisma.VendaRequisitoUpdateManyMutationInput, Prisma.VendaRequisitoUncheckedUpdateManyWithoutTramaInferiorInput>
+}
+
 export type VendaRequisitoCreateManyVendaInput = {
   id?: number
   tipo: $Enums.TipoRequisito
@@ -960,12 +1364,12 @@ export type VendaRequisitoUpdateWithoutVendaInput = {
   largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   altura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   corte?: Prisma.CorteUpdateOneWithoutVendaRequisitosNestedInput
   placaAlocada?: Prisma.PlacaUpdateOneWithoutVendaRequisitosNestedInput
+  tramaEsquerda?: Prisma.TramaUpdateOneWithoutVendaReqsEsquerdaNestedInput
+  tramaDireita?: Prisma.TramaUpdateOneWithoutVendaReqsDireitaNestedInput
+  tramaSuperior?: Prisma.TramaUpdateOneWithoutVendaReqsSuperiorNestedInput
+  tramaInferior?: Prisma.TramaUpdateOneWithoutVendaReqsInferiorNestedInput
 }
 
 export type VendaRequisitoUncheckedUpdateWithoutVendaInput = {
@@ -1023,12 +1427,12 @@ export type VendaRequisitoUpdateWithoutPlacaAlocadaInput = {
   largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   altura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   venda?: Prisma.VendaUpdateOneRequiredWithoutVendaRequisitosNestedInput
   corte?: Prisma.CorteUpdateOneWithoutVendaRequisitosNestedInput
+  tramaEsquerda?: Prisma.TramaUpdateOneWithoutVendaReqsEsquerdaNestedInput
+  tramaDireita?: Prisma.TramaUpdateOneWithoutVendaReqsDireitaNestedInput
+  tramaSuperior?: Prisma.TramaUpdateOneWithoutVendaReqsSuperiorNestedInput
+  tramaInferior?: Prisma.TramaUpdateOneWithoutVendaReqsInferiorNestedInput
 }
 
 export type VendaRequisitoUncheckedUpdateWithoutPlacaAlocadaInput = {
@@ -1086,12 +1490,12 @@ export type VendaRequisitoUpdateWithoutCorteInput = {
   largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   altura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   venda?: Prisma.VendaUpdateOneRequiredWithoutVendaRequisitosNestedInput
   placaAlocada?: Prisma.PlacaUpdateOneWithoutVendaRequisitosNestedInput
+  tramaEsquerda?: Prisma.TramaUpdateOneWithoutVendaReqsEsquerdaNestedInput
+  tramaDireita?: Prisma.TramaUpdateOneWithoutVendaReqsDireitaNestedInput
+  tramaSuperior?: Prisma.TramaUpdateOneWithoutVendaReqsSuperiorNestedInput
+  tramaInferior?: Prisma.TramaUpdateOneWithoutVendaReqsInferiorNestedInput
 }
 
 export type VendaRequisitoUncheckedUpdateWithoutCorteInput = {
@@ -1126,6 +1530,258 @@ export type VendaRequisitoUncheckedUpdateManyWithoutCorteInput = {
   placaAlocadaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
+export type VendaRequisitoCreateManyTramaEsquerdaInput = {
+  id?: number
+  vendaId: number
+  tipo: $Enums.TipoRequisito
+  alias?: string | null
+  parede?: string
+  largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  tramaDireitaId?: number | null
+  tramaSuperiorId?: number | null
+  tramaInferiorId?: number | null
+  corteId?: number | null
+  placaAlocadaId?: number | null
+}
+
+export type VendaRequisitoCreateManyTramaDireitaInput = {
+  id?: number
+  vendaId: number
+  tipo: $Enums.TipoRequisito
+  alias?: string | null
+  parede?: string
+  largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  tramaEsquerdaId?: number | null
+  tramaSuperiorId?: number | null
+  tramaInferiorId?: number | null
+  corteId?: number | null
+  placaAlocadaId?: number | null
+}
+
+export type VendaRequisitoCreateManyTramaSuperiorInput = {
+  id?: number
+  vendaId: number
+  tipo: $Enums.TipoRequisito
+  alias?: string | null
+  parede?: string
+  largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  tramaEsquerdaId?: number | null
+  tramaDireitaId?: number | null
+  tramaInferiorId?: number | null
+  corteId?: number | null
+  placaAlocadaId?: number | null
+}
+
+export type VendaRequisitoCreateManyTramaInferiorInput = {
+  id?: number
+  vendaId: number
+  tipo: $Enums.TipoRequisito
+  alias?: string | null
+  parede?: string
+  largura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  tramaEsquerdaId?: number | null
+  tramaDireitaId?: number | null
+  tramaSuperiorId?: number | null
+  corteId?: number | null
+  placaAlocadaId?: number | null
+}
+
+export type VendaRequisitoUpdateWithoutTramaEsquerdaInput = {
+  tipo?: Prisma.EnumTipoRequisitoFieldUpdateOperationsInput | $Enums.TipoRequisito
+  alias?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parede?: Prisma.StringFieldUpdateOperationsInput | string
+  largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  venda?: Prisma.VendaUpdateOneRequiredWithoutVendaRequisitosNestedInput
+  corte?: Prisma.CorteUpdateOneWithoutVendaRequisitosNestedInput
+  placaAlocada?: Prisma.PlacaUpdateOneWithoutVendaRequisitosNestedInput
+  tramaDireita?: Prisma.TramaUpdateOneWithoutVendaReqsDireitaNestedInput
+  tramaSuperior?: Prisma.TramaUpdateOneWithoutVendaReqsSuperiorNestedInput
+  tramaInferior?: Prisma.TramaUpdateOneWithoutVendaReqsInferiorNestedInput
+}
+
+export type VendaRequisitoUncheckedUpdateWithoutTramaEsquerdaInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  vendaId?: Prisma.IntFieldUpdateOperationsInput | number
+  tipo?: Prisma.EnumTipoRequisitoFieldUpdateOperationsInput | $Enums.TipoRequisito
+  alias?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parede?: Prisma.StringFieldUpdateOperationsInput | string
+  largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  corteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  placaAlocadaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type VendaRequisitoUncheckedUpdateManyWithoutTramaEsquerdaInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  vendaId?: Prisma.IntFieldUpdateOperationsInput | number
+  tipo?: Prisma.EnumTipoRequisitoFieldUpdateOperationsInput | $Enums.TipoRequisito
+  alias?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parede?: Prisma.StringFieldUpdateOperationsInput | string
+  largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  corteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  placaAlocadaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type VendaRequisitoUpdateWithoutTramaDireitaInput = {
+  tipo?: Prisma.EnumTipoRequisitoFieldUpdateOperationsInput | $Enums.TipoRequisito
+  alias?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parede?: Prisma.StringFieldUpdateOperationsInput | string
+  largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  venda?: Prisma.VendaUpdateOneRequiredWithoutVendaRequisitosNestedInput
+  corte?: Prisma.CorteUpdateOneWithoutVendaRequisitosNestedInput
+  placaAlocada?: Prisma.PlacaUpdateOneWithoutVendaRequisitosNestedInput
+  tramaEsquerda?: Prisma.TramaUpdateOneWithoutVendaReqsEsquerdaNestedInput
+  tramaSuperior?: Prisma.TramaUpdateOneWithoutVendaReqsSuperiorNestedInput
+  tramaInferior?: Prisma.TramaUpdateOneWithoutVendaReqsInferiorNestedInput
+}
+
+export type VendaRequisitoUncheckedUpdateWithoutTramaDireitaInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  vendaId?: Prisma.IntFieldUpdateOperationsInput | number
+  tipo?: Prisma.EnumTipoRequisitoFieldUpdateOperationsInput | $Enums.TipoRequisito
+  alias?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parede?: Prisma.StringFieldUpdateOperationsInput | string
+  largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  corteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  placaAlocadaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type VendaRequisitoUncheckedUpdateManyWithoutTramaDireitaInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  vendaId?: Prisma.IntFieldUpdateOperationsInput | number
+  tipo?: Prisma.EnumTipoRequisitoFieldUpdateOperationsInput | $Enums.TipoRequisito
+  alias?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parede?: Prisma.StringFieldUpdateOperationsInput | string
+  largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  corteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  placaAlocadaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type VendaRequisitoUpdateWithoutTramaSuperiorInput = {
+  tipo?: Prisma.EnumTipoRequisitoFieldUpdateOperationsInput | $Enums.TipoRequisito
+  alias?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parede?: Prisma.StringFieldUpdateOperationsInput | string
+  largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  venda?: Prisma.VendaUpdateOneRequiredWithoutVendaRequisitosNestedInput
+  corte?: Prisma.CorteUpdateOneWithoutVendaRequisitosNestedInput
+  placaAlocada?: Prisma.PlacaUpdateOneWithoutVendaRequisitosNestedInput
+  tramaEsquerda?: Prisma.TramaUpdateOneWithoutVendaReqsEsquerdaNestedInput
+  tramaDireita?: Prisma.TramaUpdateOneWithoutVendaReqsDireitaNestedInput
+  tramaInferior?: Prisma.TramaUpdateOneWithoutVendaReqsInferiorNestedInput
+}
+
+export type VendaRequisitoUncheckedUpdateWithoutTramaSuperiorInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  vendaId?: Prisma.IntFieldUpdateOperationsInput | number
+  tipo?: Prisma.EnumTipoRequisitoFieldUpdateOperationsInput | $Enums.TipoRequisito
+  alias?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parede?: Prisma.StringFieldUpdateOperationsInput | string
+  largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  corteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  placaAlocadaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type VendaRequisitoUncheckedUpdateManyWithoutTramaSuperiorInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  vendaId?: Prisma.IntFieldUpdateOperationsInput | number
+  tipo?: Prisma.EnumTipoRequisitoFieldUpdateOperationsInput | $Enums.TipoRequisito
+  alias?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parede?: Prisma.StringFieldUpdateOperationsInput | string
+  largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tramaInferiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  corteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  placaAlocadaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type VendaRequisitoUpdateWithoutTramaInferiorInput = {
+  tipo?: Prisma.EnumTipoRequisitoFieldUpdateOperationsInput | $Enums.TipoRequisito
+  alias?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parede?: Prisma.StringFieldUpdateOperationsInput | string
+  largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  venda?: Prisma.VendaUpdateOneRequiredWithoutVendaRequisitosNestedInput
+  corte?: Prisma.CorteUpdateOneWithoutVendaRequisitosNestedInput
+  placaAlocada?: Prisma.PlacaUpdateOneWithoutVendaRequisitosNestedInput
+  tramaEsquerda?: Prisma.TramaUpdateOneWithoutVendaReqsEsquerdaNestedInput
+  tramaDireita?: Prisma.TramaUpdateOneWithoutVendaReqsDireitaNestedInput
+  tramaSuperior?: Prisma.TramaUpdateOneWithoutVendaReqsSuperiorNestedInput
+}
+
+export type VendaRequisitoUncheckedUpdateWithoutTramaInferiorInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  vendaId?: Prisma.IntFieldUpdateOperationsInput | number
+  tipo?: Prisma.EnumTipoRequisitoFieldUpdateOperationsInput | $Enums.TipoRequisito
+  alias?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parede?: Prisma.StringFieldUpdateOperationsInput | string
+  largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  corteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  placaAlocadaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type VendaRequisitoUncheckedUpdateManyWithoutTramaInferiorInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  vendaId?: Prisma.IntFieldUpdateOperationsInput | number
+  tipo?: Prisma.EnumTipoRequisitoFieldUpdateOperationsInput | $Enums.TipoRequisito
+  alias?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parede?: Prisma.StringFieldUpdateOperationsInput | string
+  largura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  altura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  espessura?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  tramaEsquerdaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tramaDireitaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tramaSuperiorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  corteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  placaAlocadaId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
 
 
 export type VendaRequisitoSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1146,6 +1802,10 @@ export type VendaRequisitoSelect<ExtArgs extends runtime.Types.Extensions.Intern
   venda?: boolean | Prisma.VendaDefaultArgs<ExtArgs>
   corte?: boolean | Prisma.VendaRequisito$corteArgs<ExtArgs>
   placaAlocada?: boolean | Prisma.VendaRequisito$placaAlocadaArgs<ExtArgs>
+  tramaEsquerda?: boolean | Prisma.VendaRequisito$tramaEsquerdaArgs<ExtArgs>
+  tramaDireita?: boolean | Prisma.VendaRequisito$tramaDireitaArgs<ExtArgs>
+  tramaSuperior?: boolean | Prisma.VendaRequisito$tramaSuperiorArgs<ExtArgs>
+  tramaInferior?: boolean | Prisma.VendaRequisito$tramaInferiorArgs<ExtArgs>
 }, ExtArgs["result"]["vendaRequisito"]>
 
 export type VendaRequisitoSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1166,6 +1826,10 @@ export type VendaRequisitoSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   venda?: boolean | Prisma.VendaDefaultArgs<ExtArgs>
   corte?: boolean | Prisma.VendaRequisito$corteArgs<ExtArgs>
   placaAlocada?: boolean | Prisma.VendaRequisito$placaAlocadaArgs<ExtArgs>
+  tramaEsquerda?: boolean | Prisma.VendaRequisito$tramaEsquerdaArgs<ExtArgs>
+  tramaDireita?: boolean | Prisma.VendaRequisito$tramaDireitaArgs<ExtArgs>
+  tramaSuperior?: boolean | Prisma.VendaRequisito$tramaSuperiorArgs<ExtArgs>
+  tramaInferior?: boolean | Prisma.VendaRequisito$tramaInferiorArgs<ExtArgs>
 }, ExtArgs["result"]["vendaRequisito"]>
 
 export type VendaRequisitoSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1186,6 +1850,10 @@ export type VendaRequisitoSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   venda?: boolean | Prisma.VendaDefaultArgs<ExtArgs>
   corte?: boolean | Prisma.VendaRequisito$corteArgs<ExtArgs>
   placaAlocada?: boolean | Prisma.VendaRequisito$placaAlocadaArgs<ExtArgs>
+  tramaEsquerda?: boolean | Prisma.VendaRequisito$tramaEsquerdaArgs<ExtArgs>
+  tramaDireita?: boolean | Prisma.VendaRequisito$tramaDireitaArgs<ExtArgs>
+  tramaSuperior?: boolean | Prisma.VendaRequisito$tramaSuperiorArgs<ExtArgs>
+  tramaInferior?: boolean | Prisma.VendaRequisito$tramaInferiorArgs<ExtArgs>
 }, ExtArgs["result"]["vendaRequisito"]>
 
 export type VendaRequisitoSelectScalar = {
@@ -1210,16 +1878,28 @@ export type VendaRequisitoInclude<ExtArgs extends runtime.Types.Extensions.Inter
   venda?: boolean | Prisma.VendaDefaultArgs<ExtArgs>
   corte?: boolean | Prisma.VendaRequisito$corteArgs<ExtArgs>
   placaAlocada?: boolean | Prisma.VendaRequisito$placaAlocadaArgs<ExtArgs>
+  tramaEsquerda?: boolean | Prisma.VendaRequisito$tramaEsquerdaArgs<ExtArgs>
+  tramaDireita?: boolean | Prisma.VendaRequisito$tramaDireitaArgs<ExtArgs>
+  tramaSuperior?: boolean | Prisma.VendaRequisito$tramaSuperiorArgs<ExtArgs>
+  tramaInferior?: boolean | Prisma.VendaRequisito$tramaInferiorArgs<ExtArgs>
 }
 export type VendaRequisitoIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   venda?: boolean | Prisma.VendaDefaultArgs<ExtArgs>
   corte?: boolean | Prisma.VendaRequisito$corteArgs<ExtArgs>
   placaAlocada?: boolean | Prisma.VendaRequisito$placaAlocadaArgs<ExtArgs>
+  tramaEsquerda?: boolean | Prisma.VendaRequisito$tramaEsquerdaArgs<ExtArgs>
+  tramaDireita?: boolean | Prisma.VendaRequisito$tramaDireitaArgs<ExtArgs>
+  tramaSuperior?: boolean | Prisma.VendaRequisito$tramaSuperiorArgs<ExtArgs>
+  tramaInferior?: boolean | Prisma.VendaRequisito$tramaInferiorArgs<ExtArgs>
 }
 export type VendaRequisitoIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   venda?: boolean | Prisma.VendaDefaultArgs<ExtArgs>
   corte?: boolean | Prisma.VendaRequisito$corteArgs<ExtArgs>
   placaAlocada?: boolean | Prisma.VendaRequisito$placaAlocadaArgs<ExtArgs>
+  tramaEsquerda?: boolean | Prisma.VendaRequisito$tramaEsquerdaArgs<ExtArgs>
+  tramaDireita?: boolean | Prisma.VendaRequisito$tramaDireitaArgs<ExtArgs>
+  tramaSuperior?: boolean | Prisma.VendaRequisito$tramaSuperiorArgs<ExtArgs>
+  tramaInferior?: boolean | Prisma.VendaRequisito$tramaInferiorArgs<ExtArgs>
 }
 
 export type $VendaRequisitoPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1228,6 +1908,10 @@ export type $VendaRequisitoPayload<ExtArgs extends runtime.Types.Extensions.Inte
     venda: Prisma.$VendaPayload<ExtArgs>
     corte: Prisma.$CortePayload<ExtArgs> | null
     placaAlocada: Prisma.$PlacaPayload<ExtArgs> | null
+    tramaEsquerda: Prisma.$TramaPayload<ExtArgs> | null
+    tramaDireita: Prisma.$TramaPayload<ExtArgs> | null
+    tramaSuperior: Prisma.$TramaPayload<ExtArgs> | null
+    tramaInferior: Prisma.$TramaPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1641,6 +2325,10 @@ export interface Prisma__VendaRequisitoClient<T, Null = never, ExtArgs extends r
   venda<T extends Prisma.VendaDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VendaDefaultArgs<ExtArgs>>): Prisma.Prisma__VendaClient<runtime.Types.Result.GetResult<Prisma.$VendaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   corte<T extends Prisma.VendaRequisito$corteArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VendaRequisito$corteArgs<ExtArgs>>): Prisma.Prisma__CorteClient<runtime.Types.Result.GetResult<Prisma.$CortePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   placaAlocada<T extends Prisma.VendaRequisito$placaAlocadaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VendaRequisito$placaAlocadaArgs<ExtArgs>>): Prisma.Prisma__PlacaClient<runtime.Types.Result.GetResult<Prisma.$PlacaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  tramaEsquerda<T extends Prisma.VendaRequisito$tramaEsquerdaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VendaRequisito$tramaEsquerdaArgs<ExtArgs>>): Prisma.Prisma__TramaClient<runtime.Types.Result.GetResult<Prisma.$TramaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  tramaDireita<T extends Prisma.VendaRequisito$tramaDireitaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VendaRequisito$tramaDireitaArgs<ExtArgs>>): Prisma.Prisma__TramaClient<runtime.Types.Result.GetResult<Prisma.$TramaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  tramaSuperior<T extends Prisma.VendaRequisito$tramaSuperiorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VendaRequisito$tramaSuperiorArgs<ExtArgs>>): Prisma.Prisma__TramaClient<runtime.Types.Result.GetResult<Prisma.$TramaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  tramaInferior<T extends Prisma.VendaRequisito$tramaInferiorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VendaRequisito$tramaInferiorArgs<ExtArgs>>): Prisma.Prisma__TramaClient<runtime.Types.Result.GetResult<Prisma.$TramaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2120,6 +2808,82 @@ export type VendaRequisito$placaAlocadaArgs<ExtArgs extends runtime.Types.Extens
    */
   include?: Prisma.PlacaInclude<ExtArgs> | null
   where?: Prisma.PlacaWhereInput
+}
+
+/**
+ * VendaRequisito.tramaEsquerda
+ */
+export type VendaRequisito$tramaEsquerdaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Trama
+   */
+  select?: Prisma.TramaSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Trama
+   */
+  omit?: Prisma.TramaOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TramaInclude<ExtArgs> | null
+  where?: Prisma.TramaWhereInput
+}
+
+/**
+ * VendaRequisito.tramaDireita
+ */
+export type VendaRequisito$tramaDireitaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Trama
+   */
+  select?: Prisma.TramaSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Trama
+   */
+  omit?: Prisma.TramaOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TramaInclude<ExtArgs> | null
+  where?: Prisma.TramaWhereInput
+}
+
+/**
+ * VendaRequisito.tramaSuperior
+ */
+export type VendaRequisito$tramaSuperiorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Trama
+   */
+  select?: Prisma.TramaSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Trama
+   */
+  omit?: Prisma.TramaOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TramaInclude<ExtArgs> | null
+  where?: Prisma.TramaWhereInput
+}
+
+/**
+ * VendaRequisito.tramaInferior
+ */
+export type VendaRequisito$tramaInferiorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Trama
+   */
+  select?: Prisma.TramaSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Trama
+   */
+  omit?: Prisma.TramaOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TramaInclude<ExtArgs> | null
+  where?: Prisma.TramaWhereInput
 }
 
 /**

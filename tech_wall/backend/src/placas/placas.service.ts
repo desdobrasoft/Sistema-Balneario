@@ -6,6 +6,7 @@ import {
 import { DataTableResult } from '../common/dto/data-table.dto';
 import { PrismaDatatableHelper } from '../common/utils/datatable.helper';
 import { getIdsByNumericPartialMatch } from '../common/utils/prisma-search.utils';
+import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AplicarCorteDto } from './dto/aplicar-corte.dto';
 import { CreatePlacaBatchDto } from './dto/create-placa-batch.dto';
@@ -20,8 +21,18 @@ export class PlacasService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreatePlacaDto) {
-    const { materiais, darBaixaImediata, retalhoDescartado, ...placaData } =
+    const { materiais, darBaixaImediata, retalhoDescartado, ...placaDataRaw } =
       dto;
+
+    // Garante que tramas inativas sejam salvas como null
+    const placaData: any = { ...placaDataRaw };
+    if (placaData.tramaEsquerdaAtiva === false)
+      placaData.tramaEsquerdaId = null;
+    if (placaData.tramaDireitaAtiva === false) placaData.tramaDireitaId = null;
+    if (placaData.tramaSuperiorAtiva === false)
+      placaData.tramaSuperiorId = null;
+    if (placaData.tramaInferiorAtiva === false)
+      placaData.tramaInferiorId = null;
 
     return this.prisma.$transaction(async (tx) => {
       const placa = await tx.placa.create({
@@ -79,8 +90,19 @@ export class PlacasService {
       materiais,
       darBaixaImediata,
       retalhoDescartado,
-      ...placaDataBase
+      ...placaDataBaseRaw
     } = dto;
+
+    // Garante que tramas inativas sejam salvas como null no lote
+    const placaDataBase: any = { ...placaDataBaseRaw };
+    if (placaDataBase.tramaEsquerdaAtiva === false)
+      placaDataBase.tramaEsquerdaId = null;
+    if (placaDataBase.tramaDireitaAtiva === false)
+      placaDataBase.tramaDireitaId = null;
+    if (placaDataBase.tramaSuperiorAtiva === false)
+      placaDataBase.tramaSuperiorId = null;
+    if (placaDataBase.tramaInferiorAtiva === false)
+      placaDataBase.tramaInferiorId = null;
 
     return this.prisma.$transaction(async (tx) => {
       let currentPadding = algarismos || valorInicial.toString().length;
@@ -104,11 +126,11 @@ export class PlacasService {
           .toString()
           .padStart(currentPadding, '0')}${sufixo}`;
 
-        const existe = await tx.placa.findFirst({
-          where: { nome: nomeCandidato, deletedAt: null },
-        });
+        const existe = await tx.$queryRaw<any[]>(
+          Prisma.sql`SELECT id FROM placas WHERE nome = ${nomeCandidato} LIMIT 1`,
+        );
 
-        if (!existe) {
+        if (existe.length === 0) {
           valoresEncontrados.push(valorDeBusca);
         }
 
@@ -239,13 +261,32 @@ export class PlacasService {
       ?.map((c) => c.data)
       .filter((d) => d && d !== 'null') || []) as string[];
     const data = dataRaw.map((placa: any) => {
-      const dimensoes = `${Number(placa.largura).toFixed(2)} x ${Number(placa.altura).toFixed(2)}`;
+      let dimensoes = `${Number(placa.largura).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} x ${Number(placa.altura).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}`;
+
+      if (
+        placa.formaCorte &&
+        !GeometriaPlaca.eRetangulo(placa.formaCorte.percurso as any)
+      ) {
+        dimensoes = (placa.formaCorte.percurso as any[])
+          .map((p) =>
+            Number(p.distancia).toLocaleString('pt-BR', {
+              maximumFractionDigits: 2,
+            }),
+          )
+          .join(' x ');
+      }
+
       const flatObj: any = {
         ...placa,
+        statusExibicao:
+          placa.statusPlaca === 'DISPONIVEL'
+            ? placa.statusProducao
+            : placa.statusPlaca,
         nome: placa.formaCorteId ? `${placa.nome} (Corte)` : placa.nome,
         dimensoes,
-        espessuraFormatada: `${placa.espessura || 0}`,
+        espessuraFormatada: `${Number(placa.espessura || 0).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}`,
       };
+
       if (requestedFields.length === 0) return flatObj;
       const result: any = {};
       requestedFields.forEach((field) => {
@@ -287,16 +328,34 @@ export class PlacasService {
 
   async update(id: number, dto: UpdatePlacaDto) {
     const placaAntiga = await this.findOne(id);
+
+    if (placaAntiga.statusPlaca === 'ALOCADA') {
+      throw new BadRequestException(
+        'Esta placa está ALOCADA a um requisito e não pode ser editada.',
+      );
+    }
+
     const {
       materiais,
       ajustarEstoqueConsumido,
       darBaixaImediata,
       retalhoDescartado,
-      ...placaData
+      ...placaDataRaw
     } = dto;
 
     return this.prisma.$transaction(async (tx) => {
-      const dataToUpdate: any = { ...placaData };
+      const dataToUpdate: any = { ...placaDataRaw };
+
+      // Garante que tramas inativas sejam salvas como null na edição
+      if (dataToUpdate.tramaEsquerdaAtiva === false)
+        dataToUpdate.tramaEsquerdaId = null;
+      if (dataToUpdate.tramaDireitaAtiva === false)
+        dataToUpdate.tramaDireitaId = null;
+      if (dataToUpdate.tramaSuperiorAtiva === false)
+        dataToUpdate.tramaSuperiorId = null;
+      if (dataToUpdate.tramaInferiorAtiva === false)
+        dataToUpdate.tramaInferiorId = null;
+
       if (retalhoDescartado !== undefined) {
         dataToUpdate.statusPlaca = retalhoDescartado
           ? 'DESCARTADA'
@@ -309,7 +368,10 @@ export class PlacasService {
       });
 
       if (materiais) {
-        if (ajustarEstoqueConsumido && placaAntiga.status === 'FINALIZADA') {
+        if (
+          ajustarEstoqueConsumido &&
+          placaAntiga.statusProducao === 'FINALIZADA'
+        ) {
           // Calculate delta and adjust stock
           const antigosMap = new Map();
           placaAntiga.materiaisPlaca.forEach((m: any) =>
@@ -369,7 +431,12 @@ export class PlacasService {
   }
 
   async remove(id: number) {
-    await this.findOne(id);
+    const placa = await this.findOne(id);
+    if (placa.statusPlaca === 'ALOCADA') {
+      throw new BadRequestException(
+        'Esta placa está ALOCADA a um requisito e não pode ser removida.',
+      );
+    }
     await this.prisma.placa.delete({ where: { id } });
     return { message: 'Placa removida com sucesso.' };
   }
@@ -578,7 +645,12 @@ export class PlacasService {
   }
 
   async updateStatusPlaca(id: number, statusPlaca: string) {
-    await this.findOne(id);
+    const placa = await this.findOne(id);
+    if (placa.statusPlaca === 'ALOCADA') {
+      throw new BadRequestException(
+        'Esta placa está ALOCADA e seu status não pode ser alterado manualmente.',
+      );
+    }
     return this.prisma.placa.update({
       where: { id },
       data: { statusPlaca: statusPlaca as any },

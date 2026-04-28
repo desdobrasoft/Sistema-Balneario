@@ -16,6 +16,7 @@ import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { DataTableParamsDto } from '../common/dto/data-table.dto';
 import { AlocacaoDto } from './dto/alocacao.dto';
+import { BulkAlocacaoDto } from './dto/bulk-alocacao.dto';
 import { CreateInternalOrderDto } from './dto/create-internal-order.dto';
 import { UpdateOrdemProducaoDto } from './dto/update-ordem-producao.dto';
 import { ProducaoService } from './producao.service';
@@ -25,6 +26,11 @@ import { ProducaoService } from './producao.service';
 @Controller('producao')
 export class ProducaoController {
   constructor(private readonly producaoService: ProducaoService) {}
+
+  @Post('bulk-alocar')
+  bulkAlocar(@Body(ValidationPipe) dto: BulkAlocacaoDto) {
+    return this.producaoService.bulkAlocar(dto);
+  }
 
   @Post('internal-order')
   createInternalOrder(@Body(ValidationPipe) dto: CreateInternalOrderDto) {

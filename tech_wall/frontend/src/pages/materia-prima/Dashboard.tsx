@@ -7,6 +7,8 @@ import MoveUpIcon from "@mui/icons-material/MoveUp";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 
 // material-ui
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
@@ -90,8 +92,7 @@ const MateriaPrimaDashboard: React.FC<MateriaPrimaDashboardProps> = ({
           ? materiaisRes.data
           : materiaisRes.data.data || [];
         const low = allItems.filter(
-          (m: any) =>
-            m.estoqueMinimo != null && m.quantidade < m.estoqueMinimo,
+          (m: any) => m.estoqueMinimo != null && m.quantidade < m.estoqueMinimo,
         );
         setLowStockItems(low);
       } catch (error) {
@@ -148,51 +149,47 @@ const MateriaPrimaDashboard: React.FC<MateriaPrimaDashboardProps> = ({
 
       {/* Low Stock Items */}
       {lowStockItems.length > 0 && (
-        <Card variant="outlined">
-          <CardContent>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: "bold", mb: 1 }}
-              color="warning.main"
-            >
-              ⚠ Materiais com Estoque Abaixo do Limite
-            </Typography>
-            <List dense>
-              {lowStockItems.map((item: any) => (
-                <ListItem
-                  key={item.id}
-                  secondaryAction={
-                    onOpenPedidoCompra && (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color="primary"
-                        onClick={() => onOpenPedidoCompra(item)}
-                      >
-                        Abrir Pedido de Compra
-                      </Button>
-                    )
-                  }
-                >
-                  <ListItemText
-                    primary={item.item}
-                    secondary={`Em estoque: ${item.quantidade} ${item.unidade || ""} — Mínimo: ${item.estoqueMinimo}`}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </CardContent>
-        </Card>
+        <Alert
+          severity="warning"
+          variant="outlined"
+          sx={{ "& .MuiAlert-message": { width: "100%" } }}
+        >
+          <AlertTitle sx={{ fontWeight: "bold" }}>
+            Materiais com Estoque Abaixo do Limite
+          </AlertTitle>
+          <List dense disablePadding>
+            {lowStockItems.map((item: any) => (
+              <ListItem
+                key={item.id}
+                disableGutters
+                secondaryAction={
+                  onOpenPedidoCompra && (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="warning"
+                      onClick={() => onOpenPedidoCompra(item)}
+                    >
+                      Abrir Pedido
+                    </Button>
+                  )
+                }
+              >
+                <ListItemText
+                  primary={<strong>{item.item}</strong>}
+                  secondary={`Em estoque: ${item.quantidade} ${item.unidade || ""} — Mínimo: ${item.estoqueMinimo}`}
+                  secondaryTypographyProps={{ color: "warning.dark" }}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </Alert>
       )}
 
       {lowStockItems.length === 0 && (
-        <Card variant="outlined">
-          <CardContent sx={{ textAlign: "center", py: 4 }}>
-            <Typography variant="body1" color="text.secondary">
-              ✅ Todos os materiais estão com estoque acima do limite mínimo.
-            </Typography>
-          </CardContent>
-        </Card>
+        <Alert severity="success" variant="outlined">
+          Todos os materiais estão com estoque acima do limite mínimo.
+        </Alert>
       )}
     </Box>
   );

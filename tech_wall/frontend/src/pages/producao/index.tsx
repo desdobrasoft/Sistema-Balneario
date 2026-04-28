@@ -50,7 +50,8 @@ const Producao: React.FC = () => {
       {
         title: "Data Agendada",
         data: "dataAgendamento",
-        render: (data: string) => data ? new Date(data).toLocaleDateString("pt-BR") : "Não agendado",
+        render: (data: string) =>
+          data ? new Date(data).toLocaleDateString("pt-BR") : "Não agendado",
       },
       {
         title: "Status do Kit",
@@ -65,22 +66,19 @@ const Producao: React.FC = () => {
     [],
   );
 
-  const handleFetchData = useCallback(
-    async (data: any) => {
-      const res = await api.post(
-        `${ENDPOINTS.PRODUCAO}${ENDPOINTS.DATATABLE}`,
-        data,
-      );
+  const handleFetchData = useCallback(async (data: any) => {
+    const res = await api.post(
+      `${ENDPOINTS.PRODUCAO}${ENDPOINTS.DATATABLE}`,
+      data,
+    );
 
-      return {
-        draw: data.draw,
-        recordsTotal: res.data.recordsTotal,
-        recordsFiltered: res.data.recordsFiltered,
-        data: res.data.data,
-      };
-    },
-    [],
-  );
+    return {
+      draw: data.draw,
+      recordsTotal: res.data.recordsTotal,
+      recordsFiltered: res.data.recordsFiltered,
+      data: res.data.data,
+    };
+  }, []);
 
   const handleOpenStatusUpdate = async (ordem: any) => {
     try {
@@ -92,9 +90,14 @@ const Producao: React.FC = () => {
     }
   };
 
-  const handleOpenSuprimentos = (venda: any) => {
-    setSelectedVenda(venda);
-    setSuprimentosOpen(true);
+  const handleOpenSuprimentos = async (vendaId: number) => {
+    try {
+      const res = await api.get(`${ENDPOINTS.VENDAS}/${vendaId}`);
+      setSelectedVenda(res.data);
+      setSuprimentosOpen(true);
+    } catch (error) {
+      handleError(error);
+    }
   };
 
   const handleFinalizarProducao = async (id: number) => {
@@ -166,7 +169,8 @@ const Producao: React.FC = () => {
             tableRef.current?.reload();
             showSnackbar({
               title: "Ordem Interna Criada",
-              message: "A ordem de produção base foi gerada com sucesso e a reserva já consta no fluxo.",
+              message:
+                "A ordem de produção base foi gerada com sucesso e a reserva já consta no fluxo.",
               severity: "success",
             });
           }}
@@ -176,7 +180,13 @@ const Producao: React.FC = () => {
         <Button key="cancel" onClick={() => closeDialog()} color="inherit">
           Cancelar
         </Button>,
-        <Button key="save" type="submit" form="internal-order-form" color="primary" variant="contained">
+        <Button
+          key="save"
+          type="submit"
+          form="internal-order-form"
+          color="primary"
+          variant="contained"
+        >
           Criar Ordem
         </Button>,
       ],
@@ -214,69 +224,66 @@ const Producao: React.FC = () => {
           ref={tableRef}
           columns={columns}
           onFetchData={handleFetchData}
-          rowActions={useCallback(
-            (row: any) => {
-              const actions = [];
+          rowActions={useCallback((row: any) => {
+            const actions = [];
 
-              if (row.status === "MATERIAIS_PENDENTES") {
-                actions.push(
-                  <Tooltip title="Iniciar Produção" key="iniciar">
-                    <IconButton
-                      color="primary"
-                      onClick={() => {
-                        setSelectedOrdem(row);
-                        setIniciarProducaoOpen(true);
-                      }}
-                    >
-                      <CheckCircleOutlinedIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                );
-              } else if (row.status !== "PRONTO_PARA_ENVIO") {
-                actions.push(
-                  <Tooltip title="Suprimentos de Obra" key="suprimentos">
-                    <IconButton
-                      color="warning"
-                      onClick={() => handleOpenSuprimentos(row.venda)}
-                      disabled={!row.venda}
-                    >
-                      <InventoryIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>,
-                  <Tooltip title="Alterar Status" key="status">
-                    <IconButton
-                      color="primary"
-                      onClick={() => handleOpenStatusUpdate(row)}
-                    >
-                      <EditNoteIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>,
-                  <Tooltip title="Finalizar Produção" key="finalizar">
-                    <IconButton
-                      color="success"
-                      onClick={() => handleFinalizarProducao(row.id)}
-                    >
-                      <CheckCircleOutlinedIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                );
-              }
-
+            if (row.status === "MATERIAIS_PENDENTES") {
               actions.push(
-                <Tooltip title="Remover Ordem" key="remover">
+                <Tooltip title="Iniciar Produção" key="iniciar">
                   <IconButton
-                    color="error"
-                    onClick={() => handleRemoverOrdem(row.id)}
+                    color="primary"
+                    onClick={() => {
+                      setSelectedOrdem(row);
+                      setIniciarProducaoOpen(true);
+                    }}
                   >
-                    <DeleteForeverIcon fontSize="small" />
+                    <CheckCircleOutlinedIcon fontSize="small" />
                   </IconButton>
-                </Tooltip>
+                </Tooltip>,
               );
+            } else if (row.status !== "PRONTO_PARA_ENVIO") {
+              actions.push(
+                <Tooltip title="Suprimentos de Obra" key="suprimentos">
+                  <IconButton
+                    color="warning"
+                    onClick={() => handleOpenSuprimentos(row.vendaId)}
+                    disabled={!row.vendaId}
+                  >
+                    <InventoryIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>,
+                <Tooltip title="Alterar Status" key="status">
+                  <IconButton
+                    color="primary"
+                    onClick={() => handleOpenStatusUpdate(row)}
+                  >
+                    <EditNoteIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>,
+                <Tooltip title="Finalizar Produção" key="finalizar">
+                  <IconButton
+                    color="success"
+                    onClick={() => handleFinalizarProducao(row.id)}
+                  >
+                    <CheckCircleOutlinedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>,
+              );
+            }
 
-              return <Box sx={{ display: "flex", gap: 1 }}>{actions}</Box>;
-            },
-            [],
-          )}
+            actions.push(
+              <Tooltip title="Remover Ordem" key="remover">
+                <IconButton
+                  color="error"
+                  onClick={() => handleRemoverOrdem(row.id)}
+                >
+                  <DeleteForeverIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>,
+            );
+
+            return <Box sx={{ display: "flex", gap: 1 }}>{actions}</Box>;
+          }, [])}
         />
       </Paper>
 
@@ -289,11 +296,21 @@ const Producao: React.FC = () => {
           }}
           item={selectedOrdem}
           onSubmit={async (values) => {
-            await api.patch(`${ENDPOINTS.PRODUCAO}/${selectedOrdem.id}`, {
-              status: values.status,
-              notas: values.notas,
-            });
-            tableRef.current?.reload();
+            try {
+              await api.patch(`${ENDPOINTS.PRODUCAO}/${selectedOrdem.id}`, {
+                status: values.status,
+                notas: values.notas,
+              });
+              tableRef.current?.reload();
+              setUpdateStatusOpen(false);
+              setSelectedOrdem(null);
+              showSnackbar({
+                message: "Status atualizado com sucesso!",
+                severity: "success",
+              });
+            } catch (error) {
+              handleError(error);
+            }
           }}
         />
       )}
