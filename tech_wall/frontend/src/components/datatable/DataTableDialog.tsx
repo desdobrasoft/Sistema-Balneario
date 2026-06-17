@@ -1,7 +1,7 @@
-// packages
 import { Form, Formik, type FormikProps } from "formik";
 import { useEffect, useMemo, useRef } from "react";
 import * as yup from "yup";
+import { isAxiosError } from "axios";
 
 // icons
 import CloseIcon from "@mui/icons-material/Close";
@@ -32,7 +32,7 @@ export interface DataTableDialogProps<T> {
   isLoading?: boolean;
 }
 
-const DataTableDialog = <T extends { [key: string]: any }>({
+const DataTableDialog = <T extends object>({
   open,
   onClose,
   onSubmit,
@@ -59,12 +59,16 @@ const DataTableDialog = <T extends { [key: string]: any }>({
     setSubmitting(true);
     try {
       await onSubmit(values);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro no DataTableDialog submit:", error);
-      const message =
-        error.response?.data?.message ||
-        error.message ||
-        "Ocorreu um erro ao processar sua solicitação.";
+      let message: string | string[] = "Ocorreu um erro ao processar sua solicitação.";
+      
+      if (isAxiosError(error)) {
+        const data = error.response?.data as { message?: string | string[] } | undefined;
+        message = data?.message || error.message;
+      } else if (error instanceof Error) {
+        message = error.message;
+      }
 
       showSnackbar({
         title: "Erro",

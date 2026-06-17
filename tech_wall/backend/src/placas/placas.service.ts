@@ -14,7 +14,11 @@ import { CreatePlacaDto } from './dto/create-placa.dto';
 import { GerenciarProducaoPlacaDto } from './dto/gerenciar-producao-placa.dto';
 import { PlacaQueryDto } from './dto/placa-query.dto';
 import { UpdatePlacaDto } from './dto/update-placa.dto';
-import { GeometriaPlaca } from './utils/geometria.utils';
+import {
+  DirecaoCorte,
+  GeometriaPlaca,
+  VetorCorte,
+} from './utils/geometria.utils';
 
 @Injectable()
 export class PlacasService {
@@ -43,9 +47,11 @@ export class PlacasService {
         },
       });
 
-      if (materiais && materiais.length > 0) {
+      const finalMateriais = materiais ? [...materiais] : [];
+
+      if (finalMateriais.length > 0) {
         await tx.materialPlaca.createMany({
-          data: materiais.map((m) => ({
+          data: finalMateriais.map((m) => ({
             placaId: placa.id,
             materiaPrimaId: m.materiaPrimaId,
             quantidade: m.quantidade,
@@ -54,7 +60,7 @@ export class PlacasService {
 
         if (darBaixaImediata) {
           const consumos: Record<string, number> = {};
-          for (const m of materiais) {
+          for (const m of finalMateriais) {
             const mp = await tx.materiaPrima.findUnique({
               where: { id: m.materiaPrimaId },
             });
@@ -153,9 +159,11 @@ export class PlacasService {
           },
         });
 
-        if (materiais && materiais.length > 0) {
+        const finalMateriais = materiais ? [...materiais] : [];
+
+        if (finalMateriais.length > 0) {
           await tx.materialPlaca.createMany({
-            data: materiais.map((m) => ({
+            data: finalMateriais.map((m) => ({
               placaId: placa.id,
               materiaPrimaId: m.materiaPrimaId,
               quantidade: m.quantidade,
@@ -164,7 +172,7 @@ export class PlacasService {
 
           if (darBaixaImediata) {
             const consumos: Record<string, number> = {};
-            for (const m of materiais) {
+            for (const m of finalMateriais) {
               const mp = await tx.materiaPrima.findUnique({
                 where: { id: m.materiaPrimaId },
               });
@@ -213,7 +221,7 @@ export class PlacasService {
       'descricao',
       'materiaisPlaca.some.materiaPrima.item',
     ]);
-    let finalWhere = { ...generatedWhere };
+    const finalWhere = { ...generatedWhere };
     if (availableForCut === 'true') {
       finalWhere.statusPlaca = 'DISPONIVEL';
     }
@@ -243,7 +251,9 @@ export class PlacasService {
         where: finalWhere,
         skip,
         take,
-        orderBy: Object.keys(orderBy).length ? orderBy : { id: 'desc' },
+        orderBy: Object.keys(orderBy as Record<string, unknown>).length
+          ? orderBy
+          : { id: 'desc' },
         include: {
           materiaisPlaca: { include: { materiaPrima: true } },
           _count: { select: { placasDerivadas: true } },
@@ -265,9 +275,9 @@ export class PlacasService {
 
       if (
         placa.formaCorte &&
-        !GeometriaPlaca.eRetangulo(placa.formaCorte.percurso as any)
+        !GeometriaPlaca.eRetangulo(placa.formaCorte.percurso as VetorCorte[])
       ) {
-        dimensoes = (placa.formaCorte.percurso as any[])
+        dimensoes = (placa.formaCorte.percurso as VetorCorte[])
           .map((p) =>
             Number(p.distancia).toLocaleString('pt-BR', {
               maximumFractionDigits: 2,
@@ -338,7 +348,8 @@ export class PlacasService {
     const {
       materiais,
       ajustarEstoqueConsumido,
-      darBaixaImediata,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      darBaixaImediata: _darBaixaImediata,
       retalhoDescartado,
       ...placaDataRaw
     } = dto;
@@ -362,7 +373,7 @@ export class PlacasService {
           : 'DISPONIVEL';
       }
 
-      const updatedPlaca = await tx.placa.update({
+      await tx.placa.update({
         where: { id },
         data: dataToUpdate,
       });
@@ -562,7 +573,7 @@ export class PlacasService {
       if (!corte) throw new NotFoundException('Corte não encontrado');
 
       const percursoRot = this.rotacionarPercurso(
-        corte.percurso as any[],
+        corte.percurso as unknown as VetorCorte[],
         dto.rotacao,
       );
       const pontos = GeometriaPlaca.percursoParaPontos(
@@ -590,7 +601,7 @@ export class PlacasService {
               y: Number(filha.corteOrigemY || 0),
             },
             this.rotacionarPercurso(
-              filha.formaCorte.percurso as any[],
+              filha.formaCorte.percurso as unknown as VetorCorte[],
               filha.corteRotacao || 0,
             ),
           );
@@ -609,6 +620,7 @@ export class PlacasService {
           largura: bbox.width,
           altura: bbox.height,
           espessura: placa.espessura,
+          reforco: placa.reforco,
           derivadaDePlacaId: placa.id,
           formaCorteId: corte.id,
           corteOrigemX: dto.origemX,
@@ -657,7 +669,10 @@ export class PlacasService {
     });
   }
 
-  private rotacionarPercurso(percurso: any[], rotacao: number): any[] {
+  private rotacionarPercurso(
+    percurso: VetorCorte[],
+    rotacao: number,
+  ): VetorCorte[] {
     if (rotacao === 0) return percurso;
     const steps = (((rotacao % 360) + 360) % 360) / 90;
     const rotMap: Record<string, string[]> = {
@@ -668,7 +683,7 @@ export class PlacasService {
     };
     return percurso.map((v) => ({
       ...v,
-      direcao: rotMap[v.direcao]?.[steps] || v.direcao,
+      direcao: (rotMap[v.direcao]?.[steps] || v.direcao) as DirecaoCorte,
     }));
   }
 }

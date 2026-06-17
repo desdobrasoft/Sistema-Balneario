@@ -38,7 +38,9 @@ export class ClientesService {
         where,
         skip,
         take,
-        orderBy: Object.keys(orderBy).length ? orderBy : { id: 'desc' },
+        orderBy: Object.keys(orderBy as Record<string, unknown>).length
+          ? orderBy
+          : { id: 'desc' },
       }),
       this.prisma.cliente.count({ where: { isInternal: false } }),
       this.prisma.cliente.count({ where }),

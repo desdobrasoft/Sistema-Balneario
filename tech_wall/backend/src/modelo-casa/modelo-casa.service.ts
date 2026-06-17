@@ -47,6 +47,7 @@ export class ModeloCasaService {
           tramaSuperiorId: r.tramaSuperiorId || null,
           tramaInferiorId: r.tramaInferiorId || null,
           corteId: r.corteId || null,
+          reforco: r.reforco || null,
         }));
         await tx.requisitoModeloCasa.createMany({ data: reqsParaCriar });
       }
@@ -72,15 +73,11 @@ export class ModeloCasaService {
       orderBy,
     } = PrismaDatatableHelper.buildPrismaQuery(
       query,
-      [
-        'nome',
-        'descricao',
-        'materiaisModeloCasa.some.materiaPrima.item',
-      ],
+      ['nome', 'descricao', 'materiaisModeloCasa.some.materiaPrima.item'],
       { deletedAt: null },
     );
 
-    let where = { ...generatedWhere };
+    const where = { ...generatedWhere };
 
     if (query.search?.value) {
       const searchVal = query.search.value;
@@ -105,7 +102,9 @@ export class ModeloCasaService {
         where,
         skip,
         take,
-        orderBy: Object.keys(orderBy).length ? orderBy : { id: 'desc' },
+        orderBy: Object.keys(orderBy as Record<string, unknown>).length
+          ? orderBy
+          : { id: 'desc' },
         include: {
           materiaisModeloCasa: {
             orderBy: { materiaPrima: { item: 'asc' } },
@@ -218,6 +217,7 @@ export class ModeloCasaService {
           tramaSuperiorId: r.tramaSuperiorId || null,
           tramaInferiorId: r.tramaInferiorId || null,
           corteId: r.corteId || null,
+          reforco: r.reforco || null,
         }));
         await tx.requisitoModeloCasa.createMany({ data: reqsParaCriar });
       }

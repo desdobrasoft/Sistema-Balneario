@@ -35,7 +35,7 @@ export class MateriaPrimaService {
       where: generatedWhere,
     } = PrismaDatatableHelper.buildPrismaQuery(query, ['item', 'unidade']);
 
-    let finalWhere = { ...generatedWhere };
+    const finalWhere = { ...generatedWhere };
 
     if (query.search?.value) {
       const searchVal = query.search.value;
@@ -60,7 +60,7 @@ export class MateriaPrimaService {
     }
 
     // Fetch all matching data to sort them globally in memory by availability
-    let allData = await this.prisma.materiaPrima.findMany({
+    const allData = await this.prisma.materiaPrima.findMany({
       where: finalWhere,
       orderBy: { item: 'asc' }, // fallback sort
     });

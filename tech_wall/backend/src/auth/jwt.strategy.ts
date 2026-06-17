@@ -22,7 +22,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any) {
+  async validate(payload: { sub: number; roles?: string[] }) {
     // Busque o usuário e roles do banco para o payload.sub (user id)
     const user = await this.usersService.findByIdWithRoles(payload.sub);
 

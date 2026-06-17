@@ -1,6 +1,7 @@
 // packages
 import React, { useEffect } from "react";
 import * as yup from "yup";
+import type { FormikProps } from "formik";
 
 // icons
 import AddIcon from "@mui/icons-material/Add";
@@ -37,7 +38,7 @@ export interface TramaModel {
   cortes: number[];
 }
 
-export const validationSchema = yup.object().shape({
+const validationSchema = yup.object().shape({
   nome: yup.string().required("Campo obrigatório"),
   alturaBase: yup.number().min(0).required("Campo obrigatório"),
   profundidadeSaliencia: yup.number().min(0).required("Campo obrigatório"),
@@ -63,7 +64,7 @@ export const validationSchema = yup.object().shape({
     .test(
       "sum-matches-base",
       "A soma dos cortes deve ser exatamente igual à altura base",
-      function (cortes: number[]) {
+      function (cortes: number[] | undefined) {
         const { alturaBase } = this.parent;
         const sum = (cortes || []).reduce(
           (acc, val) => acc + (Number(val) || 0),
@@ -74,7 +75,7 @@ export const validationSchema = yup.object().shape({
     ),
 });
 
-export const initialValues = {
+const initialValues = {
   nome: "",
   alturaBase: 200,
   profundidadeSaliencia: 9,
@@ -85,7 +86,9 @@ export const initialValues = {
   cortes: [50, 50, 50, 50],
 };
 
-const TramaFormContent = ({ formik }: { formik: any }) => {
+type TramaFormValues = typeof initialValues;
+
+const TramaFormContent = ({ formik }: { formik: FormikProps<TramaFormValues> }) => {
   const { values, setFieldValue, handleChange, touched, errors } = formik;
 
   const currentSum: number = values.cortes.reduce(
@@ -283,8 +286,7 @@ const TramaFormContent = ({ formik }: { formik: any }) => {
                         value={corte || ""}
                         error={remainingHeight < 0}
                         onChange={(e) => {
-                          const val =
-                            e.target.value === "" ? "" : Number(e.target.value);
+                          const val = e.target.value === "" ? 0 : Number(e.target.value);
                           const novosCortes = [...values.cortes];
                           novosCortes[index] = val;
                           setFieldValue("cortes", novosCortes);
@@ -297,7 +299,7 @@ const TramaFormContent = ({ formik }: { formik: any }) => {
                         color="error"
                         onClick={() => {
                           const novosCortes = values.cortes.filter(
-                            (_: any, i: number) => i !== index,
+                            (_: unknown, i: number) => i !== index,
                           );
                           setFieldValue("cortes", novosCortes);
                         }}
@@ -399,8 +401,8 @@ const TramaFormContent = ({ formik }: { formik: any }) => {
 interface FormProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (values: any) => Promise<void>;
-  item: any | null;
+  onSubmit: (values: TramaFormValues) => Promise<void>;
+  item: Record<string, unknown> | null;
 }
 
 const TramasForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
@@ -418,7 +420,7 @@ const TramasForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
                 ? item.cortes.map(Number)
                 : [];
               const padronizada =
-                cortes.length > 0 && cortes.every((c) => c === cortes[0]);
+                cortes.length > 0 && cortes.every((c: number) => c === cortes[0]);
               return {
                 ...item,
                 alturaBase: Number(item.alturaBase),
@@ -426,7 +428,7 @@ const TramasForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
                 cortes,
                 padronizada,
                 numeroDivisoes: cortes.length || 4,
-              };
+              } as unknown as TramaFormValues;
             })()
           : null
       }

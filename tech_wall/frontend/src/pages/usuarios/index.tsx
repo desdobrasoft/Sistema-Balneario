@@ -44,7 +44,7 @@ const Users: React.FC = () => {
     [],
   );
 
-  const handleFetchData = useCallback(async (data: any) => {
+  const handleFetchData = useCallback(async (data: Record<string, unknown>) => {
     const res = await api.post(`${ENDPOINTS.USERS}${ENDPOINTS.DATATABLE}`, data);
 
     return {
@@ -55,7 +55,7 @@ const Users: React.FC = () => {
     };
   }, []);
 
-  const handleOpenDialog = async (user: UserModel | null = null) => {
+  const handleOpenDialog = useCallback(async (user: UserModel | null = null) => {
     if (user) {
       try {
         const res = await api.get(`${ENDPOINTS.USERS}/${user.id}`);
@@ -67,15 +67,15 @@ const Users: React.FC = () => {
       setSelectedUser(null);
     }
     setDialogOpen(true);
-  };
+  }, [handleError]);
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setSelectedUser(null);
   };
 
-  const handleSubmit = async (values: any) => {
-    const payload: any = {
+  const handleSubmit = async (values: Partial<UserModel> & Record<string, unknown>) => {
+    const payload: Record<string, unknown> = {
       fullName: values.fullName,
       username: values.username,
       email: values.email,
@@ -105,7 +105,23 @@ const Users: React.FC = () => {
     }
   };
 
-  const confirmDelete = (id: number) => {
+  const executeDelete = useCallback(async (id: number) => {
+    try {
+      await api.delete(`${ENDPOINTS.USERS}/${id}`);
+      showSnackbar({ message: "Usuário excluído com sucesso!", severity: "success" });
+      tableRef.current?.reload();
+
+      if (currentUser?.id === id) {
+        logout();
+      }
+    } catch (error) {
+      handleError(error);
+    } finally {
+      closeDialog();
+    }
+  }, [handleError, showSnackbar, closeDialog, currentUser?.id, logout]);
+
+  const confirmDelete = useCallback((id: number) => {
     const isSelf = currentUser?.id === id;
 
     showDialog({
@@ -127,23 +143,7 @@ const Users: React.FC = () => {
         </Button>,
       ],
     });
-  };
-
-  const executeDelete = async (id: number) => {
-    try {
-      await api.delete(`${ENDPOINTS.USERS}/${id}`);
-      showSnackbar({ message: "Usuário excluído com sucesso!", severity: "success" });
-      tableRef.current?.reload();
-
-      if (currentUser?.id === id) {
-        logout();
-      }
-    } catch (error) {
-      handleError(error);
-    } finally {
-      closeDialog();
-    }
-  };
+  }, [showDialog, closeDialog, executeDelete, currentUser?.id]);
 
   return (
     <Box>
@@ -185,7 +185,7 @@ const Users: React.FC = () => {
                 </IconButton>
               </Box>
             ),
-            [],
+            [confirmDelete, handleOpenDialog],
           )}
         />
       </Paper>

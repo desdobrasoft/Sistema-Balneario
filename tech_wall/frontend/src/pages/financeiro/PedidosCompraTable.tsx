@@ -24,7 +24,18 @@ import NovoPedidoFinanceiroForm from "./NovoPedidoFinanceiroForm";
 
 // ===============================
 // COMPONENT
-// ===============================
+export interface PedidoCompraRow {
+  id: number;
+  status: string;
+  fornecedor?: string;
+  qtSolicitada?: number;
+  materiaPrima?: { item: string };
+  user?: { fullName: string };
+  dataPedido?: string;
+  qtEntregue?: number;
+  valorUnitario?: string;
+}
+
 const PedidosCompraTable: React.FC = () => {
   const tableRef = useRef<{ reload: () => void }>(null);
   const { showSnackbar } = useSnackbar();
@@ -32,7 +43,7 @@ const PedidosCompraTable: React.FC = () => {
 
   // Comprar dialog
   const [comprarOpen, setComprarOpen] = useState(false);
-  const [selectedPedido, setSelectedPedido] = useState<any>(null);
+  const [selectedPedido, setSelectedPedido] = useState<PedidoCompraRow | null>(null);
 
   // Novo pedido direto
   const [novoOpen, setNovoOpen] = useState(false);
@@ -51,12 +62,12 @@ const PedidosCompraTable: React.FC = () => {
       {
         title: "Material",
         data: "materiaPrima",
-        render: (data: any) => data?.item || "N/A",
+        render: (data: { item?: string } | null) => data?.item || "N/A",
       },
       {
         title: "Solicitante",
         data: "user",
-        render: (data: any) => data?.fullName || "---",
+        render: (data: { fullName?: string } | null) => data?.fullName || "---",
       },
       { title: "Qtd Solicitada", data: "qtSolicitada" },
       {
@@ -66,14 +77,14 @@ const PedidosCompraTable: React.FC = () => {
       },
       { title: "Fornecedor", data: "fornecedor" },
       {
-        title: "Valor Unitário",
+        title: "Valor Total",
         data: "valorUnitario",
-        render: (data: any) =>
+        render: (data: string | number | null) =>
           data
             ? new Intl.NumberFormat("pt-BR", {
               style: "currency",
               currency: "BRL",
-            }).format(parseFloat(data))
+            }).format(parseFloat(data as string))
             : "---",
       },
       {
@@ -114,7 +125,7 @@ const PedidosCompraTable: React.FC = () => {
   // ===============================
   // FETCH DATA (POST /datatable)
   // ===============================
-  const handleFetchData = useCallback(async (data: any) => {
+  const handleFetchData = useCallback(async (data: Record<string, unknown>) => {
     const res = await api.post(
       `${ENDPOINTS.PEDIDOS_COMPRA}${ENDPOINTS.DATATABLE}`,
       data,
@@ -131,12 +142,12 @@ const PedidosCompraTable: React.FC = () => {
   // ===============================
   // HANDLERS
   // ===============================
-  const handleComprar = (pedido: any) => {
+  const handleComprar = useCallback((pedido: PedidoCompraRow) => {
     setSelectedPedido(pedido);
     setComprarOpen(true);
-  };
+  }, []);
 
-  const handleResolver = async (pedido: any) => {
+  const handleResolver = useCallback(async (pedido: PedidoCompraRow) => {
     try {
       await api.patch(`${ENDPOINTS.PEDIDOS_COMPRA}/${pedido.id}/resolver`);
       showSnackbar({
@@ -147,13 +158,13 @@ const PedidosCompraTable: React.FC = () => {
     } catch (error) {
       handleError(error);
     }
-  };
+  }, [handleError, showSnackbar]);
 
   // ===============================
   // ROW ACTIONS
   // ===============================
   const renderRowActions = useCallback(
-    (row: any) => {
+    (row: PedidoCompraRow) => {
       const actions = [];
 
       if (row.status === StatusPedidoCompra.SOLICITADO) {
@@ -180,7 +191,7 @@ const PedidosCompraTable: React.FC = () => {
 
       return <Box sx={{ display: "flex", gap: 0.5 }}>{actions}</Box>;
     },
-    [],
+    [handleComprar, handleResolver],
   );
 
   return (

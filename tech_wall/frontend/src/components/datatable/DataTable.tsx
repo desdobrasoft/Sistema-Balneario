@@ -13,22 +13,26 @@ import { createRoot, type Root } from "react-dom/client";
 
 import Box from "@mui/material/Box";
 
+interface ReactContainer extends Element {
+  _reactRoot?: Root;
+}
+
 export interface DTFilter {
   field: string;
   type: number | string;
-  value: any;
+  value: unknown;
 }
 
 export interface DataTableProps<T> {
-  onFetchData: (data: any, filters?: DTFilter[]) => Promise<any>;
+  onFetchData: (data: Record<string, unknown>, filters?: DTFilter[]) => Promise<unknown>;
   columns: ConfigColumns[];
   filters?: DTFilter[];
   rowActions?: (item: T) => React.ReactNode;
   actionColumnWidth?: string | null;
-  onError?: (error: any) => void;
+  onError?: (error: unknown) => void;
 }
 
-function DataTableFn<T extends { [key: string]: any }>(
+function DataTableFn<T extends object>(
   {
     onFetchData,
     columns,
@@ -40,16 +44,29 @@ function DataTableFn<T extends { [key: string]: any }>(
   ref: React.Ref<{ reload: () => void }>,
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const dt = useRef<any | null>(null);
+  const dt = useRef<InstanceType<typeof DT> | null>(null);
+
+  const latestRowActions = useRef(rowActions);
+  const latestOnFetchData = useRef(onFetchData);
+  const latestOnError = useRef(onError);
+  const latestFilters = useRef(filters);
+
+  useEffect(() => {
+    latestRowActions.current = rowActions;
+    latestOnFetchData.current = onFetchData;
+    latestOnError.current = onError;
+    latestFilters.current = filters;
+  }, [rowActions, onFetchData, onError, filters]);
 
   useImperativeHandle(ref, () => ({
     reload: () => {
-      dt.current?.ajax.reload(null, false);
+      dt.current?.ajax.reload(undefined, false);
     },
   }));
 
+  const hasRowActions = !!rowActions;
   const memoizedColumns = useMemo(() => {
-    if (!rowActions) return columns;
+    if (!hasRowActions) return columns;
 
     const actionColumn: ConfigColumns = {
       title: "Ações",
@@ -62,7 +79,7 @@ function DataTableFn<T extends { [key: string]: any }>(
         '<div class="datatable-action-container" style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;"></div>',
     };
     return [...columns, actionColumn];
-  }, [columns, rowActions, actionColumnWidth]);
+  }, [columns, hasRowActions, actionColumnWidth]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -91,10 +108,10 @@ function DataTableFn<T extends { [key: string]: any }>(
       serverSide: true,
       ajax: async (data, callback) => {
         try {
-          const res = await onFetchData(data, filters);
+          const res = await latestOnFetchData.current(data as Record<string, unknown>, latestFilters.current);
           callback(res);
         } catch (err) {
-          if (onError) onError(err);
+          if (latestOnError.current) latestOnError.current(err);
           callback({
             draw: (data as { draw: number }).draw,
             recordsTotal: 0,
@@ -103,17 +120,17 @@ function DataTableFn<T extends { [key: string]: any }>(
           });
         }
       },
-      rowCallback: (row: Node, rowData: any) => {
-        if (rowActions) {
+      rowCallback: (row: Node, rowData: unknown) => {
+        if (latestRowActions.current) {
           const tr = row as HTMLElement;
           const rowContainer = tr.querySelector(".datatable-action-container");
           if (rowContainer) {
-            let root = (rowContainer as any)._reactRoot as Root | undefined;
+            let root = (rowContainer as ReactContainer)._reactRoot;
             if (!root) {
               root = createRoot(rowContainer);
-              (rowContainer as any)._reactRoot = root;
+              (rowContainer as ReactContainer)._reactRoot = root;
             }
-            root.render(rowActions(rowData as T));
+            root.render(latestRowActions.current(rowData as T));
           }
         }
       },
@@ -129,12 +146,12 @@ function DataTableFn<T extends { [key: string]: any }>(
       // Remove the table and any DT-generated wrappers from the container
       container.innerHTML = "";
     };
-  }, [memoizedColumns, onFetchData, JSON.stringify(filters), onError, rowActions]);
+  }, [memoizedColumns]);
 
   return <Box ref={containerRef} sx={{ width: "100%" }} />;
 }
 
-const DataTable = forwardRef(DataTableFn) as <T extends { [key: string]: any }>(
+const DataTable = forwardRef(DataTableFn) as <T extends object>(
   props: DataTableProps<T> & { ref?: React.Ref<{ reload: () => void }> },
 ) => React.ReactElement;
 

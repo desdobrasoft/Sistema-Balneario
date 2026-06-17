@@ -5,11 +5,13 @@ import PrecisionManufacturingIcon from "@mui/icons-material/PrecisionManufacturi
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import CircularProgress from "@mui/material/CircularProgress";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
+import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material/styles";
 import { BarChart, PieChart } from "@mui/x-charts";
@@ -68,16 +70,22 @@ const Dashboard: React.FC = () => {
   const theme = useTheme();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await api.get(ENDPOINTS.DASHBOARD.STATS);
+        const params = new URLSearchParams();
+        if (startDate) params.append("startDate", startDate);
+        if (endDate) params.append("endDate", endDate);
+        
+        const res = await api.get(`${ENDPOINTS.DASHBOARD.STATS}?${params.toString()}`);
         const data = res.data;
 
         // Mapeia status de produção para labels e cores do frontend
-        const productionStatusFormatted = data.productionStatus.map((s: any) => ({
+        const productionStatusFormatted = data.productionStatus.map((s: { status: StatusProducao, count: number }) => ({
           label: StatusProducaoLabels[s.status as StatusProducao] || s.status,
           value: s.count,
           color: StatusProducaoColors[s.status as StatusProducao] || "#ccc",
@@ -120,7 +128,7 @@ const Dashboard: React.FC = () => {
     };
 
     fetchData();
-  }, []);
+  }, [startDate, endDate]);
 
   if (loading || !stats) {
     return (
@@ -139,6 +147,39 @@ const Dashboard: React.FC = () => {
 
   return (
     <Grid container spacing={2}>
+      <Grid size={{ xs: 12 }}>
+        <Paper sx={{ p: 2, display: "flex", alignItems: "center", gap: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+            Filtro de Período
+          </Typography>
+          <TextField
+            label="Data Inicial"
+            type="date"
+            slotProps={{ inputLabel: { shrink: true } }}
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            size="small"
+          />
+          <TextField
+            label="Data Final"
+            type="date"
+            slotProps={{ inputLabel: { shrink: true } }}
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            size="small"
+          />
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setStartDate("");
+              setEndDate("");
+            }}
+          >
+            Limpar
+          </Button>
+        </Paper>
+      </Grid>
+      
       <Grid size={{ xs: 12, md: 4 }}>
         <StatCard
           title="Total em Vendas"

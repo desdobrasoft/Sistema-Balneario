@@ -36,7 +36,7 @@ export class RolesService {
       orderBy,
     } = PrismaDatatableHelper.buildPrismaQuery(query, ['role']);
 
-    let where = { ...generatedWhere };
+    const where = { ...generatedWhere };
 
     if (query.search?.value) {
       const searchStr = query.search.value.toLowerCase();
@@ -69,7 +69,9 @@ export class RolesService {
         where,
         skip,
         take,
-        orderBy: Object.keys(orderBy).length ? orderBy : { id: 'desc' },
+        orderBy: Object.keys(orderBy as Record<string, unknown>).length
+          ? orderBy
+          : { id: 'desc' },
       }),
       this.prisma.role.count(),
       this.prisma.role.count({ where }),

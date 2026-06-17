@@ -75,9 +75,16 @@ export class LancamentosService {
 
       const searchFilter = buildSearchFilter(searchValue, [
         'descricao',
-        'statusPagamento',
         'venda.cliente.nome',
       ]);
+
+      const statusMatches = Object.values(StatusPagamentoVenda).filter((s) =>
+        s.toLowerCase().includes(searchValue.toLowerCase()),
+      );
+      if (statusMatches.length > 0) {
+        if (!searchFilter.OR) searchFilter.OR = [];
+        searchFilter.OR.push({ statusPagamento: { in: statusMatches } });
+      }
 
       if (idsByValues.length > 0) {
         if (searchFilter.OR) {
@@ -90,12 +97,32 @@ export class LancamentosService {
       where = { ...baseWhere, ...searchFilter };
     }
 
+    const orderBy =
+      query.order?.length && query.columns?.length
+        ? (query.order
+            .map((o) => {
+              const col = query.columns![o.column!];
+              if (!col || !col.data) return undefined;
+              const parts = col.data.split('.');
+              if (parts.length === 1) return { [parts[0]]: o.dir };
+              const res: any = {};
+              let curr = res;
+              for (let i = 0; i < parts.length - 1; i++) {
+                curr[parts[i]] = {};
+                curr = curr[parts[i]];
+              }
+              curr[parts[parts.length - 1]] = o.dir;
+              return res;
+            })
+            .filter(Boolean) as any)
+        : [{ dataVencimento: 'asc' }];
+
     const [data, total, filtered] = await Promise.all([
       this.prisma.lancamentoFinanceiro.findMany({
         where,
         skip,
         take: limit,
-        orderBy: { dataVencimento: 'asc' },
+        orderBy,
         include: {
           venda: { include: { cliente: true } },
         },
@@ -136,19 +163,27 @@ export class LancamentosService {
       );
     }
 
+    if (novoValorPendente.greaterThan(lancamentoAtual.valorTotal)) {
+      throw new BadRequestException(
+        'O estorno não pode ser maior que o valor já pago.',
+      );
+    }
+
     // Lógica para atualizar o status automaticamente com base no pagamento
     let novoStatusPagamento =
       dto.statusPagamento ?? lancamentoAtual.statusPagamento;
-    if (dto.valorPago) {
-      // Se um pagamento foi feito
+    if (dto.valorPago !== undefined && dto.valorPago !== 0) {
+      // Se um pagamento ou estorno foi feito
       if (novoValorPendente.isZero()) {
         novoStatusPagamento = StatusPagamentoVenda.PAGO;
+      } else if (novoValorPendente.equals(lancamentoAtual.valorTotal)) {
+        novoStatusPagamento = StatusPagamentoVenda.PENDENTE;
       } else {
         novoStatusPagamento = StatusPagamentoVenda.PAGO_PARCIALMENTE;
       }
     }
 
-    return this.prisma.lancamentoFinanceiro.update({
+    const updated = await this.prisma.lancamentoFinanceiro.update({
       where: { id },
       data: {
         descricao: dto.descricao,
@@ -160,11 +195,78 @@ export class LancamentosService {
         dataUltimoPagamento: dto.valorPago ? new Date() : undefined,
       },
     });
+
+    if (
+      lancamentoAtual.vendaId &&
+      novoStatusPagamento !== lancamentoAtual.statusPagamento
+    ) {
+      await this.prisma.venda.update({
+        where: { id: lancamentoAtual.vendaId },
+        data: { statusPagamento: novoStatusPagamento },
+      });
+    }
+
+    return updated;
   }
 
   async remove(id: number) {
     await this.findOne(id);
     await this.prisma.lancamentoFinanceiro.delete({ where: { id } });
     return { message: 'Lançamento removido com sucesso.' };
+  }
+
+  async getReportData(
+    startDateStr?: string,
+    endDateStr?: string,
+    tipo?: string,
+  ) {
+    let startDate: Date | undefined;
+    let endDate: Date | undefined;
+
+    if (startDateStr) {
+      startDate = new Date(startDateStr);
+      startDate.setHours(0, 0, 0, 0);
+    }
+    if (endDateStr) {
+      endDate = new Date(endDateStr);
+      endDate.setHours(23, 59, 59, 999);
+    }
+
+    const dateFilter =
+      startDate || endDate
+        ? {
+            ...(startDate ? { gte: startDate } : {}),
+            ...(endDate ? { lte: endDate } : {}),
+          }
+        : undefined;
+
+    const where: any = {};
+
+    // As requested, the report should be based on dataUltimoPagamento to reflect what actually entered/left the account.
+    if (dateFilter) {
+      where.dataUltimoPagamento = dateFilter;
+      // Also only include items that have been at least partially paid since it's based on payment date
+      where.statusPagamento = { not: 'PENDENTE' };
+    }
+
+    if (tipo && tipo !== 'ALL') {
+      where.tipo = tipo;
+    }
+
+    return this.prisma.lancamentoFinanceiro.findMany({
+      where,
+      orderBy: { dataUltimoPagamento: 'desc' },
+      select: {
+        id: true,
+        tipo: true,
+        descricao: true,
+        valorTotal: true,
+        valorPendente: true,
+        statusPagamento: true,
+        dataVencimento: true,
+        dataUltimoPagamento: true,
+        venda: { select: { cliente: { select: { nome: true } } } },
+      },
+    });
   }
 }

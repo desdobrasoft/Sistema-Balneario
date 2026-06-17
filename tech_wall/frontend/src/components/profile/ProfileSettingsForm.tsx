@@ -41,7 +41,9 @@ export const ProfileSettingsForm: React.FC<ProfileSettingsFormProps> = ({
         onSuccess();
       } catch (error) {
         console.error("Erro ao atualizar perfil:", error);
-        alert("Erro ao atualizar o perfil. Verifique se o e-mail ou nome de usuário estão disponíveis.");
+        alert(
+          "Erro ao atualizar o perfil. Verifique se o e-mail ou nome de usuário estão disponíveis.",
+        );
       }
     },
   });
@@ -57,7 +59,10 @@ export const ProfileSettingsForm: React.FC<ProfileSettingsFormProps> = ({
             value={formik.values.fullName}
             onChange={formik.handleChange}
             error={formik.touched.fullName && Boolean(formik.errors.fullName)}
-            helperText={formik.touched.fullName && (formik.errors.fullName as string)}
+            helperText={
+              formik.touched.fullName && (formik.errors.fullName as string)
+            }
+            size="small"
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -68,7 +73,10 @@ export const ProfileSettingsForm: React.FC<ProfileSettingsFormProps> = ({
             value={formik.values.username}
             onChange={formik.handleChange}
             error={formik.touched.username && Boolean(formik.errors.username)}
-            helperText={formik.touched.username && (formik.errors.username as string)}
+            helperText={
+              formik.touched.username && (formik.errors.username as string)
+            }
+            size="small"
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -81,6 +89,7 @@ export const ProfileSettingsForm: React.FC<ProfileSettingsFormProps> = ({
             onChange={formik.handleChange}
             error={formik.touched.email && Boolean(formik.errors.email)}
             helperText={formik.touched.email && (formik.errors.email as string)}
+            size="small"
           />
         </Grid>
       </Grid>

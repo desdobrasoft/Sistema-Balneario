@@ -1,4 +1,4 @@
-// package
+import { getIn } from "formik";
 import React, { useEffect, useState } from "react";
 import * as yup from "yup";
 
@@ -57,13 +57,14 @@ interface PlacaModel {
 
   tramaInferiorAtiva?: boolean;
   tramaInferiorId?: number;
+  reforco?: string;
   retalhoDescartado?: boolean;
   materiais?: {
     materiaPrimaId: number;
     quantidade: number;
     materiaPrima?: MateriaPrimaModel;
   }[];
-  percursoCorte?: any[];
+  percursoCorte?: { direcao: string; distancia: number }[];
   _count?: {
     cortesOndeEPai: number;
     corteOndeEResult: number;
@@ -84,7 +85,7 @@ interface FormProps {
   item: PlacaModel | null;
 }
 
-export const validationSchema = yup.object({
+const validationSchema = yup.object({
   nome: yup.string().when("modoBatch", {
     is: false,
     then: (schema) => schema.required("Campo obrigatório"),
@@ -133,12 +134,13 @@ export const validationSchema = yup.object({
   darBaixaImediata: yup.boolean(),
 });
 
-export const initialValues = {
+const initialValues = {
   nome: "",
   descricao: "",
   altura: "" as unknown as number,
   largura: "" as unknown as number,
   espessura: "" as unknown as number,
+  reforco: "S_P",
   retalhoDescartado: false,
 
   tramaEsquerdaAtiva: false,
@@ -160,6 +162,12 @@ export const initialValues = {
   quantidade: "" as unknown as number,
   algarismos: "",
   darBaixaImediata: false,
+};
+
+const DEFAULT_MATERIAIS = {
+  Cimento: 50,
+  EPS: 2.3,
+  Aditivo: 1.8,
 };
 
 const PlacasForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
@@ -197,15 +205,34 @@ const PlacasForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
       return {
         ...initialValues,
         ...item,
-        algarismos: (item as any).algarismos ?? "",
+        algarismos: item.algarismos ?? "",
         materiais:
-          (item as any).materiais?.map((m: any) => ({
+          item.materiais?.map((m) => ({
             materiaPrimaId: m.materiaPrimaId,
             quantidade: m.quantidade,
           })) || [],
       };
     }
-    return initialValues;
+    // For new items, pre-populate default materials based on the loaded stock
+    const defaultMateriais: { materiaPrimaId: number; quantidade: number }[] =
+      [];
+    if (estoque && estoque.length > 0) {
+      estoque.forEach((m) => {
+        const defaultQty =
+          DEFAULT_MATERIAIS[m.item as keyof typeof DEFAULT_MATERIAIS];
+        if (defaultQty !== undefined) {
+          defaultMateriais.push({
+            materiaPrimaId: m.id!,
+            quantidade: defaultQty,
+          });
+        }
+      });
+    }
+
+    return {
+      ...initialValues,
+      materiais: defaultMateriais,
+    };
   };
 
   return (
@@ -429,6 +456,25 @@ const PlacasForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
                 />
               </Grid>
 
+              <Grid size={{ xs: 12, md: 12 }}>
+                <FormControl fullWidth size="small">
+                  <InputLabel id="reforco-label">
+                    Reforço em Alumínio
+                  </InputLabel>
+                  <Select
+                    labelId="reforco-label"
+                    name="reforco"
+                    value={formik.values.reforco}
+                    label="Reforço em Alumínio"
+                    onChange={formik.handleChange}
+                  >
+                    <MenuItem value="UM_P">1P (Uma face)</MenuItem>
+                    <MenuItem value="DOIS_P">2P (Duas faces)</MenuItem>
+                    <MenuItem value="S_P">S/P (Sem reforço)</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
               <Grid size={12}>
                 <FormControlLabel
                   control={
@@ -502,11 +548,15 @@ const PlacasForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
                         fullWidth
                         size="small"
                         error={
-                          (formik.touched.materiais as any)?.[index]
-                            ?.materiaPrimaId &&
+                          getIn(
+                            formik.touched,
+                            `materiais[${index}].materiaPrimaId`,
+                          ) &&
                           Boolean(
-                            (formik.errors.materiais?.[index] as any)
-                              ?.materiaPrimaId,
+                            getIn(
+                              formik.errors,
+                              `materiais[${index}].materiaPrimaId`,
+                            ),
                           )
                         }
                       >
@@ -544,11 +594,15 @@ const PlacasForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
                         value={material.quantidade}
                         onChange={formik.handleChange}
                         error={
-                          (formik.touched.materiais as any)?.[index]
-                            ?.quantidade &&
+                          getIn(
+                            formik.touched,
+                            `materiais[${index}].quantidade`,
+                          ) &&
                           Boolean(
-                            (formik.errors.materiais?.[index] as any)
-                              ?.quantidade,
+                            getIn(
+                              formik.errors,
+                              `materiais[${index}].quantidade`,
+                            ),
                           )
                         }
                       />
@@ -620,7 +674,14 @@ const PlacasForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
                 ].map((config) => {
                   const ativaKey = `${config.key}Ativa`;
                   const idKey = `${config.key}Id`;
-                  const isAtiva = (formik.values as any)[ativaKey];
+                  const isAtiva =
+                    config.key === "tramaEsquerda"
+                      ? formik.values.tramaEsquerdaAtiva
+                      : config.key === "tramaDireita"
+                        ? formik.values.tramaDireitaAtiva
+                        : config.key === "tramaSuperior"
+                          ? formik.values.tramaSuperiorAtiva
+                          : formik.values.tramaInferiorAtiva;
 
                   return (
                     <Grid size={{ xs: 12, md: 6 }} key={config.key}>
@@ -659,14 +720,14 @@ const PlacasForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
                               disabled={!isAtiva}
                               error={
                                 isAtiva &&
-                                (formik.touched as any)[idKey] &&
-                                Boolean((formik.errors as any)[idKey])
+                                getIn(formik.touched, idKey) &&
+                                Boolean(getIn(formik.errors, idKey))
                               }
                             >
                               <InputLabel>Trama</InputLabel>
                               <Select
                                 name={idKey}
-                                value={(formik.values as any)[idKey] || ""}
+                                value={getIn(formik.values, idKey) || ""}
                                 label="Trama"
                                 onChange={formik.handleChange}
                               >

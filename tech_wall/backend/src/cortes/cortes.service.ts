@@ -8,7 +8,7 @@ import {
   DataTableResult,
 } from '../common/dto/data-table.dto';
 import { PrismaDatatableHelper } from '../common/utils/datatable.helper';
-import { GeometriaPlaca } from '../placas/utils/geometria.utils';
+import { GeometriaPlaca, VetorCorte } from '../placas/utils/geometria.utils';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCorteDto, UpdateCorteDto } from './dto/corte.dto';
 
@@ -19,7 +19,7 @@ export class CortesService {
   async create(dto: CreateCorteDto) {
     const pontos = GeometriaPlaca.percursoParaPontos(
       { x: 0, y: 0 },
-      dto.percurso as any,
+      dto.percurso,
     );
     const bbox = GeometriaPlaca.calcularBoundingBox(pontos);
     const existing = await this.prisma.corte.findUnique({
@@ -76,28 +76,27 @@ export class CortesService {
         where,
         skip,
         take,
-        orderBy: Object.keys(orderBy).length ? orderBy : { id: 'desc' },
+        orderBy: Object.keys(orderBy as Record<string, unknown>).length
+          ? orderBy
+          : { id: 'desc' },
       }),
       this.prisma.corte.count({ where: { deletedAt: null } }),
       this.prisma.corte.count({ where }),
     ]);
 
     const data = dataRaw.map((corte) => {
-      const isRetangular = GeometriaPlaca.eRetangulo(corte.percurso as any);
-      let dimensoes = '';
-
-      if (isRetangular) {
-        dimensoes = `${Number(corte.largura).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} x ${Number(corte.altura).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}`;
-      } else {
-        dimensoes = (corte.percurso as any[])
-          .map((p) =>
-            Number(p.distancia).toLocaleString('pt-BR', {
-              maximumFractionDigits: 2,
-            }),
-          )
-          .join(' x ');
-      }
-
+      const isRetangular = GeometriaPlaca.eRetangulo(
+        corte.percurso as unknown as VetorCorte[],
+      );
+      const dimensoes = isRetangular
+        ? `${Number(corte.largura).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} x ${Number(corte.altura).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}`
+        : (corte.percurso as unknown as VetorCorte[])
+            .map((p) =>
+              Number(p.distancia).toLocaleString('pt-BR', {
+                maximumFractionDigits: 2,
+              }),
+            )
+            .join(' x ');
       return {
         ...corte,
         dimensoes,
@@ -137,7 +136,7 @@ export class CortesService {
     if (dto.percurso) {
       const pontos = GeometriaPlaca.percursoParaPontos(
         { x: 0, y: 0 },
-        dto.percurso as any,
+        dto.percurso,
       );
       const bbox = GeometriaPlaca.calcularBoundingBox(pontos);
       Object.assign(data, {

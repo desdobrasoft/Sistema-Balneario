@@ -14,14 +14,13 @@ import DataTableDialog from "components/datatable/DataTableDialog";
 interface PedidoCompraFormValues {
   materiaPrimaId: number;
   qtSolicitada: number | "";
-  fornecedor: string;
 }
 
 interface PedidoCompraFormProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (values: PedidoCompraFormValues) => Promise<void>;
-  material: any;
+  material: { id: number; item: string; quantidade: number; unidade?: string } | null;
 }
 
 // ===============================
@@ -33,7 +32,6 @@ const validationSchema = yup.object().shape({
     .number()
     .min(1, "Mínimo 1")
     .required("Informe a quantidade"),
-  fornecedor: yup.string(),
 });
 
 // ===============================
@@ -48,7 +46,6 @@ const PedidoCompraForm: React.FC<PedidoCompraFormProps> = ({
   const initialValues: PedidoCompraFormValues = {
     materiaPrimaId: material?.id || 0,
     qtSolicitada: "",
-    fornecedor: "",
   };
 
   return (
@@ -78,7 +75,7 @@ const PedidoCompraForm: React.FC<PedidoCompraFormProps> = ({
             </Typography>
           </Grid>
 
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid size={12}>
             <TextField
               fullWidth
               name="qtSolicitada"
@@ -95,17 +92,6 @@ const PedidoCompraForm: React.FC<PedidoCompraFormProps> = ({
                 formik.touched.qtSolicitada &&
                 (formik.errors.qtSolicitada as string)
               }
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, md: 6 }}>
-            <TextField
-              fullWidth
-              name="fornecedor"
-              label="Fornecedor (Opcional)"
-              size="small"
-              value={formik.values.fornecedor}
-              onChange={formik.handleChange}
             />
           </Grid>
         </Grid>

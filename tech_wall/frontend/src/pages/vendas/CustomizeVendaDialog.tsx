@@ -10,20 +10,13 @@ import ViewInArIcon from "@mui/icons-material/ViewInAr";
 import Autocomplete from "@mui/material/Autocomplete";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
 import CircularProgress from "@mui/material/CircularProgress";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import Divider from "@mui/material/Divider";
-import FormControl from "@mui/material/FormControl";
 import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
@@ -31,6 +24,8 @@ import Typography from "@mui/material/Typography";
 
 import { ENDPOINTS } from "config/endpoints";
 import api from "services/api";
+
+import RequisitosEditor, { type RequisitoOverride } from "components/RequisitosEditor";
 
 // ===============================
 // TYPES
@@ -41,19 +36,7 @@ export interface VendaItemOverride {
   item?: string;
 }
 
-export interface VendaRequisitoOverride {
-  tipo: "PLACA_LISA" | "CORTE_ESPECIFICO";
-  alias: string;
-  parede: string;
-  largura?: number;
-  altura?: number;
-  espessura?: number;
-  tramaEsquerdaId?: number | null;
-  tramaDireitaId?: number | null;
-  tramaSuperiorId?: number | null;
-  tramaInferiorId?: number | null;
-  corteId?: number | null;
-}
+export type VendaRequisitoOverride = RequisitoOverride;
 
 export interface VendaSuprimentoOverride {
   nome: string;
@@ -68,10 +51,14 @@ export interface VendaFullCustomization {
   suprimentos: VendaSuprimentoOverride[];
 }
 
+export interface OptionMaterial { id: number; item: string; unidade?: string }
+export interface OptionCorte { id: number; nome: string }
+export interface OptionTrama { id: number; nome: string }
+
 interface CustomizeVendaDialogProps {
   open: boolean;
   onClose: () => void;
-  baseModel: any;
+  baseModel: { id: number; nome?: string } | null;
   currentCustomization: VendaFullCustomization | null;
   onSave: (customization: VendaFullCustomization) => void;
 }
@@ -91,9 +78,7 @@ const CustomizeVendaDialog: React.FC<CustomizeVendaDialogProps> = ({
   const [requisitos, setRequisitos] = useState<VendaRequisitoOverride[]>([]);
   const [suprimentos, setSuprimentos] = useState<VendaSuprimentoOverride[]>([]);
 
-  const [allMaterials, setAllMaterials] = useState<any[]>([]);
-  const [allCortes, setAllCortes] = useState<any[]>([]);
-  const [allTramas, setAllTramas] = useState<any[]>([]);
+  const [allMateriais, setAllMateriais] = useState<{ id: number; item: string; unidade: string }[]>([]);
   const [loading, setLoading] = useState(false);
 
   /* eslint-disable react-hooks/set-state-in-effect -- Intentional: loading and initializing form state on dialog open */
@@ -103,23 +88,11 @@ const CustomizeVendaDialog: React.FC<CustomizeVendaDialogProps> = ({
         setLoading(true);
         try {
           // 1. Busca recursos globais
-          const [matRes, corteRes, tramaRes] = await Promise.all([
-            api.get(ENDPOINTS.MATERIA_PRIMA),
-            api.get(ENDPOINTS.CORTES),
-            api.get(ENDPOINTS.TRAMAS),
+          const [matRes] = await Promise.all([
+            api.get(ENDPOINTS.MATERIA_PRIMA)
           ]);
-          setAllMaterials(
+          setAllMateriais(
             Array.isArray(matRes.data) ? matRes.data : matRes.data.data || [],
-          );
-          setAllCortes(
-            Array.isArray(corteRes.data)
-              ? corteRes.data
-              : corteRes.data.data || [],
-          );
-          setAllTramas(
-            Array.isArray(tramaRes.data)
-              ? tramaRes.data
-              : tramaRes.data.data || [],
           );
 
           // 2. Se temos um baseModel mas não temos customização atual,
@@ -134,14 +107,14 @@ const CustomizeVendaDialog: React.FC<CustomizeVendaDialogProps> = ({
               const rawMaterials =
                 fullModel.materiaisModeloCasa || fullModel.materiais || [];
               setItens(
-                rawMaterials.map((m: any) => ({
+                rawMaterials.map((m: { id?: number; materiaPrima?: { item: string }; quantidade?: number, qtModelo?: number, materiaPrimaId?: number }) => ({
                   materiaPrimaId: Number(m.materiaPrimaId),
                   qtFinal: Number(m.qtModelo || m.quantidade || 1),
                   item: m.materiaPrima?.item || "Material",
                 })),
               );
               setRequisitos(
-                (fullModel.requisitos || []).map((r: any) => ({
+                (fullModel.requisitos || []).map((r: Record<string, unknown>) => ({
                   tipo: r.tipo,
                   alias: r.alias,
                   parede: r.parede,
@@ -164,7 +137,7 @@ const CustomizeVendaDialog: React.FC<CustomizeVendaDialogProps> = ({
                 })),
               );
               setSuprimentos(
-                (fullModel.suprimentosObra || []).map((s: any) => ({
+                (fullModel.suprimentosObra || []).map((s: Record<string, unknown>) => ({
                   nome: s.nome || "",
                   quantidade: Number(s.quantidade || 0),
                   unidade: s.unidade || "",
@@ -289,12 +262,10 @@ const CustomizeVendaDialog: React.FC<CustomizeVendaDialogProps> = ({
                           <Autocomplete
                             fullWidth
                             size="small"
-                            options={allMaterials}
-                            getOptionLabel={(o) =>
-                              `${o.item} (${o.unidade || ""})`
-                            }
+                            options={allMateriais}
+                            getOptionLabel={(o) => o.item}
                             value={
-                              allMaterials.find(
+                              allMateriais.find(
                                 (m) => m.id === item.materiaPrimaId,
                               ) || null
                             }
@@ -376,413 +347,11 @@ const CustomizeVendaDialog: React.FC<CustomizeVendaDialogProps> = ({
 
             {/* ABA 1: PAREDES (REQUISITOS) */}
             {tab === 1 && (
-              <Box>
-                <Grid
-                  container
-                  spacing={2}
-                  sx={{ alignItems: "center", mb: 2 }}
-                >
-                  <Grid size="grow">
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                      Requisitos de Produção
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Defina as especificações abstratas de cada peça
-                      necessária.
-                    </Typography>
-                  </Grid>
-                </Grid>
-
-                <Grid container spacing={3}>
-                  {paredes.map((pNome) => (
-                    <Grid size={12} key={pNome}>
-                      <Card variant="outlined" sx={{ bgcolor: "action.hover" }}>
-                        <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
-                          <Grid
-                            container
-                            spacing={2}
-                            sx={{ alignItems: "center", mb: 2 }}
-                          >
-                            <Grid size={{ xs: 8, sm: 6 }}>
-                              <TextField
-                                fullWidth
-                                size="small"
-                                label="Nome da Parede"
-                                value={pNome}
-                                onChange={(e) => {
-                                  const newVal = e.target.value;
-                                  const updated = requisitos.map((r) =>
-                                    r.parede === pNome
-                                      ? { ...r, parede: newVal }
-                                      : r,
-                                  );
-                                  setRequisitos(updated);
-                                }}
-                                sx={{ bgcolor: "background.paper" }}
-                              />
-                            </Grid>
-                            <Grid size="grow">
-                              <Typography
-                                variant="caption"
-                                color="text.secondary"
-                              >
-                                {groupedRequisitos[pNome]?.length || 0}{" "}
-                                requisito(s)
-                              </Typography>
-                            </Grid>
-                            <Grid size="auto">
-                              <IconButton
-                                size="small"
-                                color="error"
-                                onClick={() => {
-                                  if (
-                                    window.confirm(
-                                      `Deseja realmente excluir a ${pNome} e todos os seus requisitos?`,
-                                    )
-                                  ) {
-                                    const updated = requisitos.filter(
-                                      (r) => r.parede !== pNome,
-                                    );
-                                    setRequisitos(updated);
-                                  }
-                                }}
-                                title="Excluir Parede"
-                              >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            </Grid>
-                          </Grid>
-
-                          <Grid container spacing={2}>
-                            {requisitos
-                              .map((r, idx) => ({ ...r, originalIdx: idx }))
-                              .filter((r) => r.parede === pNome)
-                              .map((item) => (
-                                <Grid size={12} key={item.originalIdx}>
-                                  <Card
-                                    variant="outlined"
-                                    sx={{ p: 1.5, bgcolor: "background.paper" }}
-                                  >
-                                    <Grid
-                                      container
-                                      spacing={1.5}
-                                      sx={{ alignItems: "center" }}
-                                    >
-                                      <Grid size={4}>
-                                        <FormControl fullWidth size="small">
-                                          <InputLabel>Tipo</InputLabel>
-                                          <Select
-                                            value={item.tipo}
-                                            label="Tipo"
-                                            onChange={(e) => {
-                                              const updated = [...requisitos];
-                                              updated[item.originalIdx].tipo = e
-                                                .target.value as any;
-                                              setRequisitos(updated);
-                                            }}
-                                          >
-                                            <MenuItem value="PLACA_LISA">
-                                              Placa Lisa
-                                            </MenuItem>
-                                            <MenuItem value="CORTE_ESPECIFICO">
-                                              Corte Específico
-                                            </MenuItem>
-                                          </Select>
-                                        </FormControl>
-                                      </Grid>
-
-                                      <Grid size={4}>
-                                        <TextField
-                                          fullWidth
-                                          size="small"
-                                          label="Alias"
-                                          placeholder="P01"
-                                          value={item.alias || ""}
-                                          onChange={(e) => {
-                                            const updated = [...requisitos];
-                                            updated[item.originalIdx].alias =
-                                              e.target.value;
-                                            setRequisitos(updated);
-                                          }}
-                                        />
-                                      </Grid>
-
-                                      <Grid size="grow" />
-
-                                      <Grid size="auto">
-                                        <IconButton
-                                          size="small"
-                                          color="error"
-                                          onClick={() => {
-                                            setRequisitos(
-                                              requisitos.filter(
-                                                (_, i) =>
-                                                  i !== item.originalIdx,
-                                              ),
-                                            );
-                                          }}
-                                        >
-                                          <DeleteIcon fontSize="small" />
-                                        </IconButton>
-                                      </Grid>
-
-                                      {item.tipo === "PLACA_LISA" && (
-                                        <>
-                                          <Grid size={{ xs: 4, sm: 4 }}>
-                                            <TextField
-                                              fullWidth
-                                              size="small"
-                                              label="Largura (cm)"
-                                              type="number"
-                                              value={item.largura || ""}
-                                              onChange={(e) => {
-                                                const updated = [...requisitos];
-                                                updated[
-                                                  item.originalIdx
-                                                ].largura =
-                                                  parseFloat(e.target.value) ||
-                                                  0;
-                                                setRequisitos(updated);
-                                              }}
-                                            />
-                                          </Grid>
-                                          <Grid size={{ xs: 4, sm: 4 }}>
-                                            <TextField
-                                              fullWidth
-                                              size="small"
-                                              label="Altura (cm)"
-                                              type="number"
-                                              value={item.altura || ""}
-                                              onChange={(e) => {
-                                                const updated = [...requisitos];
-                                                updated[
-                                                  item.originalIdx
-                                                ].altura =
-                                                  parseFloat(e.target.value) ||
-                                                  0;
-                                                setRequisitos(updated);
-                                              }}
-                                            />
-                                          </Grid>
-                                          <Grid size={{ xs: 4, sm: 4 }}>
-                                            <TextField
-                                              fullWidth
-                                              size="small"
-                                              label="Espessura (cm)"
-                                              type="number"
-                                              value={item.espessura || ""}
-                                              onChange={(e) => {
-                                                const updated = [...requisitos];
-                                                updated[
-                                                  item.originalIdx
-                                                ].espessura =
-                                                  parseFloat(e.target.value) ||
-                                                  0;
-                                                setRequisitos(updated);
-                                              }}
-                                            />
-                                          </Grid>
-                                        </>
-                                      )}
-
-                                      {item.tipo === "CORTE_ESPECIFICO" && (
-                                        <Grid size={{ xs: 12, sm: 12 }}>
-                                          <Autocomplete
-                                            size="small"
-                                            options={allCortes}
-                                            getOptionLabel={(o) => o.nome}
-                                            value={
-                                              allCortes.find(
-                                                (c) => c.id === item.corteId,
-                                              ) || null
-                                            }
-                                            onChange={(_, v) => {
-                                              const updated = [...requisitos];
-                                              updated[
-                                                item.originalIdx
-                                              ].corteId = v?.id || null;
-                                              setRequisitos(updated);
-                                            }}
-                                            renderInput={(params) => (
-                                              <TextField
-                                                {...params}
-                                                label="Corte do Catálogo"
-                                              />
-                                            )}
-                                          />
-                                        </Grid>
-                                      )}
-
-                                      <Divider sx={{ width: "100%", my: 1 }} />
-
-                                      {/* TRAMAS */}
-                                      <Grid size={{ xs: 6, sm: 3 }}>
-                                        <Autocomplete
-                                          size="small"
-                                          options={allTramas}
-                                          getOptionLabel={(o) => o.nome}
-                                          value={
-                                            allTramas.find(
-                                              (t) =>
-                                                t.id === item.tramaEsquerdaId,
-                                            ) || null
-                                          }
-                                          onChange={(_, v) => {
-                                            const updated = [...requisitos];
-                                            updated[
-                                              item.originalIdx
-                                            ].tramaEsquerdaId = v?.id || null;
-                                            setRequisitos(updated);
-                                          }}
-                                          renderInput={(params) => (
-                                            <TextField
-                                              {...params}
-                                              label="Trama Esq."
-                                            />
-                                          )}
-                                        />
-                                      </Grid>
-                                      <Grid size={{ xs: 6, sm: 3 }}>
-                                        <Autocomplete
-                                          size="small"
-                                          options={allTramas}
-                                          getOptionLabel={(o) => o.nome}
-                                          value={
-                                            allTramas.find(
-                                              (t) =>
-                                                t.id === item.tramaDireitaId,
-                                            ) || null
-                                          }
-                                          onChange={(_, v) => {
-                                            const updated = [...requisitos];
-                                            updated[
-                                              item.originalIdx
-                                            ].tramaDireitaId = v?.id || null;
-                                            setRequisitos(updated);
-                                          }}
-                                          renderInput={(params) => (
-                                            <TextField
-                                              {...params}
-                                              label="Trama Dir."
-                                            />
-                                          )}
-                                        />
-                                      </Grid>
-                                      <Grid size={{ xs: 6, sm: 3 }}>
-                                        <Autocomplete
-                                          size="small"
-                                          options={allTramas}
-                                          getOptionLabel={(o) => o.nome}
-                                          value={
-                                            allTramas.find(
-                                              (t) =>
-                                                t.id === item.tramaSuperiorId,
-                                            ) || null
-                                          }
-                                          onChange={(_, v) => {
-                                            const updated = [...requisitos];
-                                            updated[
-                                              item.originalIdx
-                                            ].tramaSuperiorId = v?.id || null;
-                                            setRequisitos(updated);
-                                          }}
-                                          renderInput={(params) => (
-                                            <TextField
-                                              {...params}
-                                              label="Trama Sup."
-                                            />
-                                          )}
-                                        />
-                                      </Grid>
-                                      <Grid size={{ xs: 6, sm: 3 }}>
-                                        <Autocomplete
-                                          size="small"
-                                          options={allTramas}
-                                          getOptionLabel={(o) => o.nome}
-                                          value={
-                                            allTramas.find(
-                                              (t) =>
-                                                t.id === item.tramaInferiorId,
-                                            ) || null
-                                          }
-                                          onChange={(_, v) => {
-                                            const updated = [...requisitos];
-                                            updated[
-                                              item.originalIdx
-                                            ].tramaInferiorId = v?.id || null;
-                                            setRequisitos(updated);
-                                          }}
-                                          renderInput={(params) => (
-                                            <TextField
-                                              {...params}
-                                              label="Trama Inf."
-                                            />
-                                          )}
-                                        />
-                                      </Grid>
-                                    </Grid>
-                                  </Card>
-                                </Grid>
-                              ))}
-                            <Grid size={12} sx={{ mt: 1 }}>
-                              <Button
-                                size="small"
-                                startIcon={<AddIcon />}
-                                onClick={() => {
-                                  setRequisitos([
-                                    ...requisitos,
-                                    {
-                                      tipo: "PLACA_LISA",
-                                      parede: pNome,
-                                      alias: "",
-                                      largura: 100,
-                                      altura: 200,
-                                      espessura: 5,
-                                    },
-                                  ]);
-                                }}
-                              >
-                                Adicionar Requisito
-                              </Button>
-                            </Grid>
-                          </Grid>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  ))}
-                  <Grid size={12}>
-                    <Button
-                      variant="outlined"
-                      fullWidth
-                      sx={{ borderStyle: "dashed", py: 1.5 }}
-                      startIcon={<AddIcon />}
-                      onClick={() => {
-                        const currentParedes = Object.keys(
-                          getGroupedRequisitos(requisitos),
-                        );
-                        let nextNum = 1;
-                        while (currentParedes.includes(`Parede ${nextNum}`)) {
-                          nextNum++;
-                        }
-                        const newParede = `Parede ${nextNum}`;
-                        setRequisitos([
-                          ...requisitos,
-                          {
-                            tipo: "PLACA_LISA",
-                            parede: newParede,
-                            alias: "",
-                            largura: 100,
-                            altura: 200,
-                            espessura: 5,
-                          },
-                        ]);
-                      }}
-                    >
-                      Nova Parede
-                    </Button>
-                  </Grid>
-                </Grid>
-              </Box>
+              <RequisitosEditor
+                requisitos={requisitos}
+                onChange={setRequisitos}
+                showParedes={true}
+              />
             )}
 
             {/* ABA 2: INSUMOS */}

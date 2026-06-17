@@ -22,11 +22,12 @@ import Typography from "@mui/material/Typography";
 import { ENDPOINTS } from "config/endpoints";
 import { useSnackbar } from "hooks/useSnackbar";
 import api from "services/api";
+import type { PlacaModel } from "./Form";
 
 interface FinalizarProducaoDialogProps {
   open: boolean;
   onClose: () => void;
-  placa: any;
+  placa: PlacaModel & { materiaisPlaca?: { materiaPrimaId: number; quantidade: number; materiaPrima?: { item: string, quantidade: number } }[] } | null;
   onSuccess: () => void;
 }
 
@@ -45,7 +46,7 @@ const GerenciarProducaoDialog: React.FC<FinalizarProducaoDialogProps> = ({
   useEffect(() => {
     if (open && placa?.materiaisPlaca) {
       const initialConsumos: Record<string, number> = {};
-      placa.materiaisPlaca.forEach((mp: any) => {
+      placa.materiaisPlaca.forEach((mp) => {
         initialConsumos[mp.materiaPrimaId.toString()] = mp.quantidade;
       });
       setConsumos(initialConsumos);
@@ -63,14 +64,15 @@ const GerenciarProducaoDialog: React.FC<FinalizarProducaoDialogProps> = ({
   const hasDeviation = () => {
     if (!placa?.materiaisPlaca) return false;
     return placa.materiaisPlaca.some(
-      (mp: any) => consumos[mp.materiaPrimaId.toString()] !== mp.quantidade
+      (mp) => consumos[mp.materiaPrimaId.toString()] !== mp.quantidade
     );
   };
 
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      await api.post(`${ENDPOINTS.PLACAS}/${placa.id}/gerenciar-producao`, {
+      await api.get(`${ENDPOINTS.PRODUCAO}/placas/${placa?.id || 0}/ordens-suprimentos`);
+      await api.post(`${ENDPOINTS.PLACAS}/${placa?.id}/gerenciar-producao`, {
         status: "FINALIZADA",
         materiaisConsumidos: consumos,
       });
@@ -83,11 +85,18 @@ const GerenciarProducaoDialog: React.FC<FinalizarProducaoDialogProps> = ({
 
       onSuccess();
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro ao finalizar produção:", error);
+      let errorMessage = "Não foi possível finalizar a placa.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      if (typeof error === "object" && error !== null && "response" in error) {
+        errorMessage = (error as { response?: { data?: { message?: string } } }).response?.data?.message || errorMessage;
+      }
       showSnackbar({
         title: "Erro ao Finalizar",
-        message: error.response?.data?.message || "Não foi possível finalizar a placa.",
+        message: errorMessage,
         severity: "error",
       });
     } finally {
@@ -129,7 +138,7 @@ const GerenciarProducaoDialog: React.FC<FinalizarProducaoDialogProps> = ({
                   Esta placa não possui receita de materiais cadastrada.
                 </Typography>
               ) : (
-                placa.materiaisPlaca?.map((mp: any) => {
+                placa.materiaisPlaca?.map((mp) => {
                   const idMp = mp.materiaPrimaId.toString();
                   const planejado = mp.quantidade;
                   const real = consumos[idMp] || 0;

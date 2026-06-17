@@ -25,7 +25,17 @@ interface ProducaoFormValues {
 interface ProducaoFormProps {
   open: boolean;
   onClose: () => void;
-  item: any;
+  item: {
+    status?: StatusProducao;
+    venda?: { id: number };
+    vendaId?: number;
+    ordensProducaoHistorico?: {
+      statusAnterior?: StatusProducao;
+      statusNovo?: StatusProducao;
+      dataAlteracao: string;
+      notas?: string;
+    }[];
+  } | null;
   onSubmit: (values: ProducaoFormValues) => Promise<void>;
 }
 
@@ -139,7 +149,7 @@ const ProducaoForm: React.FC<ProducaoFormProps> = ({
               {(item?.ordensProducaoHistorico || [])
                 .slice()
                 .reverse()
-                .map((h: any, idx: number) => (
+                .map((h, idx: number) => (
                   <ListItem
                     key={idx}
                     divider={

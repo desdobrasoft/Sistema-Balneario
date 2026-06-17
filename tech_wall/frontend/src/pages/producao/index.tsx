@@ -30,11 +30,17 @@ import { InternalOrderForm } from "./InternalOrderForm";
 import SuprimentosDialog from "./SuprimentosDialog";
 
 const Producao: React.FC = () => {
-  const [selectedOrdem, setSelectedOrdem] = useState<any>(null);
+  const [selectedOrdem, setSelectedOrdem] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
   const [updateStatusOpen, setUpdateStatusOpen] = useState(false);
   const [suprimentosOpen, setSuprimentosOpen] = useState(false);
   const [iniciarProducaoOpen, setIniciarProducaoOpen] = useState(false);
-  const [selectedVenda, setSelectedVenda] = useState<any>(null);
+  const [selectedVenda, setSelectedVenda] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
 
   const tableRef = useRef<{ reload: () => void }>(null);
   const { showDialog, closeDialog } = useDialog();
@@ -46,7 +52,7 @@ const Producao: React.FC = () => {
       { data: "id", visible: false },
       { title: "Venda", data: "vendaId", render: (data: number) => `#${data}` },
       { title: "Cliente", data: "clienteNome" },
-      { title: "Modelo", data: "modeloNome" },
+      { title: "Produto", data: "modeloNome" },
       {
         title: "Data Agendada",
         data: "dataAgendamento",
@@ -66,7 +72,7 @@ const Producao: React.FC = () => {
     [],
   );
 
-  const handleFetchData = useCallback(async (data: any) => {
+  const handleFetchData = useCallback(async (data: Record<string, unknown>) => {
     const res = await api.post(
       `${ENDPOINTS.PRODUCAO}${ENDPOINTS.DATATABLE}`,
       data,
@@ -80,83 +86,95 @@ const Producao: React.FC = () => {
     };
   }, []);
 
-  const handleOpenStatusUpdate = async (ordem: any) => {
-    try {
-      const res = await api.get(`${ENDPOINTS.PRODUCAO}/${ordem.id}`);
-      setSelectedOrdem(res.data);
-      setUpdateStatusOpen(true);
-    } catch (error) {
-      handleError(error);
-    }
-  };
+  const handleOpenStatusUpdate = useCallback(
+    async (ordem: { id: number }) => {
+      try {
+        const res = await api.get(`${ENDPOINTS.PRODUCAO}/${ordem.id}`);
+        setSelectedOrdem(res.data);
+        setUpdateStatusOpen(true);
+      } catch (error) {
+        handleError(error);
+      }
+    },
+    [handleError],
+  );
 
-  const handleOpenSuprimentos = async (vendaId: number) => {
-    try {
-      const res = await api.get(`${ENDPOINTS.VENDAS}/${vendaId}`);
-      setSelectedVenda(res.data);
-      setSuprimentosOpen(true);
-    } catch (error) {
-      handleError(error);
-    }
-  };
+  const handleOpenSuprimentos = useCallback(
+    async (vendaId: number) => {
+      try {
+        const res = await api.get(`${ENDPOINTS.VENDAS}/${vendaId}`);
+        setSelectedVenda(res.data);
+        setSuprimentosOpen(true);
+      } catch (error) {
+        handleError(error);
+      }
+    },
+    [handleError],
+  );
 
-  const handleFinalizarProducao = async (id: number) => {
-    showDialog({
-      title: "Finalizar Produção",
-      body: "Tem certeza que deseja finalizar a produção desta ordem? Esta ação gerará o registro de entrega.",
-      actions: [
-        <Button key="cancel" onClick={closeDialog}>
-          Cancelar
-        </Button>,
-        <Button
-          key="confirm"
-          color="success"
-          variant="contained"
-          onClick={async () => {
-            closeDialog();
-            try {
-              await api.post(`${ENDPOINTS.PRODUCAO}/${id}/finalizar`);
-              tableRef.current?.reload();
-            } catch (error) {
-              console.error("Erro ao finalizar produção:", error);
-              handleError(error);
-            }
-          }}
-        >
-          Finalizar
-        </Button>,
-      ],
-    });
-  };
+  const handleFinalizarProducao = useCallback(
+    async (id: number) => {
+      showDialog({
+        title: "Finalizar Produção",
+        body: "Tem certeza que deseja finalizar a produção desta ordem? Esta ação gerará o registro de entrega.",
+        actions: [
+          <Button key="cancel" onClick={closeDialog}>
+            Cancelar
+          </Button>,
+          <Button
+            key="confirm"
+            color="success"
+            variant="contained"
+            onClick={async () => {
+              closeDialog();
+              try {
+                await api.post(`${ENDPOINTS.PRODUCAO}/${id}/finalizar`);
+                tableRef.current?.reload();
+              } catch (error) {
+                console.error("Erro ao finalizar produção:", error);
+                handleError(error);
+              }
+            }}
+          >
+            Finalizar
+          </Button>,
+        ],
+      });
+    },
+    [showDialog, closeDialog, handleError],
+  );
 
-  const handleRemoverOrdem = async (id: number) => {
-    showDialog({
-      title: "Remover Ordem",
-      body: "ATENÇÃO: Deseja realmente remover permanentemente esta ordem de produção? Esta ação não pode ser desfeita.",
-      actions: [
-        <Button key="cancel" onClick={closeDialog}>
-          Cancelar
-        </Button>,
-        <Button
-          key="confirm"
-          color="error"
-          variant="contained"
-          onClick={async () => {
-            closeDialog();
-            try {
-              await api.delete(`${ENDPOINTS.PRODUCAO}/${id}`);
-              tableRef.current?.reload();
-            } catch (error) {
-              console.error("Erro ao excluir ordem de produção:", error);
-              handleError(error);
-            }
-          }}
-        >
-          Remover
-        </Button>,
-      ],
-    });
-  };
+  const handleRemoverOrdem = useCallback(
+    async (id: number) => {
+      showDialog({
+        title: "Remover Ordem",
+        body: "ATENÇÃO: Deseja realmente remover permanentemente esta ordem de produção? Esta ação não pode ser desfeita.",
+        actions: [
+          <Button key="cancel" onClick={closeDialog}>
+            Cancelar
+          </Button>,
+          <Button
+            key="confirm"
+            color="error"
+            variant="contained"
+            onClick={async () => {
+              closeDialog();
+              try {
+                await api.delete(`${ENDPOINTS.PRODUCAO}/${id}`);
+                tableRef.current?.reload();
+              } catch (error) {
+                console.error("Erro ao excluir ordem de produção:", error);
+                handleError(error);
+              }
+            }}
+          >
+            Remover
+          </Button>,
+        ],
+      });
+    },
+    [showDialog, closeDialog, handleError],
+  );
 
   const handleOpenInternalOrderDialog = () => {
     // ... (mantenha a lógica de ordem interna)
@@ -224,66 +242,80 @@ const Producao: React.FC = () => {
           ref={tableRef}
           columns={columns}
           onFetchData={handleFetchData}
-          rowActions={useCallback((row: any) => {
-            const actions = [];
+          rowActions={useCallback(
+            (
+              row: Record<string, unknown> & {
+                id: number;
+                status: string;
+                vendaId: number;
+              },
+            ) => {
+              const actions = [];
 
-            if (row.status === "MATERIAIS_PENDENTES") {
+              if (row.status === "MATERIAIS_PENDENTES") {
+                actions.push(
+                  <Tooltip title="Iniciar Produção" key="iniciar">
+                    <IconButton
+                      color="primary"
+                      onClick={() => {
+                        setSelectedOrdem(row);
+                        setIniciarProducaoOpen(true);
+                      }}
+                    >
+                      <CheckCircleOutlinedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>,
+                );
+              } else if (row.status !== "PRONTO_PARA_ENVIO") {
+                actions.push(
+                  <Tooltip title="Suprimentos de Obra" key="suprimentos">
+                    <IconButton
+                      color="warning"
+                      onClick={() => handleOpenSuprimentos(row.vendaId)}
+                      disabled={!row.vendaId}
+                    >
+                      <InventoryIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>,
+                  <Tooltip title="Alterar Status" key="status">
+                    <IconButton
+                      color="primary"
+                      onClick={() => handleOpenStatusUpdate(row)}
+                    >
+                      <EditNoteIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>,
+                  <Tooltip title="Finalizar Produção" key="finalizar">
+                    <IconButton
+                      color="success"
+                      onClick={() => handleFinalizarProducao(row.id)}
+                    >
+                      <CheckCircleOutlinedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>,
+                );
+              }
+
               actions.push(
-                <Tooltip title="Iniciar Produção" key="iniciar">
+                <Tooltip title="Remover Ordem" key="remover">
                   <IconButton
-                    color="primary"
-                    onClick={() => {
-                      setSelectedOrdem(row);
-                      setIniciarProducaoOpen(true);
-                    }}
+                    color="error"
+                    onClick={() => handleRemoverOrdem(row.id)}
                   >
-                    <CheckCircleOutlinedIcon fontSize="small" />
+                    <DeleteForeverIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>,
               );
-            } else if (row.status !== "PRONTO_PARA_ENVIO") {
-              actions.push(
-                <Tooltip title="Suprimentos de Obra" key="suprimentos">
-                  <IconButton
-                    color="warning"
-                    onClick={() => handleOpenSuprimentos(row.vendaId)}
-                    disabled={!row.vendaId}
-                  >
-                    <InventoryIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>,
-                <Tooltip title="Alterar Status" key="status">
-                  <IconButton
-                    color="primary"
-                    onClick={() => handleOpenStatusUpdate(row)}
-                  >
-                    <EditNoteIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>,
-                <Tooltip title="Finalizar Produção" key="finalizar">
-                  <IconButton
-                    color="success"
-                    onClick={() => handleFinalizarProducao(row.id)}
-                  >
-                    <CheckCircleOutlinedIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>,
-              );
-            }
 
-            actions.push(
-              <Tooltip title="Remover Ordem" key="remover">
-                <IconButton
-                  color="error"
-                  onClick={() => handleRemoverOrdem(row.id)}
-                >
-                  <DeleteForeverIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>,
-            );
-
-            return <Box sx={{ display: "flex", gap: 1 }}>{actions}</Box>;
-          }, [])}
+              return <Box sx={{ display: "flex", gap: 1 }}>{actions}</Box>;
+            },
+            [
+              handleFinalizarProducao,
+              handleOpenStatusUpdate,
+              handleOpenSuprimentos,
+              handleRemoverOrdem,
+            ],
+          )}
         />
       </Paper>
 
@@ -322,7 +354,16 @@ const Producao: React.FC = () => {
             setSuprimentosOpen(false);
             setSelectedVenda(null);
           }}
-          venda={selectedVenda}
+          venda={
+            selectedVenda as unknown as {
+              id: number;
+              suprimentosObra?: Record<string, unknown>[];
+              modeloCasa?: {
+                nome: string;
+                suprimentosObra?: Record<string, unknown>[];
+              };
+            }
+          }
           onUpdate={() => {
             tableRef.current?.reload();
           }}
@@ -336,7 +377,14 @@ const Producao: React.FC = () => {
             setIniciarProducaoOpen(false);
             setSelectedOrdem(null);
           }}
-          ordem={selectedOrdem}
+          ordem={
+            selectedOrdem as unknown as {
+              id: number;
+              modeloNome: string;
+              status: string;
+              notas?: string;
+            }
+          }
           onSuccess={() => tableRef.current?.reload()}
         />
       )}

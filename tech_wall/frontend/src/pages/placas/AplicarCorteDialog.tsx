@@ -61,7 +61,7 @@ export interface AplicarCorteDialogProps {
   placa: PlacaModel | null;
 }
 
-export const CUT_COLORS = [
+const CUT_COLORS = [
   "#2196f3", // Blue
   "#ff9800", // Orange
   "#9c27b0", // Purple
@@ -99,7 +99,7 @@ const PlacasAplicarCorteDialog: React.FC<AplicarCorteDialogProps> = ({
   const [origemY, setOrigemY] = useState<number>(0);
   const [rotacao, setRotacao] = useState<number>(0);
   const [nomePlacaFilha, setNomePlacaFilha] = useState("");
-  const [placaCompleta, setPlacaCompleta] = useState<any>(null);
+  const [placaCompleta, setPlacaCompleta] = useState<(PlacaModel & { formaCorteId?: number, formaCorte?: CorteOption, corteRotacao?: number }) | null>(null);
 
   // Dimensões derivadas da placa completa (buscada via GET)
   const placaLargura = placaCompleta?.largura

@@ -50,7 +50,7 @@ const NotasFiscaisTab: React.FC = () => {
       {
         title: "Lançamentos Vinculados",
         data: "_count",
-        render: (data: any) => data?.lancamentos ?? 0,
+        render: (data: { lancamentos?: number } | null) => data?.lancamentos ?? 0,
       },
       {
         title: "Data Upload",
@@ -65,7 +65,7 @@ const NotasFiscaisTab: React.FC = () => {
   // ===============================
   // FETCH DATA
   // ===============================
-  const handleFetchData = useCallback(async (data: any) => {
+  const handleFetchData = useCallback(async (data: Record<string, unknown>) => {
     const res = await api.post(
       `${ENDPOINTS.NOTAS_FISCAIS}${ENDPOINTS.DATATABLE}`,
       data,
@@ -82,7 +82,7 @@ const NotasFiscaisTab: React.FC = () => {
   // ===============================
   // HANDLERS
   // ===============================
-  const handleDownload = async (id: number) => {
+  const handleDownload = useCallback(async (id: number) => {
     try {
       const res = await api.get(`${ENDPOINTS.NOTAS_FISCAIS}/${id}/download`);
       const { nomeArquivo, tipoArquivo, arquivoBase64 } = res.data;
@@ -104,9 +104,9 @@ const NotasFiscaisTab: React.FC = () => {
     } catch (error) {
       handleError(error);
     }
-  };
+  }, [handleError]);
 
-  const handleDelete = (id: number) => {
+  const handleDelete = useCallback((id: number) => {
     showDialog({
       title: "Excluir Nota Fiscal",
       body: "Tem certeza de que deseja excluir esta nota fiscal? Os vínculos com lançamentos serão removidos.",
@@ -136,13 +136,13 @@ const NotasFiscaisTab: React.FC = () => {
         </Button>,
       ],
     });
-  };
+  }, [showDialog, closeDialog, handleError, showSnackbar]);
 
   // ===============================
   // ROW ACTIONS
   // ===============================
   const renderRowActions = useCallback(
-    (row: any) => (
+    (row: { id: number }) => (
       <Box sx={{ display: "flex", gap: 0.5 }}>
         <Tooltip title="Baixar Arquivo">
           <IconButton color="primary" onClick={() => handleDownload(row.id)}>
@@ -156,7 +156,7 @@ const NotasFiscaisTab: React.FC = () => {
         </Tooltip>
       </Box>
     ),
-    [],
+    [handleDelete, handleDownload],
   );
 
   return (

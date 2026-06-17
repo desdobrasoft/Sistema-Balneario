@@ -30,7 +30,7 @@ import { type Role, type UserModel } from "types/user";
 interface FormProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (values: any) => Promise<void>;
+  onSubmit: (values: UsuarioFormValues) => Promise<void>;
   item: UserModel | null;
 }
 
@@ -44,19 +44,19 @@ const getValidationSchema = (isEditing: boolean) =>
       : yup.string().required("Senha é obrigatória para novos usuários"),
     passwordConfirmation: yup.string().when("password", {
       is: (val?: string) => Boolean(val && val.length > 0),
-      then: (schema: any) =>
+      then: (schema: yup.StringSchema) =>
         schema
           .required("Confirme a nova senha")
           .oneOf([yup.ref("password")], "As senhas não coincidem"),
-      otherwise: (schema: any) => schema.optional(),
-    } as any),
+      otherwise: (schema: yup.StringSchema) => schema.optional(),
+    } as unknown as yup.StringSchema),
     roles: yup
       .array()
       .min(1, "Selecione ao menos um cargo")
       .required("Campo obrigatório"),
   });
 
-export const initialValues = {
+const initialValues = {
   username: "",
   fullName: "",
   email: "",
@@ -64,6 +64,8 @@ export const initialValues = {
   passwordConfirmation: "",
   roles: [] as string[],
 };
+
+export type UsuarioFormValues = typeof initialValues;
 
 const UsuariosForm: React.FC<FormProps> = ({
   open,
@@ -97,8 +99,13 @@ const UsuariosForm: React.FC<FormProps> = ({
         item
           ? {
             ...item,
-            roles: item.roles.map((r: any) => r.role?.role || r.role || r),
-          }
+            roles: item.roles.map((r: string | { role?: string | { role: string } }) => {
+              if (typeof r === 'string') return r;
+              if (r.role && typeof r.role === 'string') return r.role;
+              if (r.role && typeof r.role === 'object' && 'role' in r.role) return (r.role as {role: string}).role;
+              return String(r);
+            }),
+          } as unknown as UsuarioFormValues
           : null
       }
       initialValues={initialValues}

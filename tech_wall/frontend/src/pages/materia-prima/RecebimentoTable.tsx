@@ -20,12 +20,22 @@ import ReceberPedidoForm from "./ReceberPedidoForm";
 // ===============================
 // COMPONENT
 // ===============================
+export interface RecebimentoRow {
+  id: number;
+  status: string;
+  materiaPrima?: { item: string; unidade?: string };
+  fornecedor?: string;
+  qtSolicitada?: number;
+  qtEntregue?: number;
+  dataPedido?: string;
+}
+
 const RecebimentoTable: React.FC = () => {
   const tableRef = useRef<{ reload: () => void }>(null);
   const { showSnackbar } = useSnackbar();
 
   const [receberOpen, setReceberOpen] = useState(false);
-  const [selectedPedido, setSelectedPedido] = useState<any>(null);
+  const [selectedPedido, setSelectedPedido] = useState<RecebimentoRow | null>(null);
 
   const columns = useMemo(
     () => [
@@ -33,19 +43,19 @@ const RecebimentoTable: React.FC = () => {
       {
         title: "Material",
         data: "materiaPrima",
-        render: (data: any) => data?.item || "N/A",
+        render: (data: { item?: string } | null) => data?.item || "N/A",
       },
       { title: "Fornecedor", data: "fornecedor" },
       {
         title: "Qtde Solicitada",
         data: "qtSolicitada",
-        render: (data: number, _: any, row: any) =>
+        render: (data: number, _: unknown, row: RecebimentoRow) =>
           `${data} ${row.materiaPrima?.unidade || ""}`,
       },
       {
         title: "Qtde Entregue",
         data: "qtEntregue",
-        render: (data: number | null, _: any, row: any) =>
+        render: (data: number | null, _: unknown, row: RecebimentoRow) =>
           `${data || 0} ${row.materiaPrima?.unidade || ""}`,
       },
       {
@@ -89,7 +99,7 @@ const RecebimentoTable: React.FC = () => {
     [],
   );
 
-  const handleFetchData = useCallback(async (data: any) => {
+  const handleFetchData = useCallback(async (data: Record<string, unknown>) => {
     const res = await api.post(
       `${ENDPOINTS.PEDIDOS_COMPRA}${ENDPOINTS.DATATABLE}`,
       data,
@@ -103,10 +113,10 @@ const RecebimentoTable: React.FC = () => {
     };
   }, []);
 
-  const handleReceber = (pedido: any) => {
+  const handleReceber = useCallback((pedido: RecebimentoRow) => {
     setSelectedPedido(pedido);
     setReceberOpen(true);
-  };
+  }, []);
 
 
 
@@ -126,7 +136,7 @@ const RecebimentoTable: React.FC = () => {
         columns={columns}
         onFetchData={handleFetchData}
         rowActions={useCallback(
-          (row: any) => {
+          (row: RecebimentoRow) => {
             const actions = [];
 
             if (row.status === "COMPRADO") {
@@ -148,7 +158,7 @@ const RecebimentoTable: React.FC = () => {
               <Box sx={{ display: "flex", gap: 1 }}>{actions}</Box>
             );
           },
-          [],
+          [handleReceber],
         )}
       />
 

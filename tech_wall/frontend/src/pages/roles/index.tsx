@@ -41,7 +41,7 @@ const RolesList: React.FC = () => {
     [],
   );
 
-  const handleFetchData = useCallback(async (data: any) => {
+  const handleFetchData = useCallback(async (data: Record<string, unknown>) => {
     const res = await api.post(`${ENDPOINTS.ROLES}${ENDPOINTS.DATATABLE}`, data);
 
     return {
@@ -52,7 +52,7 @@ const RolesList: React.FC = () => {
     };
   }, []);
 
-  const handleOpenDialog = async (role: Role | null = null) => {
+  const handleOpenDialog = useCallback(async (role?: Role) => {
     if (role) {
       try {
         const res = await api.get(`${ENDPOINTS.ROLES}/${role.id}`);
@@ -64,15 +64,16 @@ const RolesList: React.FC = () => {
       setSelectedRole(null);
     }
     setDialogOpen(true);
-  };
+  }, [handleError]);
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setSelectedRole(null);
   };
 
-  const handleSubmit = async (values: any) => {
-    const { id, ...payload } = values; // Strip id from payload
+  const handleSubmit = async (values: Record<string, unknown>) => {
+    const payload = { ...values };
+    delete payload.id;
 
     try {
       if (selectedRole) {
@@ -89,7 +90,19 @@ const RolesList: React.FC = () => {
     }
   };
 
-  const confirmDelete = (id: number) => {
+  const executeDelete = useCallback(async (id: number) => {
+    try {
+      await api.delete(`${ENDPOINTS.ROLES}/${id}`);
+      showSnackbar({ message: "Cargo excluído com sucesso!", severity: "success" });
+      tableRef.current?.reload();
+    } catch (error) {
+      handleError(error);
+    } finally {
+      closeDialog();
+    }
+  }, [handleError, showSnackbar, closeDialog]);
+
+  const confirmDelete = useCallback((id: number) => {
     showDialog({
       title: "Confirmar Exclusão",
       body: "Deseja realmente excluir este cargo? Usuários vinculados a ele perderão as permissões associadas.",
@@ -107,19 +120,7 @@ const RolesList: React.FC = () => {
         </Button>,
       ],
     });
-  };
-
-  const executeDelete = async (id: number) => {
-    try {
-      await api.delete(`${ENDPOINTS.ROLES}/${id}`);
-      showSnackbar({ message: "Cargo excluído com sucesso!", severity: "success" });
-      tableRef.current?.reload();
-    } catch (error) {
-      handleError(error);
-    } finally {
-      closeDialog();
-    }
-  };
+  }, [showDialog, closeDialog, executeDelete]);
 
   return (
     <Box>
@@ -161,7 +162,7 @@ const RolesList: React.FC = () => {
                 </IconButton>
               </Box>
             ),
-            [],
+            [confirmDelete, handleOpenDialog],
           )}
         />
       </Paper>

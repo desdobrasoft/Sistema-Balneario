@@ -32,7 +32,7 @@ interface Suprimento {
 interface SuprimentosDialogProps {
   open: boolean;
   onClose: () => void;
-  venda: any;
+  venda: { id: number; suprimentosObra?: Record<string, unknown>[]; modeloCasa?: { nome: string; suprimentosObra?: Record<string, unknown>[] } } | null;
   onUpdate: () => void;
 }
 
@@ -59,10 +59,10 @@ const SuprimentosDialog: React.FC<SuprimentosDialogProps> = ({
           : venda.modeloCasa?.suprimentosObra || [];
 
       // Normaliza para garantir que todos tenham um ID (usa nome como fallback)
-      const normalized = list.map((s: any) => ({
+      const normalized = list.map((s: Record<string, unknown>) => ({
         ...s,
-        id: s.id || s.nome || "sem-id",
-      }));
+        id: s.id?.toString() || s.nome || "sem-id",
+      })) as Suprimento[];
 
       setSuprimentos(normalized);
     }
@@ -79,7 +79,7 @@ const SuprimentosDialog: React.FC<SuprimentosDialogProps> = ({
 
     setLoading(true);
     try {
-      await api.post(`${ENDPOINTS.VENDAS}/${venda.id}/suprimentos/comprar`, {
+      await api.post(`${ENDPOINTS.VENDAS}/${venda?.id}/suprimentos/comprar`, {
         suprimentoId: buyingItem.id,
         precoPago: parseFloat(price),
       });

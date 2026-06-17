@@ -14,6 +14,7 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
+import PrintIcon from "@mui/icons-material/Print";
 
 // project imports
 import DataTable from "../../components/datatable/DataTable";
@@ -26,8 +27,11 @@ import {
   StatusPagamentoVenda,
   StatusVenda,
   StatusVendaLabels,
+  StatusPagamentoVendaLabels,
 } from "../../types/enums";
 import VendaForm from "./Form";
+import { ReportExportModal } from "../../components/ReportExportModal";
+import { handleExportFormat, type ColumnDef } from "../../utils/exportUtils";
 
 // ===============================
 // STATUS COLOR HELPERS
@@ -119,7 +123,12 @@ function chipHtml(
 const Vendas = () => {
   const tableRef = useRef<{ reload: () => void }>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<any | null>(null);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [initialIsAvulso, setInitialIsAvulso] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
   const { showDialog, closeDialog } = useDialog();
   const { showSnackbar } = useSnackbar();
   const handleError = useErrorHandler();
@@ -127,17 +136,17 @@ const Vendas = () => {
   // All column render functions return plain strings/HTML – required by DataTables.net
   const columns = useMemo(
     () => [
-      { title: "ID", data: "id" },
+      { title: "ID", data: "id", width: "1px" },
       { title: "Cliente", data: "clienteNome" },
-      { title: "Modelo", data: "modeloNome" },
+      { title: "Produto", data: "modeloNome" },
       {
         title: "Preço",
         data: "preco",
-        render: (data: any) =>
+        render: (data: string | number) =>
           new Intl.NumberFormat("pt-BR", {
             style: "currency",
             currency: "BRL",
-          }).format(parseFloat(data || "0")),
+          }).format(parseFloat(String(data) || "0")),
       },
       {
         title: "Status",
@@ -175,7 +184,7 @@ const Vendas = () => {
     [],
   );
 
-  const handleFetchData = useCallback(async (data: any) => {
+  const handleFetchData = useCallback(async (data: Record<string, unknown>) => {
     const res = await api.post(
       `${ENDPOINTS.VENDAS}${ENDPOINTS.DATATABLE}`,
       data,
@@ -190,19 +199,53 @@ const Vendas = () => {
   }, []);
 
   const handleOpenAdd = () => {
-    setSelectedItem(null);
-    setFormOpen(true);
+    showDialog({
+      title: "Nova Venda",
+      body: "Escolha o tipo de venda que deseja registrar:",
+      actions: [
+        <Button key="cancel" onClick={closeDialog}>
+          Cancelar
+        </Button>,
+        <Button
+          key="modelo"
+          variant="contained"
+          onClick={() => {
+            closeDialog();
+            setInitialIsAvulso(false);
+            setSelectedItem(null);
+            setFormOpen(true);
+          }}
+        >
+          Modelo de Casa
+        </Button>,
+        <Button
+          key="avulsa"
+          variant="contained"
+          onClick={() => {
+            closeDialog();
+            setInitialIsAvulso(true);
+            setSelectedItem(null);
+            setFormOpen(true);
+          }}
+        >
+          Placas
+        </Button>,
+      ],
+    });
   };
 
-  const handleOpenEdit = useCallback(async (item: any) => {
-    try {
-      const res = await api.get(`${ENDPOINTS.VENDAS}/${item.id}`);
-      setSelectedItem(res.data);
-      setFormOpen(true);
-    } catch (error) {
-      handleError(error);
-    }
-  }, [handleError]);
+  const handleOpenEdit = useCallback(
+    async (item: { id: number }) => {
+      try {
+        const res = await api.get(`${ENDPOINTS.VENDAS}/${item.id}`);
+        setSelectedItem(res.data);
+        setFormOpen(true);
+      } catch (error) {
+        handleError(error);
+      }
+    },
+    [handleError],
+  );
 
   const handleCloseForm = () => {
     setFormOpen(false);
@@ -231,7 +274,10 @@ const Vendas = () => {
               closeDialog();
               try {
                 await api.post(`${ENDPOINTS.VENDAS}/${id}/estornar`);
-                showSnackbar({ message: "Venda excluída/estornada com sucesso!", severity: "success" });
+                showSnackbar({
+                  message: "Venda excluída/estornada com sucesso!",
+                  severity: "success",
+                });
                 tableRef.current?.reload();
               } catch (error) {
                 handleError(error);
@@ -243,11 +289,11 @@ const Vendas = () => {
         ],
       });
     },
-    [showDialog, closeDialog, handleError],
+    [showDialog, closeDialog, handleError, showSnackbar],
   );
 
   const renderRowActions = useCallback(
-    (row: any) => (
+    (row: Record<string, unknown> & { id: number }) => (
       <Box sx={{ display: "flex", gap: 0.5 }}>
         <Tooltip title="Editar Venda">
           <IconButton
@@ -272,6 +318,45 @@ const Vendas = () => {
     [handleOpenEdit, handleDelete],
   );
 
+  const handleExport = async (format: 'PDF' | 'CSV' | 'XLSX' | 'PRINT', filters: { startDate: string; endDate: string }) => {
+    try {
+      const params = new URLSearchParams();
+      if (filters.startDate) params.append("startDate", filters.startDate);
+      if (filters.endDate) params.append("endDate", filters.endDate);
+      
+      const res = await api.get(`${ENDPOINTS.VENDAS}/report?${params.toString()}`);
+      
+      const columns: ColumnDef[] = [
+        { header: "ID", key: "id", width: 10 },
+        { header: "Data", key: "dataVenda", width: 20 },
+        { header: "Cliente", key: "cliente", width: 30 },
+        { header: "Modelo", key: "modelo", width: 30 },
+        { header: "Status", key: "status", width: 20 },
+        { header: "Pagamento", key: "pagamento", width: 20 },
+        { header: "Valor (R$)", key: "valor", width: 20 },
+      ];
+
+      const data = res.data.map((item: Record<string, unknown>) => {
+        const clienteObj = item.cliente as Record<string, unknown> | undefined;
+        const modeloObj = item.modeloCasa as Record<string, unknown> | undefined;
+        return {
+          id: item.id,
+          dataVenda: new Date(item.dataVenda as string).toLocaleDateString('pt-BR'),
+          cliente: clienteObj?.nome || "-",
+          modelo: modeloObj?.nome || "Venda de Placas",
+          status: StatusVendaLabels[item.status as StatusVenda] || item.status,
+          pagamento: StatusPagamentoVendaLabels[item.statusPagamento as StatusPagamentoVenda] || item.statusPagamento,
+          valor: new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(Number(item.preco)),
+        };
+      });
+
+      handleExportFormat(format, "Relatório de Vendas", columns, data);
+      setReportModalOpen(false);
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
   return (
     <Box>
       <Stack
@@ -289,14 +374,24 @@ const Vendas = () => {
             Visualize e gerencie todas as transações de vendas
           </Typography>
         </Stack>
-        <Button
-          variant="contained"
-          startIcon={<AddCircleOutlinedIcon />}
-          size="large"
-          onClick={handleOpenAdd}
-        >
-          Registrar Venda
-        </Button>
+        <Stack direction="row" spacing={2}>
+          <Button
+            variant="outlined"
+            startIcon={<PrintIcon />}
+            size="large"
+            onClick={() => setReportModalOpen(true)}
+          >
+            Relatórios
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddCircleOutlinedIcon />}
+            size="large"
+            onClick={handleOpenAdd}
+          >
+            Registrar Venda
+          </Button>
+        </Stack>
       </Stack>
 
       <Paper sx={{ p: 2 }}>
@@ -314,8 +409,15 @@ const Vendas = () => {
           onClose={handleCloseForm}
           onSuccess={handleSaveSuccess}
           item={selectedItem}
+          initialIsAvulso={initialIsAvulso}
         />
       )}
+
+      <ReportExportModal
+        open={reportModalOpen}
+        onClose={() => setReportModalOpen(false)}
+        onExport={handleExport}
+      />
     </Box>
   );
 };

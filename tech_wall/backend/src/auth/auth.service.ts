@@ -30,7 +30,7 @@ export class AuthService {
     return user;
   }
 
-  async login(user: any) {
+  async login(user: { id: number; roles: { role: { role: string } }[] }) {
     // Payload do Access Token (curto, com mais informações)
     const accessTokenPayload = {
       sub: user.id,

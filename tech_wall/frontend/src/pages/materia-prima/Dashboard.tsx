@@ -63,8 +63,16 @@ interface DashboardStats {
   ultimaSaida: string | null;
 }
 
+interface LowStockItem {
+  id: number;
+  item: string;
+  quantidade: number;
+  unidade?: string;
+  estoqueMinimo: number;
+}
+
 interface MateriaPrimaDashboardProps {
-  onOpenPedidoCompra?: (material: any) => void;
+  onOpenPedidoCompra?: (material: LowStockItem) => void;
 }
 
 // ===============================
@@ -76,7 +84,7 @@ const MateriaPrimaDashboard: React.FC<MateriaPrimaDashboardProps> = ({
   const theme = useTheme();
   const handleError = useErrorHandler();
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [lowStockItems, setLowStockItems] = useState<any[]>([]);
+  const [lowStockItems, setLowStockItems] = useState<LowStockItem[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -92,7 +100,7 @@ const MateriaPrimaDashboard: React.FC<MateriaPrimaDashboardProps> = ({
           ? materiaisRes.data
           : materiaisRes.data.data || [];
         const low = allItems.filter(
-          (m: any) => m.estoqueMinimo != null && m.quantidade < m.estoqueMinimo,
+          (m: { estoqueMinimo?: number; quantidade: number }) => m.estoqueMinimo != null && m.quantidade < m.estoqueMinimo,
         );
         setLowStockItems(low);
       } catch (error) {
@@ -100,7 +108,7 @@ const MateriaPrimaDashboard: React.FC<MateriaPrimaDashboardProps> = ({
       }
     };
     fetchData();
-  }, []);
+  }, [handleError]);
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "N/A";
@@ -158,7 +166,7 @@ const MateriaPrimaDashboard: React.FC<MateriaPrimaDashboardProps> = ({
             Materiais com Estoque Abaixo do Limite
           </AlertTitle>
           <List dense disablePadding>
-            {lowStockItems.map((item: any) => (
+            {lowStockItems.map((item: LowStockItem) => (
               <ListItem
                 key={item.id}
                 disableGutters
@@ -177,8 +185,11 @@ const MateriaPrimaDashboard: React.FC<MateriaPrimaDashboardProps> = ({
               >
                 <ListItemText
                   primary={<strong>{item.item}</strong>}
-                  secondary={`Em estoque: ${item.quantidade} ${item.unidade || ""} — Mínimo: ${item.estoqueMinimo}`}
-                  secondaryTypographyProps={{ color: "warning.dark" }}
+                  secondary={
+                    <Typography component="span" variant="body2" color="warning.dark">
+                      {`Em estoque: ${item.quantidade} ${item.unidade || ""} — Mínimo: ${item.estoqueMinimo}`}
+                    </Typography>
+                  }
                 />
               </ListItem>
             ))}

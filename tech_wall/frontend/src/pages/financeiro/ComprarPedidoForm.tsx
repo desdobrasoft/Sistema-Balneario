@@ -17,11 +17,17 @@ interface ComprarPedidoFormValues {
   valorUnitario: number | "";
 }
 
+export interface ComprarPedidoModel {
+  fornecedor?: string;
+  qtSolicitada?: number | string;
+  materiaPrima?: { item: string };
+}
+
 interface ComprarPedidoFormProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (values: ComprarPedidoFormValues) => Promise<void>;
-  pedido: any;
+  pedido: ComprarPedidoModel | null;
 }
 
 // ===============================
@@ -81,7 +87,7 @@ const ComprarPedidoForm: React.FC<ComprarPedidoFormProps> = ({
             <TextField
               fullWidth
               name="valorUnitario"
-              label="Valor Unitário"
+              label="Valor Total"
               type="number"
               size="small"
               value={formik.values.valorUnitario}

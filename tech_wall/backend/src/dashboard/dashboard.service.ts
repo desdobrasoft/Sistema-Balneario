@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  Prisma,
   StatusEntrega,
   StatusProducao,
   StatusVenda,
@@ -10,12 +11,32 @@ import { PrismaService } from '../prisma/prisma.service';
 export class DashboardService {
   constructor(private prisma: PrismaService) {}
 
-  async getStats() {
+  async getStats(startDateStr?: string, endDateStr?: string) {
     const today = new Date();
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(today.getMonth() - 5);
     sixMonthsAgo.setDate(1);
     sixMonthsAgo.setHours(0, 0, 0, 0);
+
+    let startDate: Date | undefined;
+    let endDate: Date | undefined;
+
+    if (startDateStr) {
+      startDate = new Date(startDateStr);
+      startDate.setHours(0, 0, 0, 0);
+    }
+    if (endDateStr) {
+      endDate = new Date(endDateStr);
+      endDate.setHours(23, 59, 59, 999);
+    }
+
+    const dateFilter =
+      startDate || endDate
+        ? {
+            ...(startDate ? { gte: startDate } : {}),
+            ...(endDate ? { lte: endDate } : {}),
+          }
+        : undefined;
 
     const [
       totalSales,
@@ -28,7 +49,10 @@ export class DashboardService {
       // 1. Total de Vendas (não canceladas)
       this.prisma.venda.aggregate({
         _sum: { preco: true },
-        where: { status: { not: StatusVenda.CANCELADA } },
+        where: {
+          status: { not: StatusVenda.CANCELADA },
+          ...(dateFilter ? { dataVenda: dateFilter } : {}),
+        },
       }),
 
       // 2. Produções Ativas
@@ -43,7 +67,7 @@ export class DashboardService {
       // 3. Vendas por Mês (últimos 6 meses)
       this.prisma.venda.findMany({
         where: {
-          dataVenda: { gte: sixMonthsAgo },
+          dataVenda: dateFilter || { gte: sixMonthsAgo },
           status: { not: StatusVenda.CANCELADA },
         },
         select: {
@@ -59,10 +83,10 @@ export class DashboardService {
       }),
 
       // 5. Média de Entrega (Existente)
-      this.getAverageDeliveryTime(),
+      this.getAverageDeliveryTime(startDateStr, endDateStr),
 
       // 6. Análise de Entrega (Existente)
-      this.getDeliveryTimeAnalysis(),
+      this.getDeliveryTimeAnalysis(startDateStr, endDateStr),
     ]);
 
     // Processar vendas mensais
@@ -91,12 +115,21 @@ export class DashboardService {
     };
   }
 
-  async getAverageDeliveryTime() {
+  async getAverageDeliveryTime(startDateStr?: string, endDateStr?: string) {
+    let dateWhere = Prisma.empty;
+    if (startDateStr) {
+      dateWhere = Prisma.sql`AND v.data_venda >= ${new Date(startDateStr)}`;
+    }
+    if (endDateStr) {
+      dateWhere = Prisma.sql`${dateWhere} AND v.data_venda <= ${new Date(endDateStr + 'T23:59:59.999Z')}`;
+    }
+
     const result = await this.prisma.$queryRaw<[{ avg_days: number | null }]>`
       SELECT AVG(EXTRACT(DAY FROM e.updated_at - v.data_venda)) as avg_days
       FROM entregas e
       JOIN vendas v ON e.venda_id = v.id
-      WHERE e.status = ${StatusEntrega.ENTREGUE}::status_entrega;
+      WHERE e.status = ${StatusEntrega.ENTREGUE}::status_entrega
+      ${dateWhere};
     `;
 
     return {
@@ -104,7 +137,15 @@ export class DashboardService {
     };
   }
 
-  async getDeliveryTimeAnalysis() {
+  async getDeliveryTimeAnalysis(startDateStr?: string, endDateStr?: string) {
+    let dateWhere = Prisma.empty;
+    if (startDateStr) {
+      dateWhere = Prisma.sql`AND v.data_venda >= ${new Date(startDateStr)}`;
+    }
+    if (endDateStr) {
+      dateWhere = Prisma.sql`${dateWhere} AND v.data_venda <= ${new Date(endDateStr + 'T23:59:59.999Z')}`;
+    }
+
     const result = await this.prisma.$queryRaw<
       [
         {
@@ -122,7 +163,8 @@ export class DashboardService {
         COUNT(*) FILTER (WHERE (e.updated_at - e.previsao_entrega) > interval '5 days') AS late
       FROM entregas e
       JOIN vendas v ON e.venda_id = v.id
-      WHERE e.status = ${StatusEntrega.ENTREGUE}::status_entrega;
+      WHERE e.status = ${StatusEntrega.ENTREGUE}::status_entrega
+      ${dateWhere};
     `;
 
     const counts = result[0];

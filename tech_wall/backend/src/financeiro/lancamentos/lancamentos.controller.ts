@@ -8,6 +8,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
@@ -39,6 +40,15 @@ export class LancamentosController {
   @HttpCode(200)
   async datatable(@Body() body: DataTableParamsDto) {
     return this.service.findDatatable(body);
+  }
+
+  @Get('report')
+  async getReport(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('tipo') tipo?: string,
+  ) {
+    return this.service.getReportData(startDate, endDate, tipo);
   }
 
   @Get(':id')

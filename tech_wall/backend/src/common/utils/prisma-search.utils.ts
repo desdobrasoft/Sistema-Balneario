@@ -16,7 +16,7 @@ export function buildSearchFilter(
     // Suporte para campos aninhados (ex: 'cliente.nome')
     if (field.includes('.')) {
       const parts = field.split('.');
-      let nested: any = {};
+      const nested: any = {};
       let current = nested;
       for (let i = 0; i < parts.length - 1; i++) {
         current[parts[i]] = {};

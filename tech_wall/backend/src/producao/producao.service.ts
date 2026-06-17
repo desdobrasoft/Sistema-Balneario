@@ -11,7 +11,7 @@ import {
   StatusProducao,
   StatusVenda,
 } from '../generated/prisma/client';
-import { GeometriaPlaca } from '../placas/utils/geometria.utils';
+import { GeometriaPlaca, VetorCorte } from '../placas/utils/geometria.utils';
 import { PrismaService } from '../prisma/prisma.service';
 import { BulkAlocacaoDto } from './dto/bulk-alocacao.dto';
 import { CreateInternalOrderDto } from './dto/create-internal-order.dto';
@@ -138,7 +138,11 @@ export class ProducaoService {
         dataAgendamento: ordem.dataAgendamento,
         vendaId: ordem.venda?.id || null,
         clienteNome: ordem.venda?.cliente?.nome || 'N/A',
-        modeloNome: ordem.venda?.modeloCasa?.nome || 'N/A',
+        modeloNome:
+          ordem.venda && ordem.venda.modeloId === null
+            ? 'Venda de Placas'
+            : ordem.venda?.modeloCasa?.nome || 'N/A',
+        isVendaPlacas: ordem.venda ? ordem.venda.modeloId === null : false,
         venda: ordem.venda,
         ordensProducaoHistorico: ordem.ordensProducaoHistorico,
       };
@@ -274,17 +278,38 @@ export class ProducaoService {
         ordem.status === StatusProducao.MATERIAIS_PENDENTES &&
         dto.status === StatusProducao.EM_ESPERA
       ) {
-        if (!ordem.venda.modeloCasa) {
-          throw new ConflictException(
-            `Não é possível alocar materiais pois a venda ou o modelo de casa associado não foram encontrados.`,
-          );
+        let itensParaConsumir: {
+          materiaPrimaId: number;
+          materiaPrima: any;
+          quantidadeNecessaria: number;
+        }[] = [];
+
+        // Só desconta matérias-primas extras se for venda de Modelo.
+        // Venda de placas avulsas não desconta material aqui pois já foi descontado no registro da placa.
+        if (ordem.venda.modeloId) {
+          if (
+            ordem.venda.vendaItensOverride &&
+            ordem.venda.vendaItensOverride.length > 0
+          ) {
+            itensParaConsumir = ordem.venda.vendaItensOverride.map((item) => ({
+              materiaPrimaId: item.materiaPrimaId,
+              materiaPrima: item.materiaPrima,
+              quantidadeNecessaria: item.qtFinal,
+            }));
+          } else if (ordem.venda.modeloCasa) {
+            itensParaConsumir = ordem.venda.modeloCasa.materiaisModeloCasa.map(
+              (item) => ({
+                materiaPrimaId: item.materiaPrimaId,
+                materiaPrima: item.materiaPrima,
+                quantidadeNecessaria: item.qtModelo,
+              }),
+            );
+          }
         }
 
-        const { materiaisModeloCasa } = ordem.venda.modeloCasa;
-
         // 1. Validar estoque de materiais
-        for (const item of materiaisModeloCasa) {
-          if (item.materiaPrima.quantidade < item.qtModelo) {
+        for (const item of itensParaConsumir) {
+          if (item.materiaPrima.quantidade < item.quantidadeNecessaria) {
             throw new ConflictException(
               `Estoque insuficiente para o material "${item.materiaPrima.item}".`,
             );
@@ -292,10 +317,10 @@ export class ProducaoService {
         }
 
         // 2. Debitar estoque de materiais
-        for (const item of materiaisModeloCasa) {
+        for (const item of itensParaConsumir) {
           await tx.materiaPrima.update({
             where: { id: item.materiaPrimaId },
-            data: { quantidade: { decrement: item.qtModelo } },
+            data: { quantidade: { decrement: item.quantidadeNecessaria } },
           });
         }
 
@@ -439,7 +464,7 @@ export class ProducaoService {
     });
   }
 
-  async findCompatiblePlates(requisitoId: number) {
+  async findCompatiblePlates(requisitoId: number, availablePlacas?: any[]) {
     const req = await this.prisma.vendaRequisito.findUnique({
       where: { id: requisitoId },
       include: { corte: true },
@@ -447,7 +472,9 @@ export class ProducaoService {
     if (!req) throw new NotFoundException('Requisito não encontrado');
 
     const isCorte = req.tipo === 'CORTE_ESPECIFICO';
-    const percurso = isCorte ? (req.corte?.percurso as any[]) : null;
+    const percurso = isCorte
+      ? ((req.corte?.percurso as VetorCorte[] | undefined) ?? null)
+      : null;
 
     const reqW = Number(req.largura || 0);
     const reqH = Number(req.altura || 0);
@@ -471,13 +498,16 @@ export class ProducaoService {
       }
     }
 
-    const placas = await this.prisma.placa.findMany({
-      where: {
-        statusPlaca: 'DISPONIVEL',
-        statusProducao: 'FINALIZADA',
-        deletedAt: null,
-      },
-    });
+    const placas =
+      availablePlacas ||
+      (await this.prisma.placa.findMany({
+        where: {
+          statusPlaca: 'DISPONIVEL',
+          statusProducao: 'FINALIZADA',
+          deletedAt: null,
+          placasDerivadas: { none: {} },
+        },
+      }));
 
     const normalizeTrama = (val: any) => {
       if (val === null || val === undefined) return 0;
@@ -492,6 +522,8 @@ export class ProducaoService {
     };
 
     const results = placas.filter((p) => {
+      if (p.reforco !== req.reforco) return false;
+
       const pW = Number(p.largura || 0);
       const pH = Number(p.altura || 0);
       const pTramas = {
@@ -543,6 +575,33 @@ export class ProducaoService {
       return false;
     });
 
+    return results;
+  }
+
+  async findCompatiblePlatesBatch(reqIds: number[]) {
+    if (!reqIds || reqIds.length === 0) return {};
+
+    const placas = await this.prisma.placa.findMany({
+      where: {
+        statusPlaca: 'DISPONIVEL',
+        statusProducao: 'FINALIZADA',
+        deletedAt: null,
+        placasDerivadas: { none: {} },
+      },
+    });
+
+    const results: Record<number, any[]> = {};
+    for (const reqId of reqIds) {
+      const comp = await this.findCompatiblePlates(reqId, placas).catch(
+        () => [],
+      );
+      results[reqId] = comp.map((p) => ({
+        id: p.id,
+        nome: p.nome,
+        largura: p.largura,
+        altura: p.altura,
+      }));
+    }
     return results;
   }
 

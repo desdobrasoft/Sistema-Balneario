@@ -54,7 +54,7 @@ const NovoPedidoFinanceiroForm: React.FC<NovoPedidoFinanceiroFormProps> = ({
 }) => {
   const handleError = useErrorHandler();
   const { showSnackbar } = useSnackbar();
-  const [materiais, setMateriais] = useState<any[]>([]);
+  const [materiais, setMateriais] = useState<{ id: number; item: string; unidade?: string }[]>([]);
 
   useEffect(() => {
     if (open) {
@@ -63,7 +63,7 @@ const NovoPedidoFinanceiroForm: React.FC<NovoPedidoFinanceiroFormProps> = ({
         .then((res) => setMateriais(Array.isArray(res.data) ? res.data : []))
         .catch(handleError);
     }
-  }, [open]);
+  }, [open, handleError]);
 
   const initialValues: NovoPedidoFormValues = {
     materiaPrimaId: "",
@@ -79,9 +79,10 @@ const NovoPedidoFinanceiroForm: React.FC<NovoPedidoFinanceiroFormProps> = ({
       onSubmit={async (values) => {
         await api.post(ENDPOINTS.PEDIDOS_COMPRA, {
           materiaPrimaId: values.materiaPrimaId,
-          qtSolicitada: values.qtSolicitada,
+          qtSolicitada: Number(values.qtSolicitada),
           fornecedor: values.fornecedor || undefined,
           valorUnitario: values.valorUnitario || undefined,
+          isDirectPurchase: true,
         });
         showSnackbar({
           message: "Pedido de compra criado com sucesso!",
@@ -99,12 +100,12 @@ const NovoPedidoFinanceiroForm: React.FC<NovoPedidoFinanceiroFormProps> = ({
           <Grid size={12}>
             <Autocomplete
               options={materiais}
-              getOptionLabel={(opt: any) =>
+              getOptionLabel={(opt: { item: string; unidade?: string }) =>
                 `${opt.item}${opt.unidade ? ` (${opt.unidade})` : ""}`
               }
               value={
                 materiais.find(
-                  (m: any) => m.id === formik.values.materiaPrimaId,
+                  (m: { id: number }) => m.id === formik.values.materiaPrimaId,
                 ) || null
               }
               onChange={(_, value) =>
@@ -152,7 +153,7 @@ const NovoPedidoFinanceiroForm: React.FC<NovoPedidoFinanceiroFormProps> = ({
             <TextField
               fullWidth
               name="valorUnitario"
-              label="Valor Unitário"
+              label="Valor Total"
               type="number"
               size="small"
               value={formik.values.valorUnitario}

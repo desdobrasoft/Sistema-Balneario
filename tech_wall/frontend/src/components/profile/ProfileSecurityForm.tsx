@@ -35,7 +35,9 @@ export const ProfileSecurityForm: React.FC<ProfileSecurityFormProps> = ({
     onSubmit: async (values) => {
       if (!user) return;
       try {
-        await api.patch(`${ENDPOINTS.USERS}/${user.id}`, { password: values.password });
+        await api.patch(`${ENDPOINTS.USERS}/${user.id}`, {
+          password: values.password,
+        });
         onSuccess();
       } catch (error) {
         console.error("Erro ao alterar senha:", error);
@@ -56,7 +58,10 @@ export const ProfileSecurityForm: React.FC<ProfileSecurityFormProps> = ({
             value={formik.values.password}
             onChange={formik.handleChange}
             error={formik.touched.password && Boolean(formik.errors.password)}
-            helperText={formik.touched.password && (formik.errors.password as string)}
+            helperText={
+              formik.touched.password && (formik.errors.password as string)
+            }
+            size="small"
           />
         </Grid>
         <Grid size={12}>
@@ -75,6 +80,7 @@ export const ProfileSecurityForm: React.FC<ProfileSecurityFormProps> = ({
               formik.touched.passwordConfirmation &&
               (formik.errors.passwordConfirmation as string)
             }
+            size="small"
           />
         </Grid>
       </Grid>

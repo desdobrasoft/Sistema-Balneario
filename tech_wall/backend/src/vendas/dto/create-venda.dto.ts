@@ -65,6 +65,10 @@ class VendaRequisitoOverrideDto {
   @IsOptional()
   @IsInt()
   corteId?: number;
+
+  @IsOptional()
+  @IsString()
+  reforco?: string;
 }
 
 class VendaSuprimentoOverrideDto {
@@ -72,7 +76,7 @@ class VendaSuprimentoOverrideDto {
   @IsNotEmpty()
   nome: string;
 
-  @IsInt()
+  @IsNumber()
   @IsPositive()
   quantidade: number;
 
@@ -90,9 +94,10 @@ export class CreateVendaDto {
   @IsPositive()
   clienteId: number;
 
+  @IsOptional()
   @IsInt()
   @IsPositive()
-  modeloId: number;
+  modeloId?: number;
 
   @IsDateString()
   @IsNotEmpty()

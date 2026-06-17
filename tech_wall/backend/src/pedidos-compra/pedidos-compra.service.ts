@@ -23,19 +23,37 @@ import {
 export class PedidosCompraService {
   constructor(private prisma: PrismaService) {}
 
-  create(dto: CreatePedidoDto, user: AuthenticatedUser) {
-    const isFinanceiro = user.role?.includes('financeiro');
+  async create(dto: CreatePedidoDto, user: AuthenticatedUser) {
+    const isFinanceiro = dto.isDirectPurchase === true;
 
-    return this.prisma.pedidoCompra.create({
-      data: {
-        materiaPrimaId: dto.materiaPrimaId,
-        userId: user.id,
-        qtSolicitada: dto.qtSolicitada,
-        fornecedor: dto.fornecedor,
-        // Financeiro cria direto como COMPRADO com valor; estoquista cria como SOLICITADO
-        valorUnitario: isFinanceiro ? dto.valorUnitario : undefined,
-        status: isFinanceiro ? 'COMPRADO' : 'SOLICITADO',
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const pedido = await tx.pedidoCompra.create({
+        data: {
+          materiaPrimaId: dto.materiaPrimaId,
+          userId: user.id,
+          qtSolicitada: dto.qtSolicitada,
+          fornecedor: dto.fornecedor,
+          // Financeiro cria direto como COMPRADO com valor; estoquista cria como SOLICITADO
+          valorUnitario: isFinanceiro ? dto.valorUnitario : undefined,
+          status: isFinanceiro ? 'COMPRADO' : 'SOLICITADO',
+        },
+        include: { materiaPrima: true },
+      });
+
+      if (isFinanceiro && dto.valorUnitario) {
+        await tx.lancamentoFinanceiro.create({
+          data: {
+            tipo: 'D',
+            descricao: `Compra de ${pedido.qtSolicitada} ${pedido.materiaPrima.unidade || ''} de ${pedido.materiaPrima.item}${pedido.fornecedor ? ' - ' + pedido.fornecedor : ''}`,
+            valorTotal: dto.valorUnitario,
+            valorPendente: 0,
+            statusPagamento: 'PAGO',
+            dataUltimoPagamento: new Date(),
+          },
+        });
+      }
+
+      return pedido;
     });
   }
 
@@ -113,32 +131,50 @@ export class PedidosCompraService {
     };
   }
 
-  // Financeiro marca como comprado e define valor/fornecedor
   async comprar(id: number, dto: ComprarPedidoDto) {
-    const pedido = await this.prisma.pedidoCompra.findUnique({
-      where: { id },
-    });
-    if (!pedido)
-      throw new NotFoundException(`Pedido com ID ${id} não encontrado.`);
-    if (pedido.status !== 'SOLICITADO') {
-      throw new ConflictException(
-        'Apenas pedidos com status SOLICITADO podem ser marcados como comprados.',
-      );
-    }
+    return this.prisma.$transaction(async (tx) => {
+      const pedido = await tx.pedidoCompra.findUnique({
+        where: { id },
+        include: { materiaPrima: true },
+      });
+      if (!pedido)
+        throw new NotFoundException(`Pedido com ID ${id} não encontrado.`);
+      if (pedido.status !== 'SOLICITADO') {
+        throw new ConflictException(
+          'Apenas pedidos com status SOLICITADO podem ser marcados como comprados.',
+        );
+      }
 
-    return this.prisma.pedidoCompra.update({
-      where: { id },
-      data: {
-        status: 'COMPRADO',
-        fornecedor: dto.fornecedor || pedido.fornecedor,
-        valorUnitario: dto.valorUnitario,
-      },
+      const updated = await tx.pedidoCompra.update({
+        where: { id },
+        data: {
+          status: 'COMPRADO',
+          fornecedor: dto.fornecedor || pedido.fornecedor,
+          valorUnitario: dto.valorUnitario,
+        },
+        include: { materiaPrima: true },
+      });
+
+      const valorTotal = dto.valorUnitario || 0;
+
+      await tx.lancamentoFinanceiro.create({
+        data: {
+          tipo: 'D', // Despesa
+          descricao: `Compra de ${pedido.qtSolicitada} ${updated.materiaPrima.unidade || ''} de ${updated.materiaPrima.item}${updated.fornecedor ? ' - ' + updated.fornecedor : ''}`,
+          valorTotal,
+          valorPendente: 0,
+          statusPagamento: 'PAGO',
+          dataUltimoPagamento: new Date(),
+        },
+      });
+
+      return updated;
     });
   }
 
   // Estoquista recebe pedido (deve estar COMPRADO)
   async receber(id: number, dto: ReceberPedidoDto) {
-    if (dto.status === 'ENTREGUE_COM_ALTERACAO' && !dto.qtEntregue) {
+    if (String(dto.status) === 'ENTREGUE_COM_ALTERACAO' && !dto.qtEntregue) {
       throw new BadRequestException(
         'A quantidade entregue é obrigatória para entregas com alteração.',
       );
@@ -155,7 +191,9 @@ export class PedidosCompraService {
       }
 
       const quantidadeRecebida =
-        dto.status === 'ENTREGUE' ? pedido.qtSolicitada : dto.qtEntregue;
+        String(dto.status) === 'ENTREGUE'
+          ? pedido.qtSolicitada
+          : dto.qtEntregue;
 
       // Atualiza o estoque do material
       await tx.materiaPrima.update({

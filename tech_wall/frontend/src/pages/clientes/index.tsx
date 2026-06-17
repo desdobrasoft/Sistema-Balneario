@@ -40,7 +40,7 @@ const Clientes: React.FC = () => {
     [],
   );
 
-  const handleFetchData = useCallback(async (data: any) => {
+  const handleFetchData = useCallback(async (data: Record<string, unknown>) => {
     const res = await api.post(
       `${ENDPOINTS.CLIENTES}${ENDPOINTS.DATATABLE}`,
       data,
@@ -54,7 +54,7 @@ const Clientes: React.FC = () => {
     };
   }, []);
 
-  const handleOpenDialog = async (cliente: ClienteModel | null = null) => {
+  const handleOpenDialog = useCallback(async (cliente: ClienteModel | null = null) => {
     if (cliente) {
       try {
         const res = await api.get(`${ENDPOINTS.CLIENTES}/${cliente.id}`);
@@ -66,14 +66,14 @@ const Clientes: React.FC = () => {
       setSelectedCliente(null);
     }
     setDialogOpen(true);
-  };
+  }, [handleError]);
 
-  const handleCloseDialog = () => {
+  const handleCloseDialog = useCallback(() => {
     setDialogOpen(false);
     setSelectedCliente(null);
-  };
+  }, []);
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: ClienteModel) => {
     try {
       const payload = {
         nome: values.nome,
@@ -95,7 +95,7 @@ const Clientes: React.FC = () => {
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = useCallback((id: number) => {
     showDialog({
       title: "Excluir Cliente",
       body: "Deseja realmente excluir este cliente? Esta ação não pode ser desfeita.",
@@ -122,7 +122,7 @@ const Clientes: React.FC = () => {
         </Button>,
       ],
     });
-  };
+  }, [showDialog, closeDialog, handleError, showSnackbar]);
 
   return (
     <Box>
@@ -164,7 +164,7 @@ const Clientes: React.FC = () => {
                 </IconButton>
               </Box>
             ),
-            [],
+            [handleDelete, handleOpenDialog],
           )}
         />
       </Paper>

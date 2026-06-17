@@ -206,7 +206,7 @@ const Drawer = styled(MuiDrawer, {
 // ===============================
 // SIDEBAR COLORS (independent of theme mode for a consistently dark sidebar)
 // ===============================
-const sidebarBg = "#1a1a2e";
+const sidebarBg = "#16213e";
 const sidebarBgSelected = "rgba(179, 157, 219, 0.12)";
 const sidebarTextColor = "#c0c0d0";
 const sidebarTextActive = "#D1C4E9";

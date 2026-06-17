@@ -75,7 +75,7 @@ const getPathData = (
   return { d, bbox: { x: minX, y: minY, w: maxX - minX, h: maxY - minY } };
 };
 
-export const CUT_COLORS = [
+const CUT_COLORS = [
   "#4caf50", // Green
   "#ff9800", // Orange
   "#9c27b0", // Purple

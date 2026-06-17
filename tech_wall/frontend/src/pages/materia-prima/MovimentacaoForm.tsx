@@ -19,7 +19,6 @@ interface MovimentacaoFormValues {
   tipoMovimentacao: "I" | "O";
   qtde: number | "";
   dataMovimentacao: string;
-  fornecedor: string;
   notas: string;
 }
 
@@ -27,7 +26,7 @@ interface MovimentacaoFormProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (values: MovimentacaoFormValues) => Promise<void>;
-  preSelectedMaterial?: any;
+  preSelectedMaterial?: { id: number; item?: string } | null;
 }
 
 // ===============================
@@ -41,7 +40,6 @@ const validationSchema = yup.object().shape({
     .required("Selecione o tipo"),
   qtde: yup.number().min(1, "Mínimo 1").required("Informe a quantidade"),
   dataMovimentacao: yup.string().required("Informe a data"),
-  fornecedor: yup.string(),
   notas: yup.string(),
 });
 
@@ -50,7 +48,6 @@ const initialValues: MovimentacaoFormValues = {
   tipoMovimentacao: "I",
   qtde: "",
   dataMovimentacao: new Date().toISOString().split("T")[0],
-  fornecedor: "",
   notas: "",
 };
 
@@ -63,7 +60,7 @@ const MovimentacaoForm: React.FC<MovimentacaoFormProps> = ({
   onSubmit,
   preSelectedMaterial,
 }) => {
-  const [materiais, setMateriais] = useState<any[]>([]);
+  const [materiais, setMateriais] = useState<{ id: number; item: string; quantidade: number; unidade?: string }[]>([]);
 
   useEffect(() => {
     if (open) {
@@ -179,18 +176,7 @@ const MovimentacaoForm: React.FC<MovimentacaoFormProps> = ({
             />
           </Grid>
 
-          {formik.values.tipoMovimentacao === "I" && (
-            <Grid size={12}>
-              <TextField
-                fullWidth
-                name="fornecedor"
-                label="Fornecedor (Opcional)"
-                size="small"
-                value={formik.values.fornecedor}
-                onChange={formik.handleChange}
-              />
-            </Grid>
-          )}
+
 
           <Grid size={12}>
             <TextField

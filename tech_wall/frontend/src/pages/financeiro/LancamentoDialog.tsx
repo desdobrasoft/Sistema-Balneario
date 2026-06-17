@@ -28,10 +28,26 @@ import { TipoLancamento } from "types/enums";
 // ===============================
 // TYPES
 // ===============================
+export interface LancamentoModel {
+  id: number;
+  tipo: TipoLancamento;
+  descricao: string;
+  valorPendente: string;
+  valorTotal?: string;
+  dataVencimento?: string;
+  dataPagamento?: string;
+  status?: string;
+  venda?: {
+    id: number;
+    cliente?: { nome: string };
+  };
+}
+
 interface LancamentoDialogProps {
   open: boolean;
   onClose: () => void;
-  lancamento: any;
+  lancamento: LancamentoModel | null;
+  mode?: "create" | "edit" | "pay";
   onSuccess: () => void;
 }
 
@@ -42,6 +58,7 @@ const LancamentoDialog: React.FC<LancamentoDialogProps> = ({
   open,
   onClose,
   lancamento,
+  mode = "create",
   onSuccess,
 }) => {
   const handleError = useErrorHandler();
@@ -64,6 +81,12 @@ const LancamentoDialog: React.FC<LancamentoDialogProps> = ({
     if (open) {
       if (lancamento) {
         setValorPago("");
+        setDescricao(lancamento.descricao || "");
+        setDataVencimento(
+          lancamento.dataVencimento
+            ? new Date(lancamento.dataVencimento).toISOString().split("T")[0]
+            : "",
+        );
       } else {
         setTipo(TipoLancamento.R);
         setDescricao("");
@@ -71,13 +94,13 @@ const LancamentoDialog: React.FC<LancamentoDialogProps> = ({
         setDataVencimento(new Date().toISOString().split("T")[0]);
       }
     }
-  }, [open, lancamento]);
+  }, [open, lancamento, mode]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      if (lancamento) {
+      if (mode === "pay" && lancamento) {
         const payload = { valorPago: Number(valorPago) || 0 };
         await api.patch(`${ENDPOINTS.LANCAMENTOS}/${lancamento.id}`, payload);
         showSnackbar({
@@ -85,6 +108,18 @@ const LancamentoDialog: React.FC<LancamentoDialogProps> = ({
             lancamento.tipo === TipoLancamento.R
               ? "Recebimento registrado com sucesso!"
               : "Pagamento registrado com sucesso!",
+          severity: "success",
+        });
+      } else if (mode === "edit" && lancamento) {
+        const payload = {
+          descricao,
+          dataVencimento: dataVencimento
+            ? new Date(dataVencimento).toISOString()
+            : null,
+        };
+        await api.patch(`${ENDPOINTS.LANCAMENTOS}/${lancamento.id}`, payload);
+        showSnackbar({
+          message: "Lançamento editado com sucesso!",
           severity: "success",
         });
       } else {
@@ -122,16 +157,17 @@ const LancamentoDialog: React.FC<LancamentoDialogProps> = ({
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
       <DialogTitle>
-        {lancamento
-          ? lancamento.tipo === TipoLancamento.R
-            ? "Registrar Recebimento"
-            : "Registrar Pagamento"
-          : "Novo Lançamento"}
+        {mode === "create" && "Novo Lançamento"}
+        {mode === "edit" && "Editar Lançamento"}
+        {mode === "pay" &&
+          (lancamento?.tipo === TipoLancamento.R
+            ? "Registrar Recebimento / Estorno"
+            : "Registrar Pagamento / Estorno")}
       </DialogTitle>
       <DialogContent dividers>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 1 }}>
-          {lancamento ? (
-            // Form de Edição / Pagamento
+          {mode === "pay" && lancamento && (
+            // Form de Pagamento
             <>
               <Box>
                 <Typography variant="subtitle2" color="text.secondary">
@@ -171,6 +207,7 @@ const LancamentoDialog: React.FC<LancamentoDialogProps> = ({
                     : "Valor a Pagar"
                 }
                 type="number"
+                size="small"
                 value={valorPago}
                 onChange={(e) =>
                   setValorPago(
@@ -186,13 +223,38 @@ const LancamentoDialog: React.FC<LancamentoDialogProps> = ({
                 }}
               />
             </>
-          ) : (
+          )}
+
+          {mode === "edit" && lancamento && (
+            // Form de Edição
+            <>
+              <TextField
+                fullWidth
+                label="Descrição"
+                size="small"
+                value={descricao}
+                onChange={(e) => setDescricao(e.target.value)}
+              />
+              <TextField
+                fullWidth
+                label="Data de Vencimento"
+                size="small"
+                type="date"
+                value={dataVencimento}
+                onChange={(e) => setDataVencimento(e.target.value)}
+                slotProps={{ inputLabel: { shrink: true } }}
+              />
+            </>
+          )}
+
+          {mode === "create" && (
             // Form de Criação
             <>
               <TextField
                 select
                 fullWidth
                 label="Tipo"
+                size="small"
                 value={tipo}
                 onChange={(e) => setTipo(e.target.value as TipoLancamento)}
               >
@@ -203,6 +265,7 @@ const LancamentoDialog: React.FC<LancamentoDialogProps> = ({
               <TextField
                 fullWidth
                 label="Descrição"
+                size="small"
                 value={descricao}
                 onChange={(e) => setDescricao(e.target.value)}
               />
@@ -210,6 +273,7 @@ const LancamentoDialog: React.FC<LancamentoDialogProps> = ({
               <TextField
                 fullWidth
                 label="Valor Total"
+                size="small"
                 type="number"
                 value={valorTotal}
                 onChange={(e) =>
@@ -229,6 +293,7 @@ const LancamentoDialog: React.FC<LancamentoDialogProps> = ({
               <TextField
                 fullWidth
                 label="Data de Vencimento"
+                size="small"
                 type="date"
                 value={dataVencimento}
                 onChange={(e) => setDataVencimento(e.target.value)}
@@ -247,17 +312,13 @@ const LancamentoDialog: React.FC<LancamentoDialogProps> = ({
           onClick={handleSubmit}
           disabled={
             loading ||
-            (lancamento
-              ? Number(valorPago) <= 0
-              : !descricao || Number(valorTotal) <= 0)
+            (mode === "pay" && valorPago === "") ||
+            (mode === "edit" && !descricao) ||
+            (mode === "create" && (!descricao || Number(valorTotal) <= 0))
           }
-          startIcon={lancamento ? <PaymentsIcon /> : <SaveIcon />}
+          startIcon={mode === "pay" ? <PaymentsIcon /> : <SaveIcon />}
         >
-          {lancamento
-            ? lancamento.tipo === TipoLancamento.R
-              ? "Confirmar Recebimento"
-              : "Confirmar Pagamento"
-            : "Salvar"}
+          {mode === "pay" ? "Confirmar" : "Salvar"}
         </Button>
       </DialogActions>
     </Dialog>

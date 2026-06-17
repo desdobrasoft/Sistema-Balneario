@@ -24,7 +24,7 @@ export const useErrorHandler = () => {
   const handleError = useCallback(
     (error: unknown) => {
       if (isAxiosError(error)) {
-        const data = error.response?.data as any;
+        const data = error.response?.data as Record<string, unknown> | undefined;
         const status = error.response?.status;
         const statusText = error.response?.statusText || "Erro";
 
@@ -62,7 +62,7 @@ export const useErrorHandler = () => {
       ) {
         showSnackbar({
           title: "Erro",
-          message: String((error as any).message),
+          message: String((error as { message: unknown }).message),
           severity: "error",
         });
       } else {

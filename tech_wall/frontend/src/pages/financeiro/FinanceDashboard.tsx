@@ -56,18 +56,35 @@ const FinanceStatCard: React.FC<{
 // ===============================
 // DASHBOARD COMPONENT
 // ===============================
+interface LancamentoData {
+  tipo: TipoLancamento;
+  valorTotal: string;
+  valorPendente: string;
+}
+
+interface PedidoData {
+  valorUnitario?: string;
+  qtSolicitada: string;
+  status: string;
+}
+
 const FinanceDashboard: React.FC = () => {
   const theme = useTheme();
   const handleError = useErrorHandler();
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<LancamentoData[]>([]);
+  const [pedidos, setPedidos] = useState<PedidoData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await api.get(ENDPOINTS.LANCAMENTOS);
-        setData(Array.isArray(res.data) ? res.data : []);
+        const [resLancamentos, resPedidos] = await Promise.all([
+          api.get(ENDPOINTS.LANCAMENTOS),
+          api.get(ENDPOINTS.PEDIDOS_COMPRA),
+        ]);
+        setData(Array.isArray(resLancamentos.data) ? resLancamentos.data : []);
+        setPedidos(Array.isArray(resPedidos.data) ? resPedidos.data : []);
       } catch (error) {
         handleError(error);
       } finally {
@@ -75,7 +92,7 @@ const FinanceDashboard: React.FC = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [handleError]);
 
   const stats = useMemo(() => {
     const receitas = data.filter((d) => d.tipo === TipoLancamento.R);
@@ -86,23 +103,35 @@ const FinanceDashboard: React.FC = () => {
         sum + (parseFloat(d.valorTotal) - parseFloat(d.valorPendente)),
       0,
     );
-    const totalPago = despesas.reduce(
+    const totalPagoLancamentos = despesas.reduce(
       (sum, d) =>
         sum + (parseFloat(d.valorTotal) - parseFloat(d.valorPendente)),
       0,
     );
 
+    const totalPagoPedidos = pedidos.reduce((sum, p) => {
+      // Considera pago se já foi marcado pelo financeiro (tem valorUnitario e não é apenas SOLICITADO)
+      if (p.valorUnitario && p.status !== "SOLICITADO") {
+        return sum + parseFloat(p.valorUnitario);
+      }
+      return sum;
+    }, 0);
+
+    const totalPago = totalPagoLancamentos + totalPagoPedidos;
+
     const aReceber = receitas.reduce(
       (sum, d) => sum + parseFloat(d.valorPendente),
       0,
     );
+    // Pedidos de compra não têm valor parcial pendente na lógica atual,
+    // então aPagar baseia-se apenas nos lançamentos financeiros do tipo despesa.
     const aPagar = despesas.reduce(
       (sum, d) => sum + parseFloat(d.valorPendente),
       0,
     );
 
     return { totalRecebido, totalPago, aReceber, aPagar };
-  }, [data]);
+  }, [data, pedidos]);
 
   if (loading) {
     return (

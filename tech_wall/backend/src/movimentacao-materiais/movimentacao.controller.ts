@@ -27,7 +27,7 @@ export class MovimentacaoController {
   @Post()
   create(
     @Body(ValidationPipe) dto: CreateMovimentacaoDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: { id: number },
   ) {
     return this.service.create(dto, user.id);
   }
@@ -46,7 +46,7 @@ export class MovimentacaoController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body(ValidationPipe) dto: UpdateMovimentacaoDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: { id: number },
   ) {
     return this.service.update(id, dto, user.id);
   }

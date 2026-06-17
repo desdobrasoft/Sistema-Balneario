@@ -87,6 +87,11 @@ export class ProducaoController {
     return this.producaoService.findCompatiblePlates(reqId);
   }
 
+  @Post('requisitos/compatible-plates-batch')
+  findCompatiblePlatesBatch(@Body('reqIds') reqIds: number[]) {
+    return this.producaoService.findCompatiblePlatesBatch(reqIds);
+  }
+
   @Post('alocar')
   alocarPlaca(@Body(ValidationPipe) dto: AlocacaoDto) {
     return this.producaoService.alocarPlaca(dto.requisitoId, dto.placaId);

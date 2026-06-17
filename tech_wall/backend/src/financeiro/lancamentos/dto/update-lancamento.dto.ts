@@ -4,7 +4,6 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  Min,
 } from 'class-validator';
 import { StatusPagamentoVenda } from '../../../generated/prisma/client';
 
@@ -19,7 +18,6 @@ export class UpdateLancamentoDto {
 
   @IsOptional()
   @IsNumber()
-  @Min(0)
   valorPago?: number;
 
   @IsOptional()

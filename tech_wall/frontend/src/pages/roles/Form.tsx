@@ -22,7 +22,7 @@ import { APP_MODULES, type Role } from "types/user";
 interface FormProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (values: any) => Promise<void>;
+  onSubmit: (values: RoleFormValues) => Promise<void>;
   item: Role | null;
 }
 
@@ -31,10 +31,12 @@ const validationSchema = yup.object({
   permissions: yup.array().of(yup.string()).required("Campo obrigatório"),
 });
 
-export const initialValues = {
+const initialValues = {
   role: "",
   permissions: [] as string[],
 };
+
+export type RoleFormValues = typeof initialValues;
 
 const RolesForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
   return (

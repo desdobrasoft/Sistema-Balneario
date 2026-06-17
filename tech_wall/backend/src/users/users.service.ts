@@ -56,7 +56,8 @@ export class UsersService {
     });
 
     // Remove o hash antes de retornar.
-    const { passwordHash: _, ...safeUser } = user;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { passwordHash: _passwordHash, ...safeUser } = user;
 
     // Retorna o usuário criado com suas roles.
     return {
@@ -107,7 +108,9 @@ export class UsersService {
             },
           },
         },
-        orderBy: Object.keys(orderBy).length ? orderBy : { id: 'desc' },
+        orderBy: Object.keys(orderBy as Record<string, unknown>).length
+          ? orderBy
+          : { id: 'desc' },
       }),
       this.prisma.user.count(),
       this.prisma.user.count({ where }),
@@ -202,7 +205,8 @@ export class UsersService {
       },
     });
 
-    const { passwordHash: _, ...safeUser } = updated;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { passwordHash: _passwordHash, ...safeUser } = updated;
 
     return {
       ...safeUser,

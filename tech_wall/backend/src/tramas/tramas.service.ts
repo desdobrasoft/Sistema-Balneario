@@ -63,7 +63,7 @@ export class TramasService {
       'direcionamento',
     ]);
 
-    let finalWhere = { ...generatedWhere };
+    const finalWhere = { ...generatedWhere };
 
     if (query.search?.value) {
       const searchVal = query.search.value;
@@ -88,7 +88,9 @@ export class TramasService {
         where: finalWhere,
         skip,
         take,
-        orderBy: Object.keys(orderBy).length ? orderBy : { id: 'desc' },
+        orderBy: Object.keys(orderBy as Record<string, unknown>).length
+          ? orderBy
+          : { id: 'desc' },
       }),
       this.prisma.trama.count(),
       this.prisma.trama.count({ where: finalWhere }),
@@ -165,7 +167,7 @@ export class TramasService {
         where: { id },
       });
       return { message: 'Trama removida com sucesso.' };
-    } catch (e) {
+    } catch {
       throw new ConflictException(
         'Não é possível excluir esta Trama, ela pode estar em uso por Placas.',
       );

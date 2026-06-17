@@ -75,6 +75,14 @@ export const StatusPagamentoVenda = {
 export type StatusPagamentoVenda =
   (typeof StatusPagamentoVenda)[keyof typeof StatusPagamentoVenda];
 
+export const StatusPagamentoVendaLabels: Record<StatusPagamentoVenda, string> = {
+  [StatusPagamentoVenda.PENDENTE]: "Pendente",
+  [StatusPagamentoVenda.PAGO_PARCIALMENTE]: "Pago Parcialmente",
+  [StatusPagamentoVenda.PAGO]: "Pago",
+  [StatusPagamentoVenda.VENCIDO]: "Vencido",
+  [StatusPagamentoVenda.CANCELADO]: "Cancelado",
+};
+
 export const TipoLancamento = {
   R: "R",
   D: "D",

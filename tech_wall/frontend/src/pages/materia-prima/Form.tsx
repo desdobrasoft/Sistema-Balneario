@@ -20,23 +20,28 @@ interface MateriaPrimaModel {
 interface FormProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (values: any) => Promise<void>;
+  onSubmit: (values: MateriaPrimaModel) => Promise<void>;
   item: MateriaPrimaModel | null;
 }
 
-export const validationSchema = yup.object({
+const getInitialValues = (item: MateriaPrimaModel | null): MateriaPrimaModel => {
+  return (
+    item || {
+      id: 0,
+      item: "",
+      quantidade: 0,
+      unidade: "un",
+      estoqueMinimo: 5,
+    }
+  );
+};
+
+const validationSchema = yup.object({
   item: yup.string().required("Campo obrigatório"),
   quantidade: yup.number().min(0).required("Campo obrigatório"),
   unidade: yup.string().required("Campo obrigatório"),
   estoqueMinimo: yup.number().min(0).required("Campo obrigatório"),
 });
-
-export const initialValues = {
-  item: "",
-  quantidade: 0,
-  unidade: "un",
-  estoqueMinimo: 5,
-};
 
 const MateriaPrimaForm: React.FC<FormProps> = ({
   open,
@@ -51,7 +56,7 @@ const MateriaPrimaForm: React.FC<FormProps> = ({
       onSubmit={onSubmit}
       title={item ? "Editar Matéria Prima" : "Nova Matéria Prima"}
       item={item}
-      initialValues={initialValues}
+      initialValues={getInitialValues(item)}
       maxWidth="md"
       validationSchema={validationSchema}
       renderForm={(formik) => (

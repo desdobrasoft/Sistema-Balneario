@@ -22,7 +22,7 @@ interface InternalOrderFormProps {
 }
 
 export const InternalOrderForm: React.FC<InternalOrderFormProps> = ({ onSuccess }) => {
-  const [modelos, setModelos] = useState<any[]>([]);
+  const [modelos, setModelos] = useState<{ id: number; nome: string }[]>([]);
   const handleError = useErrorHandler();
 
   useEffect(() => {

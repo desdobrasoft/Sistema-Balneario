@@ -32,10 +32,59 @@ import { useErrorHandler } from "hooks/useErrorHandler";
 import { useSnackbar } from "hooks/useSnackbar";
 import api from "services/api";
 
+interface Requisito {
+  id: number;
+  placaAlocada?: Placa;
+  alias?: string;
+  parede?: string;
+  tipo?: string;
+  largura?: number;
+  altura?: number;
+  espessura?: number;
+  corte?: { nome: string };
+  tramaEsquerdaId?: number;
+  tramaDireitaId?: number;
+  tramaSuperiorId?: number;
+  tramaInferiorId?: number;
+  tramaEsquerda?: { nome: string };
+  tramaDireita?: { nome: string };
+  tramaSuperior?: { nome: string };
+  tramaInferior?: { nome: string };
+}
+
+interface Placa {
+  id: number;
+  nome: string;
+  largura: number;
+  altura: number;
+}
+
+interface Ordem {
+  id: number;
+  venda?: {
+    id: number;
+    modeloId?: number | null;
+    modeloCasa?: {
+      nome: string;
+      materiaisModeloCasa?: {
+        id: number;
+        materiaPrima?: { item: string; quantidade: number };
+        qtModelo: number;
+      }[];
+    };
+    vendaRequisitos?: Requisito[];
+    vendaItensOverride?: {
+      id: number;
+      materiaPrima?: { item: string; quantidade: number };
+      qtFinal: number;
+    }[];
+  };
+}
+
 interface IniciarProducaoDialogProps {
   open: boolean;
   onClose: () => void;
-  ordem: any;
+  ordem: Ordem | null;
   onSuccess: () => void;
 }
 
@@ -49,25 +98,25 @@ const IniciarProducaoDialog: React.FC<IniciarProducaoDialogProps> = ({
   const handleError = useErrorHandler();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [fullOrdem, setFullOrdem] = useState<any>(null);
+  const [fullOrdem, setFullOrdem] = useState<Ordem | null>(null);
   const [compatiblePlatesMap, setCompatiblePlatesMap] = useState<
-    Record<number, any[]>
+    Record<number, Placa[]>
   >({});
-  const [localAllocations, setLocalAllocations] = useState<Record<number, any>>(
-    {},
-  );
+  const [localAllocations, setLocalAllocations] = useState<
+    Record<number, Placa | null>
+  >({});
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       // Busca a ordem com todos os detalhes (incluindo vendaRequisitos alocados)
-      const res = await api.get(`${ENDPOINTS.PRODUCAO}/${ordem.id}`);
+      const res = await api.get(`${ENDPOINTS.PRODUCAO}/${ordem?.id || 0}`);
       const data = res.data;
       setFullOrdem(data);
 
       // Inicializa alocações locais com o que já está no banco
-      const initialAllocations: Record<number, any> = {};
-      data.venda?.vendaRequisitos?.forEach((r: any) => {
+      const initialAllocations: Record<number, Placa | null> = {};
+      data.venda?.vendaRequisitos?.forEach((r: Requisito) => {
         if (r.placaAlocada) {
           initialAllocations[r.id] = r.placaAlocada;
         }
@@ -77,17 +126,35 @@ const IniciarProducaoDialog: React.FC<IniciarProducaoDialogProps> = ({
       // Busca placas compatíveis para cada requisito não alocado (ou todos para permitir trocar)
       if (data.venda?.vendaRequisitos) {
         const reqs = data.venda.vendaRequisitos;
-        const compatibleMap: Record<number, any[]> = {};
+        const reqIds = reqs.map((r: Requisito) => r.id);
 
-        await Promise.all(
-          reqs.map(async (r: any) => {
-            const compRes = await api.get(
-              `${ENDPOINTS.PRODUCAO}/requisitos/${r.id}/compatible-plates`,
-            );
-            compatibleMap[r.id] = compRes.data;
-          }),
+        const compRes = await api.post(
+          `${ENDPOINTS.PRODUCAO}/requisitos/compatible-plates-batch`,
+          { reqIds },
         );
+        const compatibleMap: Record<number, Placa[]> = compRes.data;
+
         setCompatiblePlatesMap(compatibleMap);
+
+        // Auto-selecionar a primeira placa disponível para os requisitos pendentes
+        const usedPlates = new Set<number>();
+        Object.values(initialAllocations).forEach((p) => {
+          if (p) usedPlates.add(p.id);
+        });
+
+        reqs.forEach((r: Requisito) => {
+          if (!initialAllocations[r.id]) {
+            const availablePlates = compatibleMap[r.id] || [];
+            const firstAvailable = availablePlates.find(
+              (p) => !usedPlates.has(p.id),
+            );
+            if (firstAvailable) {
+              initialAllocations[r.id] = firstAvailable;
+              usedPlates.add(firstAvailable.id);
+            }
+          }
+        });
+        setLocalAllocations({ ...initialAllocations });
       }
     } catch (error) {
       handleError(error);
@@ -104,7 +171,7 @@ const IniciarProducaoDialog: React.FC<IniciarProducaoDialogProps> = ({
   }, [open, ordem, fetchData]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  const handleLocalAlocar = (requisitoId: number, placa: any | null) => {
+  const handleLocalAlocar = (requisitoId: number, placa: Placa | null) => {
     setLocalAllocations((prev) => ({
       ...prev,
       [requisitoId]: placa,
@@ -114,7 +181,7 @@ const IniciarProducaoDialog: React.FC<IniciarProducaoDialogProps> = ({
   const handleSubmit = async () => {
     // Verifica se todos os requisitos têm placa alocada
     const reqs = fullOrdem?.venda?.vendaRequisitos || [];
-    const pendentes = reqs.filter((r: any) => !localAllocations[r.id]);
+    const pendentes = reqs.filter((r: Requisito) => !localAllocations[r.id]);
 
     if (pendentes.length > 0) {
       showSnackbar({
@@ -128,15 +195,19 @@ const IniciarProducaoDialog: React.FC<IniciarProducaoDialogProps> = ({
     setSubmitting(true);
     try {
       // 1. Executa alocação em lote
-      await api.post(`${ENDPOINTS.PRODUCAO}/bulk-alocar`, {
-        itens: Object.entries(localAllocations).map(([reqId, placa]) => ({
+      const payload = Object.entries(localAllocations).map(
+        ([reqId, placa]) => ({
           requisitoId: parseInt(reqId),
           placaId: placa?.id || null,
-        })),
+        }),
+      );
+
+      await api.post(`${ENDPOINTS.PRODUCAO}/bulk-alocar`, {
+        itens: payload,
       });
 
       // 2. Inicia a produção
-      await api.patch(`${ENDPOINTS.PRODUCAO}/${ordem.id}`, {
+      await api.patch(`${ENDPOINTS.PRODUCAO}/${ordem?.id || 0}`, {
         status: "EM_ESPERA",
         notas: "Produção iniciada com materiais e placas alocados.",
       });
@@ -148,7 +219,7 @@ const IniciarProducaoDialog: React.FC<IniciarProducaoDialogProps> = ({
       });
       onSuccess();
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       handleError(error);
     } finally {
       setSubmitting(false);
@@ -173,11 +244,17 @@ const IniciarProducaoDialog: React.FC<IniciarProducaoDialogProps> = ({
   const itensOverride = fullOrdem?.venda?.vendaItensOverride || [];
   const materiais =
     itensOverride.length > 0
-      ? itensOverride.map((it: any) => ({
-          id: it.id,
-          materiaPrima: it.materiaPrima,
-          qtModelo: it.qtFinal, // Na venda chamamos de qtFinal, mas aqui usamos qtModelo para compatibilidade com o layout
-        }))
+      ? itensOverride.map(
+          (it: {
+            id: number;
+            materiaPrima?: { item: string; quantidade: number };
+            qtFinal: number;
+          }) => ({
+            id: it.id,
+            materiaPrima: it.materiaPrima,
+            qtModelo: it.qtFinal, // Na venda chamamos de qtFinal, mas aqui usamos qtModelo para compatibilidade com o layout
+          }),
+        )
       : fullOrdem?.venda?.modeloCasa?.materiaisModeloCasa || [];
 
   const requisitos = fullOrdem?.venda?.vendaRequisitos || [];
@@ -196,7 +273,11 @@ const IniciarProducaoDialog: React.FC<IniciarProducaoDialogProps> = ({
             Iniciar Produção - Venda #{ordem?.venda?.id}
           </Typography>
           <Chip
-            label={fullOrdem?.venda?.modeloCasa?.nome}
+            label={
+              fullOrdem?.venda?.modeloId === null
+                ? "Venda de Placas"
+                : fullOrdem?.venda?.modeloCasa?.nome || "N/A"
+            }
             color="primary"
             variant="outlined"
           />
@@ -222,31 +303,37 @@ const IniciarProducaoDialog: React.FC<IniciarProducaoDialogProps> = ({
           <ConstructionIcon fontSize="small" /> Materiais Brutos (Estoque)
         </Typography>
         <List dense>
-          {materiais.map((m: any) => {
-            const hasEnough = (m.materiaPrima?.quantidade || 0) >= m.qtModelo;
-            return (
-              <ListItem key={m.id}>
-                <ListItemIcon sx={{ minWidth: 32 }}>
-                  {hasEnough ? (
-                    <CheckCircleIcon color="success" fontSize="small" />
-                  ) : (
-                    <WarningIcon color="error" fontSize="small" />
-                  )}
-                </ListItemIcon>
-                <ListItemText
-                  primary={m.materiaPrima?.item}
-                  secondary={`${m.qtModelo} un. necessários / ${m.materiaPrima?.quantidade || 0} em estoque`}
-                  slotProps={{
-                    secondary: {
-                      sx: {
-                        color: hasEnough ? "text.secondary" : "error.main",
+          {materiais.map(
+            (m: {
+              id: number;
+              materiaPrima?: { item: string; quantidade: number };
+              qtModelo: number;
+            }) => {
+              const hasEnough = (m.materiaPrima?.quantidade || 0) >= m.qtModelo;
+              return (
+                <ListItem key={m.id}>
+                  <ListItemIcon sx={{ minWidth: 32 }}>
+                    {hasEnough ? (
+                      <CheckCircleIcon color="success" fontSize="small" />
+                    ) : (
+                      <WarningIcon color="error" fontSize="small" />
+                    )}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={m.materiaPrima?.item}
+                    secondary={`${m.qtModelo} un. necessários / ${m.materiaPrima?.quantidade || 0} em estoque`}
+                    slotProps={{
+                      secondary: {
+                        sx: {
+                          color: hasEnough ? "text.secondary" : "error.main",
+                        },
                       },
-                    },
-                  }}
-                />
-              </ListItem>
-            );
-          })}
+                    }}
+                  />
+                </ListItem>
+              );
+            },
+          )}
         </List>
 
         <Divider sx={{ my: 2 }} />
@@ -257,7 +344,7 @@ const IniciarProducaoDialog: React.FC<IniciarProducaoDialogProps> = ({
         </Typography>
 
         <Stack spacing={2}>
-          {requisitos.map((req: any) => {
+          {requisitos.map((req: Requisito) => {
             const compatible = compatiblePlatesMap[req.id] || [];
 
             return (

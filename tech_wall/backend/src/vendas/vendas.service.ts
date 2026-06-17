@@ -26,6 +26,7 @@ const includeRelations = {
   modeloCasa: true,
   user: { select: { id: true, fullName: true, username: true } },
   vendasHistorico: { orderBy: { dataAlteracao: 'asc' } },
+  vendaRequisitos: true,
 } as const;
 
 @Injectable()
@@ -65,7 +66,7 @@ export class VendasService {
       baseWhere,
     );
 
-    let where = { ...generatedWhere };
+    const where = { ...generatedWhere };
 
     if (query.search?.value) {
       const searchValueStr = query.search.value.toUpperCase();
@@ -88,7 +89,7 @@ export class VendasService {
       const idsByPrice = await getIdsByNumericPartialMatch(
         this.prisma,
         'vendas',
-        ['preco'],
+        ['id', 'preco'],
         query.search.value,
       );
 
@@ -98,6 +99,10 @@ export class VendasService {
 
       if (idsByPrice.length > 0) {
         where.OR.push({ id: { in: idsByPrice } });
+      }
+
+      if (searchValueStr.includes('PLACA')) {
+        where.OR.push({ modeloId: null });
       }
 
       if (matchedStatuses.length > 0) {
@@ -114,13 +119,16 @@ export class VendasService {
         where,
         skip,
         take,
-        orderBy: Object.keys(orderBy).length ? orderBy : { id: 'desc' },
+        orderBy: Object.keys(orderBy as Record<string, unknown>).length
+          ? orderBy
+          : { id: 'desc' },
         select: {
           id: true,
           preco: true,
           status: true,
           statusPagamento: true,
           dataVenda: true,
+          modeloId: true,
           cliente: { select: { nome: true } },
           modeloCasa: { select: { nome: true } },
         },
@@ -141,7 +149,11 @@ export class VendasService {
         statusPagamento: item.statusPagamento,
         dataVenda: item.dataVenda,
         clienteNome: item.cliente?.nome || 'N/A',
-        modeloNome: item.modeloCasa?.nome || 'N/A',
+        modeloNome:
+          item.modeloId === null
+            ? 'Venda de Placas'
+            : item.modeloCasa?.nome || 'N/A',
+        isVendaPlacas: item.modeloId === null,
       };
 
       if (requestedFields.length === 0) return flatObj;
@@ -167,26 +179,29 @@ export class VendasService {
     return this.prisma.$transaction(async (tx) => {
       const isCustomized = dto.itensOverride && dto.itensOverride.length > 0;
 
-      // Validação de existência do modelo base
-      const modelo = await tx.modeloCasa.findUnique({
-        where: { id: dto.modeloId, deletedAt: null },
-        include: {
-          materiaisModeloCasa: {
-            include: {
-              materiaPrima: true,
+      // Validação de existência do modelo base (opcional para vendas avulsas)
+      let modelo = null;
+      if (dto.modeloId) {
+        modelo = await tx.modeloCasa.findUnique({
+          where: { id: dto.modeloId, deletedAt: null },
+          include: {
+            materiaisModeloCasa: {
+              include: {
+                materiaPrima: true,
+              },
+            },
+            requisitos: {
+              include: {
+                corte: true,
+              },
             },
           },
-          requisitos: {
-            include: {
-              corte: true,
-            },
-          },
-        },
-      });
-      if (!modelo) {
-        throw new NotFoundException(
-          `Modelo de casa com ID ${dto.modeloId} não encontrado.`,
-        );
+        });
+        if (!modelo) {
+          throw new NotFoundException(
+            `Modelo de casa com ID ${dto.modeloId} não encontrado.`,
+          );
+        }
       }
 
       // As vendas agora sempre iniciam com materiais pendentes para forçar o vínculo manual de placas na produção
@@ -206,13 +221,14 @@ export class VendasService {
           status: statusInicial,
           statusPagamento: StatusPagamentoVenda.PENDENTE,
           suprimentosObra: (dto.suprimentosOverride ||
-            modelo.suprimentosObra ||
+            modelo?.suprimentosObra ||
             []) as any,
         },
       });
 
-      // Copiar receita (requisitos) do modelo para VendaRequisito
-      const finalRequisitos = dto.requisitosOverride || modelo.requisitos;
+      // Copiar receita (requisitos) do modelo para VendaRequisito (ou usar avulsas do dto)
+      const finalRequisitos =
+        dto.requisitosOverride || (modelo ? modelo.requisitos : []);
       if (finalRequisitos && finalRequisitos.length > 0) {
         await tx.vendaRequisito.createMany({
           data: finalRequisitos.map((r: any) => ({
@@ -228,13 +244,14 @@ export class VendasService {
             tramaSuperiorId: r.tramaSuperiorId,
             tramaInferiorId: r.tramaInferiorId,
             corteId: r.corteId,
+            reforco: r.reforco,
           })),
         });
       }
 
       // Copiar suprimentos de obra para VendaSuprimentoOverride
       const finalSuprimentos =
-        dto.suprimentosOverride || (modelo.suprimentosObra as any[]) || [];
+        dto.suprimentosOverride || (modelo?.suprimentosObra as any[]) || [];
       if (finalSuprimentos.length > 0) {
         await tx.vendaSuprimentoOverride.createMany({
           data: finalSuprimentos.map((s: any) => ({
@@ -305,10 +322,12 @@ export class VendasService {
         where: { id: userId },
         data: { qtVendas: { increment: 1 } },
       });
-      await tx.modeloCasa.update({
-        where: { id: dto.modeloId },
-        data: { qtVendido: { increment: 1 } },
-      });
+      if (dto.modeloId) {
+        await tx.modeloCasa.update({
+          where: { id: dto.modeloId },
+          data: { qtVendido: { increment: 1 } },
+        });
+      }
 
       return this.findOne(novaVenda.id, tx);
     });
@@ -534,6 +553,47 @@ export class VendasService {
       });
 
       return { message: 'Compra registrada com sucesso' };
+    });
+  }
+
+  async getReportData(startDateStr?: string, endDateStr?: string) {
+    let startDate: Date | undefined;
+    let endDate: Date | undefined;
+
+    if (startDateStr) {
+      startDate = new Date(startDateStr);
+      startDate.setHours(0, 0, 0, 0);
+    }
+    if (endDateStr) {
+      endDate = new Date(endDateStr);
+      endDate.setHours(23, 59, 59, 999);
+    }
+
+    const dateFilter =
+      startDate || endDate
+        ? {
+            ...(startDate ? { gte: startDate } : {}),
+            ...(endDate ? { lte: endDate } : {}),
+          }
+        : undefined;
+
+    const where = {
+      isInternal: false,
+      ...(dateFilter ? { dataVenda: dateFilter } : {}),
+    };
+
+    return this.prisma.venda.findMany({
+      where,
+      orderBy: { dataVenda: 'desc' },
+      select: {
+        id: true,
+        preco: true,
+        status: true,
+        statusPagamento: true,
+        dataVenda: true,
+        cliente: { select: { nome: true } },
+        modeloCasa: { select: { nome: true } },
+      },
     });
   }
 }

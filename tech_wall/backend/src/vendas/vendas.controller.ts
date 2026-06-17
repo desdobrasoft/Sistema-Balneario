@@ -29,7 +29,10 @@ export class VendasController {
   constructor(private readonly service: VendasService) {}
 
   @Post()
-  create(@Body(ValidationPipe) dto: CreateVendaDto, @CurrentUser() user: any) {
+  create(
+    @Body(ValidationPipe) dto: CreateVendaDto,
+    @CurrentUser() user: { id: number },
+  ) {
     return this.service.create(dto, user.id);
   }
 
@@ -45,6 +48,14 @@ export class VendasController {
   @Get()
   findAll(@Query('exclude_status') excludeStatus?: StatusVenda) {
     return this.service.findAll(excludeStatus);
+  }
+
+  @Get('report')
+  async getReport(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.service.getReportData(startDate, endDate);
   }
 
   @Post('datatable')

@@ -96,6 +96,30 @@ async function main() {
     }
   }
 
+  // Insert Default Materia Prima
+  const defaultMateriais = [
+    { item: 'Cimento', unidade: 'kg' },
+    { item: 'EPS', unidade: 'kg' },
+    { item: 'Aditivo', unidade: 'l' },
+  ];
+
+  for (const mat of defaultMateriais) {
+    const existing = await prisma.materiaPrima.findFirst({
+      where: { item: mat.item },
+    });
+    if (!existing) {
+      await prisma.materiaPrima.create({
+        data: {
+          item: mat.item,
+          unidade: mat.unidade,
+          quantidade: 0,
+          estoqueMinimo: 0,
+        },
+      });
+      console.log(`Materia Prima '${mat.item}' criada.`);
+    }
+  }
+
   console.log('Database seeding completed.');
 }
 

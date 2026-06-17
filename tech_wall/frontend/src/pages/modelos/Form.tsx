@@ -13,15 +13,9 @@ import ViewInArIcon from "@mui/icons-material/ViewInAr";
 import Autocomplete from "@mui/material/Autocomplete";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import FormControl from "@mui/material/FormControl";
 import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
@@ -29,10 +23,9 @@ import Typography from "@mui/material/Typography";
 
 // project imports
 import DataTableDialog from "components/datatable/DataTableDialog";
+import RequisitosEditor from "components/RequisitosEditor";
 import { ENDPOINTS } from "config/endpoints";
-import { useDialog } from "hooks/useDialog";
 import api from "services/api";
-import BatchRequisitosDialog from "./BatchRequisitosDialog";
 
 interface SuprimentoObra {
   id: string;
@@ -46,7 +39,7 @@ interface SuprimentoObra {
 interface MaterialRequerido {
   materiaPrimaId: number;
   qtModelo: number;
-  materiaPrima?: any;
+  materiaPrima?: { item: string, unidade?: string };
 }
 
 export interface RequisitoRequerido {
@@ -61,7 +54,13 @@ export interface RequisitoRequerido {
   tramaSuperiorId?: number | null;
   tramaInferiorId?: number | null;
   corteId?: number | null;
-  corte?: any;
+  corte?: {
+    id?: number;
+    nome?: string;
+    largura?: number;
+    altura?: number;
+    percurso?: { distancia: number }[];
+  };
 }
 
 interface ModeloCasaModel {
@@ -76,14 +75,25 @@ interface ModeloCasaModel {
   suprimentosObra?: SuprimentoObra[];
 }
 
+interface ModeloCasaFormValues {
+  nome: string;
+  descricao: string;
+  tempoFabricacao: number;
+  preco: string | number;
+  imagemBase64?: string;
+  requisitos: RequisitoRequerido[];
+  materiais: MaterialRequerido[];
+  suprimentosObra: SuprimentoObra[];
+}
+
 interface FormProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (values: any) => Promise<void>;
+  onSubmit: (values: ModeloCasaFormValues) => Promise<void>;
   item: ModeloCasaModel | null;
 }
 
-export const validationSchema = yup.object({
+const validationSchema = yup.object({
   nome: yup.string().required("Campo obrigatório"),
   descricao: yup.string(),
   tempoFabricacao: yup
@@ -100,7 +110,7 @@ export const validationSchema = yup.object({
     }),
 });
 
-export const initialValues = {
+const initialValues = {
   nome: "",
   descricao: "",
   tempoFabricacao: 1,
@@ -121,40 +131,9 @@ const ModelosForm: React.FC<FormProps> = ({
   onSubmit,
   item,
 }) => {
-  const { showDialog, closeDialog } = useDialog();
   const [tab, setTab] = useState(0);
-  const [allCortes, setAllCortes] = useState<any[]>([]);
-  const [allTramas, setAllTramas] = useState<any[]>([]);
-  const [allMateriais, setAllMateriais] = useState<any[]>([]);
-  const [loadingCortes, setLoadingCortes] = useState(false);
-  const [loadingTramas, setLoadingTramas] = useState(false);
+  const [allMateriais, setAllMateriais] = useState<{ id: number; item: string; unidade: string }[]>([]);
   const [loadingMateriais, setLoadingMateriais] = useState(false);
-  const [batchOpen, setBatchOpen] = useState(false);
-  const [batchParede, setBatchParede] = useState("");
-
-  const fetchCortes = useCallback(async () => {
-    setLoadingCortes(true);
-    try {
-      const res = await api.get(ENDPOINTS.CORTES);
-      setAllCortes(res.data);
-    } catch (error) {
-      console.error("Erro ao carregar cortes:", error);
-    } finally {
-      setLoadingCortes(false);
-    }
-  }, []);
-
-  const fetchTramas = useCallback(async () => {
-    setLoadingTramas(true);
-    try {
-      const res = await api.get(ENDPOINTS.TRAMAS);
-      setAllTramas(res.data);
-    } catch (error) {
-      console.error("Erro ao carregar tramas:", error);
-    } finally {
-      setLoadingTramas(false);
-    }
-  }, []);
 
   const fetchMateriais = useCallback(async () => {
     setLoadingMateriais(true);
@@ -171,12 +150,10 @@ const ModelosForm: React.FC<FormProps> = ({
   /* eslint-disable react-hooks/set-state-in-effect -- Intentional: loading data and resetting tab on dialog open */
   useEffect(() => {
     if (open) {
-      fetchCortes();
-      fetchTramas();
       fetchMateriais();
       setTab(0);
     }
-  }, [open, fetchCortes, fetchTramas, fetchMateriais]);
+  }, [open, fetchMateriais]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   // Agrupamento de requisitos por parede
@@ -198,20 +175,20 @@ const ModelosForm: React.FC<FormProps> = ({
           ...values,
           tempoFabricacao: Number(values.tempoFabricacao),
           preco: Number(String(values.preco).replace(",", ".")),
-          requisitos: values.requisitos.map((r: any) => ({
+          requisitos: values.requisitos.map((r: RequisitoRequerido) => ({
             tipo: r.tipo,
-            alias: r.alias || null,
+            alias: r.alias || undefined,
             parede: r.parede,
-            largura: r.largura ? Number(r.largura) : null,
-            altura: r.altura ? Number(r.altura) : null,
-            espessura: r.espessura ? Number(r.espessura) : null,
-            tramaEsquerdaId: r.tramaEsquerdaId || null,
-            tramaDireitaId: r.tramaDireitaId || null,
-            tramaSuperiorId: r.tramaSuperiorId || null,
-            tramaInferiorId: r.tramaInferiorId || null,
-            corteId: r.corteId || null,
+            largura: r.largura ? Number(r.largura) : undefined,
+            altura: r.altura ? Number(r.altura) : undefined,
+            espessura: r.espessura ? Number(r.espessura) : undefined,
+            tramaEsquerdaId: r.tramaEsquerdaId || undefined,
+            tramaDireitaId: r.tramaDireitaId || undefined,
+            tramaSuperiorId: r.tramaSuperiorId || undefined,
+            tramaInferiorId: r.tramaInferiorId || undefined,
+            corteId: r.corteId || undefined,
           })),
-          materiais: values.materiais.map((m: any) => ({
+          materiais: values.materiais.map((m: MaterialRequerido) => ({
             materiaPrimaId: Number(m.materiaPrimaId),
             qtModelo: Number(m.qtModelo),
           })),
@@ -459,7 +436,7 @@ const ModelosForm: React.FC<FormProps> = ({
                 </Grid>
 
                 <Grid container spacing={1}>
-                  {formik.values.materiais.map((item: any, idx: number) => (
+                  {formik.values.materiais.map((item: MaterialRequerido, idx: number) => (
                     <Grid size={12} key={idx}>
                       <Grid container spacing={1} sx={{ alignItems: "center" }}>
                         <Grid size={{ xs: 8, sm: 9 }}>
@@ -468,7 +445,7 @@ const ModelosForm: React.FC<FormProps> = ({
                             size="small"
                             options={allMateriais}
                             loading={loadingMateriais}
-                            getOptionLabel={(option) =>
+                            getOptionLabel={(option: { item: string; unidade: string }) =>
                               `${option.item} (${option.unidade})`
                             }
                             value={
@@ -476,7 +453,7 @@ const ModelosForm: React.FC<FormProps> = ({
                                 (m) => m.id === item.materiaPrimaId,
                               ) || null
                             }
-                            onChange={(_, newValue) => {
+                            onChange={(_, newValue: { id: number; item: string; unidade: string } | null) => {
                               formik.setFieldValue(
                                 `materiais[${idx}].materiaPrimaId`,
                                 newValue ? newValue.id : "",
@@ -508,7 +485,7 @@ const ModelosForm: React.FC<FormProps> = ({
                             color="error"
                             onClick={() => {
                               const updated = formik.values.materiais.filter(
-                                (_: any, i: number) => i !== idx,
+                                (_: unknown, i: number) => i !== idx,
                               );
                               formik.setFieldValue("materiais", updated);
                             }}
@@ -553,471 +530,11 @@ const ModelosForm: React.FC<FormProps> = ({
 
             {/* ABA 2: REQUISITOS (PAREDES) */}
             {tab === 2 && (
-              <Box>
-                <Grid
-                  container
-                  spacing={2}
-                  sx={{ alignItems: "center", mb: 2 }}
-                >
-                  <Grid size="grow">
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                      Requisitos de Produção
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Defina as especificações abstratas de cada peça
-                      necessária.
-                    </Typography>
-                  </Grid>
-                </Grid>
-
-                <Grid container spacing={3}>
-                  {paredes.map((pNome) => (
-                    <Grid size={12} key={pNome}>
-                      <Card variant="outlined" sx={{ bgcolor: "action.hover" }}>
-                        <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
-                          <Grid
-                            container
-                            spacing={2}
-                            sx={{ alignItems: "center", mb: 2 }}
-                          >
-                            <Grid size={{ xs: 8, sm: 6 }}>
-                              <TextField
-                                fullWidth
-                                size="small"
-                                label="Nome da Parede"
-                                value={pNome}
-                                onChange={(e) => {
-                                  const newVal = e.target.value;
-                                  const updated = formik.values.requisitos.map(
-                                    (r: any) =>
-                                      r.parede === pNome
-                                        ? { ...r, parede: newVal }
-                                        : r,
-                                  );
-                                  formik.setFieldValue("requisitos", updated);
-                                }}
-                                sx={{ bgcolor: "background.paper" }}
-                              />
-                            </Grid>
-                            <Grid size="grow">
-                              <Typography
-                                variant="caption"
-                                color="text.secondary"
-                              >
-                                {groupedRequisitos[pNome]?.length || 0}{" "}
-                                requisito(s)
-                              </Typography>
-                            </Grid>
-                            <Grid size="auto">
-                              <IconButton
-                                size="small"
-                                color="error"
-                                onClick={() => {
-                                  showDialog({
-                                    title: "Excluir Parede",
-                                    body: `Deseja realmente excluir a ${pNome} e todos os seus requisitos?`,
-                                    actions: [
-                                      <Button
-                                        key="cancel"
-                                        onClick={closeDialog}
-                                      >
-                                        Cancelar
-                                      </Button>,
-                                      <Button
-                                        key="confirm"
-                                        color="error"
-                                        variant="contained"
-                                        onClick={() => {
-                                          const updated =
-                                            formik.values.requisitos.filter(
-                                              (r: any) => r.parede !== pNome,
-                                            );
-                                          formik.setFieldValue(
-                                            "requisitos",
-                                            updated,
-                                          );
-                                          closeDialog();
-                                        }}
-                                      >
-                                        Excluir
-                                      </Button>,
-                                    ],
-                                  });
-                                }}
-                                title="Excluir Parede"
-                              >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            </Grid>
-                          </Grid>
-
-                          <Grid container spacing={2}>
-                            {formik.values.requisitos
-                              .map((r: any, idx: number) => ({
-                                ...r,
-                                originalIdx: idx,
-                              }))
-                              .filter((r: any) => r.parede === pNome)
-                              .map((item: any) => (
-                                <Grid size={12} key={item.originalIdx}>
-                                  <Card
-                                    variant="outlined"
-                                    sx={{
-                                      p: 1.5,
-                                      bgcolor: "background.paper",
-                                    }}
-                                  >
-                                    {/* CABEÇALHO DO REQUISITO: TIPO + ALIAS + DELETE */}
-                                    <Grid
-                                      container
-                                      spacing={1.5}
-                                      size={12}
-                                      sx={{ alignItems: "center" }}
-                                    >
-                                      <Grid size={4}>
-                                        <FormControl
-                                          fullWidth
-                                          size="small"
-                                          sx={{ minWidth: 150 }}
-                                        >
-                                          <InputLabel>Tipo</InputLabel>
-                                          <Select
-                                            value={item.tipo}
-                                            label="Tipo"
-                                            onChange={(e) =>
-                                              formik.setFieldValue(
-                                                `requisitos[${item.originalIdx}].tipo`,
-                                                e.target.value,
-                                              )
-                                            }
-                                          >
-                                            <MenuItem value="PLACA_LISA">
-                                              Placa Lisa
-                                            </MenuItem>
-                                            <MenuItem value="CORTE_ESPECIFICO">
-                                              Corte Específico
-                                            </MenuItem>
-                                          </Select>
-                                        </FormControl>
-                                      </Grid>
-
-                                      <Grid size={4}>
-                                        <TextField
-                                          fullWidth
-                                          size="small"
-                                          label="Alias"
-                                          placeholder="P01"
-                                          value={item.alias || ""}
-                                          onChange={(e) =>
-                                            formik.setFieldValue(
-                                              `requisitos[${item.originalIdx}].alias`,
-                                              e.target.value,
-                                            )
-                                          }
-                                        />
-                                      </Grid>
-
-                                      <Grid size="grow" />
-
-                                      <Grid size="auto">
-                                        <IconButton
-                                          size="small"
-                                          color="error"
-                                          onClick={() => {
-                                            const updated =
-                                              formik.values.requisitos.filter(
-                                                (_: any, i: number) =>
-                                                  i !== item.originalIdx,
-                                              );
-                                            formik.setFieldValue(
-                                              "requisitos",
-                                              updated,
-                                            );
-                                          }}
-                                        >
-                                          <DeleteIcon fontSize="small" />
-                                        </IconButton>
-                                      </Grid>
-
-                                      {/* CORPO DO REQUISITO: CAMPOS ESPECÍFICOS */}
-                                      {item.tipo === "PLACA_LISA" && (
-                                        <>
-                                          <Grid size={{ xs: 4, sm: 4 }}>
-                                            <TextField
-                                              fullWidth
-                                              size="small"
-                                              label="Largura (cm)"
-                                              type="number"
-                                              value={item.largura || ""}
-                                              onChange={(e) =>
-                                                formik.setFieldValue(
-                                                  `requisitos[${item.originalIdx}].largura`,
-                                                  e.target.value,
-                                                )
-                                              }
-                                            />
-                                          </Grid>
-                                          <Grid size={{ xs: 4, sm: 4 }}>
-                                            <TextField
-                                              fullWidth
-                                              size="small"
-                                              label="Altura (cm)"
-                                              type="number"
-                                              value={item.altura || ""}
-                                              onChange={(e) =>
-                                                formik.setFieldValue(
-                                                  `requisitos[${item.originalIdx}].altura`,
-                                                  e.target.value,
-                                                )
-                                              }
-                                            />
-                                          </Grid>
-                                          <Grid size={{ xs: 4, sm: 4 }}>
-                                            <TextField
-                                              fullWidth
-                                              size="small"
-                                              label="Espessura (cm)"
-                                              type="number"
-                                              value={item.espessura || ""}
-                                              onChange={(e) =>
-                                                formik.setFieldValue(
-                                                  `requisitos[${item.originalIdx}].espessura`,
-                                                  e.target.value,
-                                                )
-                                              }
-                                            />
-                                          </Grid>
-                                        </>
-                                      )}
-
-                                      {item.tipo === "CORTE_ESPECIFICO" && (
-                                        <Grid size={{ xs: 12, sm: 12 }}>
-                                          <Autocomplete
-                                            size="small"
-                                            options={allCortes}
-                                            loading={loadingCortes}
-                                            getOptionLabel={(o) => o.nome}
-                                            value={
-                                              allCortes.find(
-                                                (c) => c.id === item.corteId,
-                                              ) || null
-                                            }
-                                            onChange={(_, v) =>
-                                              formik.setFieldValue(
-                                                `requisitos[${item.originalIdx}].corteId`,
-                                                v ? v.id : null,
-                                              )
-                                            }
-                                            renderInput={(params) => (
-                                              <TextField
-                                                {...params}
-                                                label="Corte do Catálogo"
-                                              />
-                                            )}
-                                          />
-                                        </Grid>
-                                      )}
-
-                                      {/* TRAMAS (Visível para ambos os tipos) */}
-                                      <Grid size={{ xs: 6, sm: 3 }}>
-                                        <Autocomplete
-                                          size="small"
-                                          options={allTramas}
-                                          loading={loadingTramas}
-                                          getOptionLabel={(o) => o.nome}
-                                          value={
-                                            allTramas.find(
-                                              (t) =>
-                                                t.id === item.tramaEsquerdaId,
-                                            ) || null
-                                          }
-                                          onChange={(_, v) =>
-                                            formik.setFieldValue(
-                                              `requisitos[${item.originalIdx}].tramaEsquerdaId`,
-                                              v ? v.id : null,
-                                            )
-                                          }
-                                          renderInput={(params) => (
-                                            <TextField
-                                              {...params}
-                                              label="Trama Esq."
-                                            />
-                                          )}
-                                        />
-                                      </Grid>
-                                      <Grid size={{ xs: 6, sm: 3 }}>
-                                        <Autocomplete
-                                          size="small"
-                                          options={allTramas}
-                                          loading={loadingTramas}
-                                          getOptionLabel={(o) => o.nome}
-                                          value={
-                                            allTramas.find(
-                                              (t) =>
-                                                t.id === item.tramaDireitaId,
-                                            ) || null
-                                          }
-                                          onChange={(_, v) =>
-                                            formik.setFieldValue(
-                                              `requisitos[${item.originalIdx}].tramaDireitaId`,
-                                              v ? v.id : null,
-                                            )
-                                          }
-                                          renderInput={(params) => (
-                                            <TextField
-                                              {...params}
-                                              label="Trama Dir."
-                                            />
-                                          )}
-                                        />
-                                      </Grid>
-                                      <Grid size={{ xs: 6, sm: 3 }}>
-                                        <Autocomplete
-                                          size="small"
-                                          options={allTramas}
-                                          loading={loadingTramas}
-                                          getOptionLabel={(o) => o.nome}
-                                          value={
-                                            allTramas.find(
-                                              (t) =>
-                                                t.id === item.tramaSuperiorId,
-                                            ) || null
-                                          }
-                                          onChange={(_, v) =>
-                                            formik.setFieldValue(
-                                              `requisitos[${item.originalIdx}].tramaSuperiorId`,
-                                              v ? v.id : null,
-                                            )
-                                          }
-                                          renderInput={(params) => (
-                                            <TextField
-                                              {...params}
-                                              label="Trama Sup."
-                                            />
-                                          )}
-                                        />
-                                      </Grid>
-                                      <Grid size={{ xs: 6, sm: 3 }}>
-                                        <Autocomplete
-                                          size="small"
-                                          options={allTramas}
-                                          loading={loadingTramas}
-                                          getOptionLabel={(o) => o.nome}
-                                          value={
-                                            allTramas.find(
-                                              (t) =>
-                                                t.id === item.tramaInferiorId,
-                                            ) || null
-                                          }
-                                          onChange={(_, v) =>
-                                            formik.setFieldValue(
-                                              `requisitos[${item.originalIdx}].tramaInferiorId`,
-                                              v ? v.id : null,
-                                            )
-                                          }
-                                          renderInput={(params) => (
-                                            <TextField
-                                              {...params}
-                                              label="Trama Inf."
-                                            />
-                                          )}
-                                        />
-                                      </Grid>
-                                    </Grid>
-                                  </Card>
-                                </Grid>
-                              ))}
-                            <Grid size={12} sx={{ mt: 1 }}>
-                              <Button
-                                size="small"
-                                startIcon={<AddIcon />}
-                                onClick={() => {
-                                  formik.setFieldValue("requisitos", [
-                                    ...formik.values.requisitos,
-                                    {
-                                      tipo: "PLACA_LISA" as const,
-                                      parede: pNome,
-                                      alias: "",
-                                      largura: undefined,
-                                      altura: undefined,
-                                      espessura: undefined,
-                                      tramaEsquerdaId: null,
-                                      tramaDireitaId: null,
-                                      tramaSuperiorId: null,
-                                      tramaInferiorId: null,
-                                      corteId: null,
-                                    },
-                                  ]);
-                                }}
-                              >
-                                Adicionar Requisito
-                              </Button>
-                              <Button
-                                size="small"
-                                startIcon={<AddIcon />}
-                                color="secondary"
-                                onClick={() => {
-                                  setBatchParede(pNome);
-                                  setBatchOpen(true);
-                                }}
-                              >
-                                Adicionar em Lote
-                              </Button>
-                            </Grid>
-                          </Grid>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  ))}
-                  <BatchRequisitosDialog
-                    open={batchOpen}
-                    onClose={() => setBatchOpen(false)}
-                    parede={batchParede}
-                    onSubmit={(novos) => {
-                      formik.setFieldValue("requisitos", [
-                        ...formik.values.requisitos,
-                        ...novos,
-                      ]);
-                    }}
-                  />
-                  <Grid size={12}>
-                    <Button
-                      variant="outlined"
-                      fullWidth
-                      sx={{ borderStyle: "dashed", py: 1.5 }}
-                      startIcon={<AddIcon />}
-                      onClick={() => {
-                        const newReqs = [...formik.values.requisitos];
-                        const grouped = getGroupedRequisitos(newReqs);
-                        const currentParedes = Object.keys(grouped);
-                        let nextNum = 1;
-                        while (currentParedes.includes(`Parede ${nextNum}`)) {
-                          nextNum++;
-                        }
-                        const newParede = `Parede ${nextNum}`;
-                        formik.setFieldValue("requisitos", [
-                          ...newReqs,
-                          {
-                            tipo: "PLACA_LISA" as const,
-                            parede: newParede,
-                            alias: "",
-                            largura: undefined,
-                            altura: undefined,
-                            espessura: undefined,
-                            tramaEsquerdaId: null,
-                            tramaDireitaId: null,
-                            tramaSuperiorId: null,
-                            tramaInferiorId: null,
-                            corteId: null,
-                          },
-                        ]);
-                      }}
-                    >
-                      Nova Parede
-                    </Button>
-                  </Grid>
-                </Grid>
-              </Box>
+              <RequisitosEditor
+                requisitos={formik.values.requisitos}
+                onChange={(novos) => formik.setFieldValue("requisitos", novos)}
+                showParedes={true}
+              />
             )}
 
             {/* ABA 3: INSUMOS */}
@@ -1113,7 +630,7 @@ const ModelosForm: React.FC<FormProps> = ({
                               onClick={() => {
                                 const updated =
                                   formik.values.suprimentosObra.filter(
-                                    (_: any, i: number) => i !== idx,
+                                    (_: unknown, i: number) => i !== idx,
                                   );
                                 formik.setFieldValue(
                                   "suprimentosObra",

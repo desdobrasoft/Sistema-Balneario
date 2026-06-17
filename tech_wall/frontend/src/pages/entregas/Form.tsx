@@ -19,10 +19,23 @@ interface EntregaFormValues {
   notas: string;
 }
 
+export interface EntregaModel {
+  id?: number;
+  status?: StatusEntrega;
+  transportadora?: string;
+  previsaoEntrega?: string;
+  notas?: string;
+  venda?: {
+    id: number;
+    cliente?: { nome: string };
+    modeloCasa?: { nome: string };
+  };
+}
+
 interface EntregasFormProps {
   open: boolean;
   onClose: () => void;
-  item: any;
+  item: EntregaModel | null;
   onSubmit: (values: EntregaFormValues) => Promise<void>;
 }
 

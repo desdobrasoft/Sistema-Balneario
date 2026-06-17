@@ -4,10 +4,7 @@ import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 
 /** TODOs:
- * - No cadastro notas fiscais, o sistema não está buscando pedidos de compra nem pagamentos parciais
- *
  * - Implementar desalocamento de placas
- * - Nâo exibir placas que geraram cortes na lista de vínculos
  */
 
 async function bootstrap() {
@@ -37,4 +34,4 @@ async function bootstrap() {
   await app.listen(port, '0.0.0.0');
   console.log(`Application is running on: http://localhost:${port}`);
 }
-bootstrap();
+void bootstrap();

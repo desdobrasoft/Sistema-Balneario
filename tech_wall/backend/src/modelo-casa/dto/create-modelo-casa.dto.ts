@@ -26,6 +26,12 @@ enum TipoRequisito {
   CORTE_ESPECIFICO = 'CORTE_ESPECIFICO',
 }
 
+enum ReforcoPlaca {
+  UM_P = 'UM_P',
+  DOIS_P = 'DOIS_P',
+  S_P = 'S_P',
+}
+
 class RequisitoDto {
   @IsEnum(TipoRequisito)
   tipo: TipoRequisito;
@@ -71,6 +77,10 @@ class RequisitoDto {
   @IsInt()
   @IsOptional()
   corteId?: number;
+
+  @IsEnum(ReforcoPlaca)
+  @IsOptional()
+  reforco?: ReforcoPlaca;
 }
 
 export class CreateModeloCasaDto {

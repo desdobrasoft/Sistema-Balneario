@@ -12,11 +12,37 @@ export interface ParedeExportData {
   }[];
 }
 
-const buildExportData = (modelo: any, allTramas: any[]): ParedeExportData[] => {
+export interface ExportTrama {
+  id: number;
+  nome: string;
+}
+
+export interface ExportModelo {
+  nome: string;
+  requisitos?: {
+    parede?: string;
+    tipo: string;
+    largura?: number;
+    altura?: number;
+    alias?: string;
+    corte?: {
+      nome?: string;
+      largura?: number;
+      altura?: number;
+      percurso?: { distancia: number }[];
+    };
+    tramaEsquerdaId?: number;
+    tramaDireitaId?: number;
+    tramaSuperiorId?: number;
+    tramaInferiorId?: number;
+  }[];
+}
+
+const buildExportData = (modelo: ExportModelo, allTramas: ExportTrama[]): ParedeExportData[] => {
   const requisitos = modelo.requisitos || [];
   const grouped: Record<string, ParedeExportData> = {};
 
-  requisitos.forEach((item: any) => {
+  requisitos.forEach((item) => {
     const pNome = item.parede || "Geral";
     if (!grouped[pNome]) {
       grouped[pNome] = { parede: pNome, items: [] };
@@ -35,7 +61,7 @@ const buildExportData = (modelo: any, allTramas: any[]): ParedeExportData[] => {
         dimensoes = `${item.corte.largura} x ${item.corte.altura}`;
       } else {
         // Caso contrário, exibe o valor bruto das medidas do percurso
-        dimensoes = percurso.map((v: any) => v.distancia).join(" x ");
+        dimensoes = percurso.map((v: { distancia: number }) => v.distancia).join(" x ");
       }
     }
 
@@ -71,7 +97,7 @@ const buildExportData = (modelo: any, allTramas: any[]): ParedeExportData[] => {
   return Object.values(grouped);
 };
 
-export const exportToPDF = (modelo: any, allTramas: any[]) => {
+export const exportToPDF = (modelo: ExportModelo, allTramas: ExportTrama[]) => {
   const data = buildExportData(modelo, allTramas);
   const doc = new jsPDF();
 
@@ -107,13 +133,13 @@ export const exportToPDF = (modelo: any, allTramas: any[]) => {
       margin: { left: 14 },
     });
 
-    currentY = (doc as any).lastAutoTable.finalY + 10;
+    currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
   });
 
   doc.save(`Mapa_Cortes_${modelo.nome.replace(/\s+/g, "_")}.pdf`);
 };
 
-export const exportToExcel = async (modelo: any, allTramas: any[]) => {
+export const exportToExcel = async (modelo: ExportModelo, allTramas: ExportTrama[]) => {
   const data = buildExportData(modelo, allTramas);
 
   const workbook = new ExcelJS.Workbook();

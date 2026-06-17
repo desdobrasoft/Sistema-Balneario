@@ -10,7 +10,7 @@ export class MeController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  async getProfile(@CurrentUser() user: any) {
+  async getProfile(@CurrentUser() user: { id: number }) {
     const fullUser = await this.usersService.findByIdWithRoles(user.id);
 
     if (!fullUser) return null;
@@ -35,7 +35,10 @@ export class MeController {
   }
 
   @Patch()
-  async updateProfile(@CurrentUser() user: any, @Body() dto: UpdateUserDto) {
+  async updateProfile(
+    @CurrentUser() user: { id: number },
+    @Body() dto: UpdateUserDto,
+  ) {
     return this.usersService.updateOwnUser(user.id, dto);
   }
 }

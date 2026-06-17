@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -54,11 +55,15 @@ const Login: React.FC = () => {
       setUser(userResponse.data);
 
       navigate(from, { replace: true });
-    } catch (err: any) {
-      setError(
-        err.response?.data?.message ||
-        "Erro ao realizar login. Verifique suas credenciais.",
-      );
+    } catch (err: unknown) {
+      if (isAxiosError(err)) {
+        setError(
+          err.response?.data?.message ||
+          "Erro ao realizar login. Verifique suas credenciais.",
+        );
+      } else {
+        setError("Erro ao realizar login. Verifique suas credenciais.");
+      }
     } finally {
       setLoading(false);
     }

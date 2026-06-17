@@ -53,7 +53,7 @@ const Placas: React.FC = () => {
     [],
   );
 
-  const handleFetchData = useCallback(async (data: any) => {
+  const handleFetchData = useCallback(async (data: Record<string, unknown>) => {
     const res = await api.post(
       `${ENDPOINTS.PLACAS}${ENDPOINTS.DATATABLE}`,
       data,
@@ -75,7 +75,7 @@ const Placas: React.FC = () => {
           const data = res.data;
           // Map backend relation 'materiaisPlaca' to frontend expected 'materiais'
           if (data.materiaisPlaca) {
-            data.materiais = data.materiaisPlaca.map((m: any) => ({
+            data.materiais = data.materiaisPlaca.map((m: { materiaPrimaId: number; quantidade: number; materiaPrima: unknown }) => ({
               materiaPrimaId: m.materiaPrimaId,
               quantidade: m.quantidade,
               materiaPrima: m.materiaPrima,
@@ -102,7 +102,7 @@ const Placas: React.FC = () => {
   }, []);
 
   const salvar = useCallback(
-    async (payload: any) => {
+    async (payload: Record<string, unknown>) => {
       try {
         if (selectedPlaca) {
           await api.patch(`${ENDPOINTS.PLACAS}/${selectedPlaca.id}`, payload);
@@ -127,17 +127,15 @@ const Placas: React.FC = () => {
   );
 
   const handleSubmit = useCallback(
-    async (values: any) => {
+    async (values: Partial<PlacaModel> & Record<string, unknown>) => {
       if (values.modoBatch && !selectedPlaca) {
-        const {
-          nome,
-          modoBatch,
-          id,
-          statusProducao,
-          createdAt,
-          updatedAt,
-          ...batchData
-        } = values;
+        const batchData = { ...values };
+        delete batchData.nome;
+        delete batchData.modoBatch;
+        delete batchData.id;
+        delete batchData.statusProducao;
+        delete batchData.createdAt;
+        delete batchData.updatedAt;
 
         const batchPayload = {
           ...batchData,
@@ -147,22 +145,22 @@ const Placas: React.FC = () => {
             ? Number(batchData.algarismos)
             : undefined,
           altura:
-            batchData.altura === "" || batchData.altura === 0
+            !batchData.altura
               ? undefined
               : Number(batchData.altura),
           largura:
-            batchData.largura === "" || batchData.largura === 0
+            !batchData.largura
               ? undefined
               : Number(batchData.largura),
           espessura:
-            batchData.espessura === "" || batchData.espessura === 0
+            !batchData.espessura
               ? undefined
               : Number(batchData.espessura),
           tramaEsquerdaId: batchData.tramaEsquerdaId || undefined,
           tramaDireitaId: batchData.tramaDireitaId || undefined,
           tramaSuperiorId: batchData.tramaSuperiorId || undefined,
           tramaInferiorId: batchData.tramaInferiorId || undefined,
-          materiais: batchData.materiais?.map((m: any) => ({
+          materiais: batchData.materiais?.map((m: { materiaPrimaId: number; quantidade: number }) => ({
             materiaPrimaId: Number(m.materiaPrimaId),
             quantidade: Number(m.quantidade),
           })),
@@ -183,21 +181,25 @@ const Placas: React.FC = () => {
       }
 
       // Sanitizar payload: Enviar apenas o que o DTO espera
-      const { id, statusProducao, createdAt, updatedAt, ...rest } = values;
+      const rest = { ...values };
+      delete rest.id;
+      delete rest.statusProducao;
+      delete rest.createdAt;
+      delete rest.updatedAt;
 
       const payload = {
         nome: rest.nome,
         descricao: rest.descricao,
         altura:
-          rest.altura === "" || rest.altura === 0
+          !rest.altura
             ? undefined
             : Number(rest.altura),
         largura:
-          rest.largura === "" || rest.largura === 0
+          !rest.largura
             ? undefined
             : Number(rest.largura),
         espessura:
-          rest.espessura === "" || rest.espessura === 0
+          !rest.espessura
             ? undefined
             : Number(rest.espessura),
         retalhoDescartado: rest.retalhoDescartado,
@@ -211,7 +213,7 @@ const Placas: React.FC = () => {
         tramaInferiorAtiva: rest.tramaInferiorAtiva,
         tramaInferiorId: rest.tramaInferiorId || undefined,
         darBaixaImediata: rest.darBaixaImediata,
-        materiais: rest.materiais?.map((m: any) => ({
+        materiais: rest.materiais?.map((m: { materiaPrimaId: number; quantidade: number }) => ({
           materiaPrimaId: Number(m.materiaPrimaId),
           quantidade: Number(m.quantidade),
         })),
@@ -226,7 +228,7 @@ const Placas: React.FC = () => {
       } else {
         for (const newMat of newMateriais) {
           const oldMat = oldMateriais.find(
-            (m: any) => m.materiaPrimaId === newMat.materiaPrimaId,
+            (m: { materiaPrimaId: number }) => m.materiaPrimaId === newMat.materiaPrimaId,
           );
           if (
             !oldMat ||
@@ -438,14 +440,14 @@ const Placas: React.FC = () => {
                 </Box>
               );
             },
-            [handleError, showDialog, closeDialog, handleOpenDialog],
+            [handleError, handleOpenDialog, handleDelete],
           )}
         />
       </Paper>
       <FormDialog
         open={dialogOpen}
         onClose={handleCloseDialog}
-        onSubmit={handleSubmit}
+        onSubmit={(values) => handleSubmit(values as unknown as Partial<PlacaModel> & Record<string, unknown>)}
         item={selectedPlaca}
       />
       <GerenciarProducaoDialog

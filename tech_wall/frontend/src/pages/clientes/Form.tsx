@@ -20,27 +20,28 @@ interface ClienteModel {
 interface FormProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (values: any) => Promise<void>;
+  onSubmit: (values: ClienteModel) => Promise<void>;
   item: ClienteModel | null;
 }
 
 // ─── Validation / Initial Values ─────────────────────────────────────────────
 
-export const validationSchema = yup.object({
+const validationSchema = yup.object({
   nome: yup.string().required("Campo obrigatório"),
   email: yup.string().email("Email inválido"),
   nroContato: yup.string(),
 });
 
-export const initialValues = {
-  nome: "",
-  email: "",
-  nroContato: "",
-};
+const getInitialValues = (item: ClienteModel | null): ClienteModel => ({
+  id: item?.id ?? 0,
+  nome: item?.nome ?? "",
+  email: item?.email ?? "",
+  nroContato: item?.nroContato ?? "",
+});
 
 // ─── Custom Phone Input (MUI TextField wrapper) ─────────────────────────────
 
-const PhoneTextField = forwardRef<HTMLInputElement, any>(
+const PhoneTextField = forwardRef<HTMLInputElement, React.ComponentProps<typeof TextField>>(
   function PhoneTextField(props, ref) {
     return (
       <TextField
@@ -66,7 +67,7 @@ const ClientesForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) =>
       maxWidth="md"
       title={item ? "Editar Cliente" : "Novo Cliente"}
       item={item}
-      initialValues={initialValues}
+      initialValues={getInitialValues(item)}
       validationSchema={validationSchema}
       renderForm={(formik) => (
         <Grid container spacing={2} sx={{ mt: 0.5 }}>

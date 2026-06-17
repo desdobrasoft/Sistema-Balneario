@@ -48,7 +48,7 @@ const Modelos: React.FC = () => {
       {
         title: "Preço Base",
         data: "preco",
-        render: (data: any) =>
+        render: (data: string) =>
           new Intl.NumberFormat("pt-BR", {
             style: "currency",
             currency: "BRL",
@@ -58,7 +58,7 @@ const Modelos: React.FC = () => {
     [],
   );
 
-  const handleFetchData = useCallback(async (data: any) => {
+  const handleFetchData = useCallback(async (data: Record<string, unknown>) => {
     const res = await api.post(
       `${ENDPOINTS.MODELO_CASA}${ENDPOINTS.DATATABLE}`,
       data,
@@ -72,7 +72,7 @@ const Modelos: React.FC = () => {
     };
   }, []);
 
-  const handleOpenDialog = async (modelo: ModeloCasaModel | null = null) => {
+  const handleOpenDialog = useCallback(async (modelo: ModeloCasaModel | null = null) => {
     if (modelo) {
       try {
         const res = await api.get(`${ENDPOINTS.MODELO_CASA}/${modelo.id}`);
@@ -84,26 +84,24 @@ const Modelos: React.FC = () => {
       setSelectedModelo(null);
     }
     setDialogOpen(true);
-  };
+  }, [handleError]);
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setSelectedModelo(null);
   };
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: Partial<ModeloCasaModel> & Record<string, unknown>) => {
     try {
-      const {
-        id,
-        deletedAt,
-        createdAt,
-        updatedAt,
-        qtVendido,
-        materiaisModeloCasa,
-        placasModeloCasa,
-        _count,
-        ...payload
-      } = values;
+      const payload = { ...values };
+      delete payload.id;
+      delete payload.deletedAt;
+      delete payload.createdAt;
+      delete payload.updatedAt;
+      delete payload.qtVendido;
+      delete payload.materiaisModeloCasa;
+      delete payload.placasModeloCasa;
+      delete payload._count;
 
       if (selectedModelo) {
         await api.patch(
@@ -128,7 +126,7 @@ const Modelos: React.FC = () => {
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = useCallback((id: number) => {
     showDialog({
       title: "Excluir Modelo",
       body: "Tem certeza de que deseja excluir este modelo? Esta ação não pode ser desfeita.",
@@ -158,9 +156,9 @@ const Modelos: React.FC = () => {
         </Button>,
       ],
     });
-  };
+  }, [showDialog, closeDialog, handleError, showSnackbar]);
 
-  const handleExport = async (row: any, type: "pdf" | "excel") => {
+  const handleExport = useCallback(async (row: ModeloCasaModel, type: "pdf" | "excel") => {
     showSnackbar({ message: "Gerando exportação...", severity: "info" });
     try {
       // Fetch full model with requisitos and corte included
@@ -185,7 +183,7 @@ const Modelos: React.FC = () => {
     } catch (error) {
       handleError(error);
     }
-  };
+  }, [handleError, showSnackbar]);
 
   return (
     <Box>
@@ -246,7 +244,7 @@ const Modelos: React.FC = () => {
                 </IconButton>
               </Box>
             ),
-            [],
+            [handleExport, handleOpenDialog, handleDelete],
           )}
         />
       </Paper>
@@ -254,7 +252,7 @@ const Modelos: React.FC = () => {
       <ModelosForm
         open={dialogOpen}
         onClose={handleCloseDialog}
-        onSubmit={handleSubmit}
+        onSubmit={(values) => handleSubmit(values as unknown as Partial<ModeloCasaModel> & Record<string, unknown>)}
         item={selectedModelo}
       />
     </Box>

@@ -46,7 +46,7 @@ const Cortes: React.FC = () => {
   );
 
   const handleFetchData = useCallback(
-    async (data: Record<string, any>) => {
+    async (data: Record<string, unknown>) => {
       try {
         const res = await api.post(
           `${ENDPOINTS.CORTES}${ENDPOINTS.DATATABLE}`,

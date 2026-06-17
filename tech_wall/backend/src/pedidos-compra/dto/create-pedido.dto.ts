@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  IsBoolean,
 } from 'class-validator';
 
 export class CreatePedidoDto {
@@ -24,4 +25,8 @@ export class CreatePedidoDto {
   @IsNumber()
   @IsPositive()
   valorUnitario?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  isDirectPurchase?: boolean;
 }

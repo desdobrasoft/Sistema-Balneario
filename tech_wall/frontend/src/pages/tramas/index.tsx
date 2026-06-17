@@ -24,7 +24,7 @@ import TramasForm from "./Form";
 
 const Tramas: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedTrama, setSelectedTrama] = useState<any | null>(null);
+  const [selectedTrama, setSelectedTrama] = useState<Record<string, unknown> | null>(null);
   const tableRef = useRef<{ reload: () => void }>(null);
   const { showDialog, closeDialog } = useDialog();
   const { showSnackbar } = useSnackbar();
@@ -41,7 +41,7 @@ const Tramas: React.FC = () => {
     [],
   );
 
-  const handleFetchData = useCallback(async (data: any) => {
+  const handleFetchData = useCallback(async (data: Record<string, unknown>) => {
     const res = await api.post(`${ENDPOINTS.TRAMAS}${ENDPOINTS.DATATABLE}`, data);
 
     return {
@@ -52,7 +52,7 @@ const Tramas: React.FC = () => {
     };
   }, []);
 
-  const handleOpenDialog = async (trama: any | null = null) => {
+  const handleOpenDialog = useCallback(async (trama: Record<string, unknown> | null = null) => {
     if (trama) {
       try {
         const res = await api.get(`${ENDPOINTS.TRAMAS}/${trama.id}`);
@@ -64,15 +64,20 @@ const Tramas: React.FC = () => {
       setSelectedTrama(null);
     }
     setDialogOpen(true);
-  };
+  }, [handleError]);
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setSelectedTrama(null);
   };
 
-  const handleSubmit = async (values: any) => {
-    const { id, padronizada, numeroDivisoes, createdAt, updatedAt, ...payload } = values;
+  const handleSubmit = async (values: Record<string, unknown>) => {
+    const payload = { ...values };
+    delete payload.id;
+    delete payload.padronizada;
+    delete payload.numeroDivisoes;
+    delete payload.createdAt;
+    delete payload.updatedAt;
 
     try {
       if (selectedTrama) {
@@ -89,7 +94,19 @@ const Tramas: React.FC = () => {
     }
   };
 
-  const handleDelete = (id: number) => {
+  const executeDelete = useCallback(async (id: number) => {
+    try {
+      await api.delete(`${ENDPOINTS.TRAMAS}/${id}`);
+      showSnackbar({ message: "Trama excluída com sucesso!", severity: "success" });
+      tableRef.current?.reload();
+    } catch (error) {
+      handleError(error);
+    } finally {
+      closeDialog();
+    }
+  }, [handleError, showSnackbar, closeDialog]);
+
+  const handleDelete = useCallback(async (id: number) => {
     showDialog({
       title: "Confirmar Exclusão",
       body: "Deseja realmente excluir esta trama? Se ela estiver atrelada a uma placa o banco poderá bloquear a operação de exclusão.",
@@ -109,19 +126,7 @@ const Tramas: React.FC = () => {
       ],
       dismissable: true,
     });
-  };
-
-  const executeDelete = async (id: number) => {
-    try {
-      await api.delete(`${ENDPOINTS.TRAMAS}/${id}`);
-      showSnackbar({ message: "Trama excluída com sucesso!", severity: "success" });
-      tableRef.current?.reload();
-    } catch (error) {
-      handleError(error);
-    } finally {
-      closeDialog();
-    }
-  };
+  }, [showDialog, closeDialog, executeDelete]);
 
   return (
     <Box>
@@ -155,7 +160,7 @@ const Tramas: React.FC = () => {
           columns={columns}
           onFetchData={handleFetchData}
           rowActions={useCallback(
-            (row: any) => (
+            (row: Record<string, unknown> & { id: number }) => (
               <Box sx={{ display: "flex", gap: 1 }}>
                 <IconButton
                   color="primary"
@@ -168,7 +173,7 @@ const Tramas: React.FC = () => {
                 </IconButton>
               </Box>
             ),
-            [],
+            [handleDelete, handleOpenDialog],
           )}
         />
       </Paper>

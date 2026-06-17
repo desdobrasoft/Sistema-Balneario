@@ -18,13 +18,13 @@ import { ENDPOINTS } from "config/endpoints";
 import { useErrorHandler } from "hooks/useErrorHandler";
 import api from "services/api";
 import { StatusEntrega } from "types/enums";
-import EntregasForm from "./Form";
+import EntregasForm, { type EntregaModel } from "./Form";
 
 // ===============================
 // PAGE COMPONENT
 // ===============================
 const Entregas: React.FC = () => {
-  const [selectedEntrega, setSelectedEntrega] = useState<any>(null);
+  const [selectedEntrega, setSelectedEntrega] = useState<EntregaModel | null>(null);
   const [updateOpen, setUpdateOpen] = useState(false);
   const tableRef = useRef<{ reload: () => void }>(null);
   const handleError = useErrorHandler();
@@ -34,18 +34,18 @@ const Entregas: React.FC = () => {
       {
         title: "Venda #",
         data: "venda.id",
-        render: (_: any, __: any, row: any) => row.venda?.id || "N/A",
+        render: (_: unknown, __: unknown, row: EntregaModel) => row.venda?.id || "N/A",
       },
       {
         title: "Cliente",
         data: "venda.cliente.nome",
-        render: (_: any, __: any, row: any) =>
+        render: (_: unknown, __: unknown, row: EntregaModel) =>
           row.venda?.cliente?.nome || "N/A",
       },
       {
         title: "Modelo",
         data: "venda.modeloCasa.nome",
-        render: (_: any, __: any, row: any) =>
+        render: (_: unknown, __: unknown, row: EntregaModel) =>
           row.venda?.modeloCasa?.nome || "N/A",
       },
       { title: "Transportadora", data: "transportadora" },
@@ -70,7 +70,7 @@ const Entregas: React.FC = () => {
     [],
   );
 
-  const handleFetchData = useCallback(async (data: any) => {
+  const handleFetchData = useCallback(async (data: Record<string, unknown>) => {
     const res = await api.post(
       `${ENDPOINTS.ENTREGAS}${ENDPOINTS.DATATABLE}`,
       data,
@@ -84,7 +84,7 @@ const Entregas: React.FC = () => {
     };
   }, []);
 
-  const handleOpenUpdate = async (entrega: any) => {
+  const handleOpenUpdate = useCallback(async (entrega: EntregaModel) => {
     try {
       const res = await api.get(`${ENDPOINTS.ENTREGAS}/${entrega.id}`);
       setSelectedEntrega(res.data);
@@ -92,7 +92,7 @@ const Entregas: React.FC = () => {
     } catch (error) {
       handleError(error);
     }
-  };
+  }, [handleError]);
 
   return (
     <Box>
@@ -119,7 +119,7 @@ const Entregas: React.FC = () => {
           columns={columns}
           onFetchData={handleFetchData}
           rowActions={useCallback(
-            (row: any) => (
+            (row: EntregaModel) => (
               <Box sx={{ display: "flex", gap: 1 }}>
                 <Tooltip title="Atualizar Entrega">
                   <IconButton
@@ -131,7 +131,7 @@ const Entregas: React.FC = () => {
                 </Tooltip>
               </Box>
             ),
-            [],
+            [handleOpenUpdate],
           )}
         />
       </Paper>

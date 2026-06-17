@@ -33,7 +33,7 @@ interface NotaFiscalFormValues {
   fileType: string;
   fileBase64: string;
   fileSize: number | null;
-  lancamentos: any[];
+  lancamentos: { id: number; descricao?: string; valorTotal?: string }[];
 }
 
 // ===============================
@@ -56,7 +56,7 @@ const NotaFiscalForm: React.FC<NotaFiscalFormProps> = ({
   const { showSnackbar } = useSnackbar();
 
   // Lancamentos state
-  const [lancamentosOptions, setLancamentosOptions] = useState<any[]>([]);
+  const [lancamentosOptions, setLancamentosOptions] = useState<{ id: number; descricao: string; valorTotal: string }[]>([]);
 
   useEffect(() => {
     if (open) {
@@ -93,7 +93,7 @@ const NotaFiscalForm: React.FC<NotaFiscalFormProps> = ({
           nomeArquivo: values.fileName,
           tipoArquivo: values.fileType,
           arquivoBase64: values.fileBase64,
-          lancamentoIds: values.lancamentos.map((l: any) => l.id),
+          lancamentoIds: values.lancamentos.map((l: { id: number }) => l.id),
         });
         showSnackbar({
           message: "Nota fiscal registrada com sucesso!",
@@ -194,8 +194,8 @@ const NotaFiscalForm: React.FC<NotaFiscalFormProps> = ({
               <Autocomplete
                 multiple
                 options={lancamentosOptions}
-                getOptionLabel={(opt: any) =>
-                  `${opt.descricao || "Sem descrição"} — ${formatCurrency(parseFloat(opt.valorTotal || 0))}`
+                getOptionLabel={(opt: { descricao?: string; valorTotal?: string }) =>
+                  `${opt.descricao || "Sem descrição"} — ${formatCurrency(parseFloat(opt.valorTotal || "0"))}`
                 }
                 value={formik.values.lancamentos}
                 onChange={(_, value) =>

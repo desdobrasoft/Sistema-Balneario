@@ -46,11 +46,11 @@ const MateriaPrima: React.FC = () => {
 
   // Movimentação dialog
   const [movDialogOpen, setMovDialogOpen] = useState(false);
-  const [movPreSelected, setMovPreSelected] = useState<any>(null);
+  const [movPreSelected, setMovPreSelected] = useState<MateriaPrimaModel | null>(null);
 
   // Pedido de Compra dialog
   const [pedidoDialogOpen, setPedidoDialogOpen] = useState(false);
-  const [pedidoMaterial, setPedidoMaterial] = useState<any>(null);
+  const [pedidoMaterial, setPedidoMaterial] = useState<MateriaPrimaModel | null>(null);
 
   const tableRef = useRef<{ reload: () => void }>(null);
   const { showDialog, closeDialog } = useDialog();
@@ -66,7 +66,7 @@ const MateriaPrima: React.FC = () => {
       {
         title: "Qtd",
         data: "quantidade",
-        render: (data: number, _: any, row: any) => {
+        render: (data: number, _: unknown, row: MateriaPrimaModel) => {
           const isLow = data <= (row.estoqueMinimo || 0);
           const color = isLow ? "#d32f2f" : "inherit";
           const fontWeight = isLow ? "bold" : "normal";
@@ -86,7 +86,7 @@ const MateriaPrima: React.FC = () => {
   // ===============================
   // FETCH DATA
   // ===============================
-  const handleFetchData = useCallback(async (data: any) => {
+  const handleFetchData = useCallback(async (data: Record<string, unknown>) => {
     const res = await api.post(
       `${ENDPOINTS.MATERIA_PRIMA}${ENDPOINTS.DATATABLE}`,
       data,
@@ -103,7 +103,7 @@ const MateriaPrima: React.FC = () => {
   // ===============================
   // MATERIAL CRUD HANDLERS
   // ===============================
-  const handleOpenDialog = async (
+  const handleOpenDialog = useCallback(async (
     material: MateriaPrimaModel | null = null,
   ) => {
     if (material) {
@@ -117,15 +117,16 @@ const MateriaPrima: React.FC = () => {
       setSelectedMaterial(null);
     }
     setDialogOpen(true);
-  };
+  }, [handleError]);
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setSelectedMaterial(null);
   };
 
-  const handleSubmit = async (values: any) => {
-    const { id, deletedAt, ...payload } = values;
+  const handleSubmit = async (values: MateriaPrimaModel) => {
+    const payload = { ...values } as Partial<MateriaPrimaModel> & Record<string, unknown>;
+    delete payload.id;
     if (selectedMaterial) {
       await api.patch(
         `${ENDPOINTS.MATERIA_PRIMA}/${selectedMaterial.id}`,
@@ -146,7 +147,7 @@ const MateriaPrima: React.FC = () => {
     handleCloseDialog();
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = useCallback((id: number) => {
     showDialog({
       title: "Excluir Material",
       body: "Tem certeza de que deseja excluir este material? Esta ação não pode ser desfeita.",
@@ -176,23 +177,23 @@ const MateriaPrima: React.FC = () => {
         </Button>,
       ],
     });
-  };
+  }, [showDialog, closeDialog, handleError, showSnackbar]);
 
   // ===============================
   // MOVIMENTAÇÃO HANDLERS
   // ===============================
-  const handleOpenMovimentacao = (material: any = null) => {
+  const handleOpenMovimentacao = useCallback((material: MateriaPrimaModel | null = null) => {
     setMovPreSelected(material);
     setMovDialogOpen(true);
-  };
+  }, []);
 
   // ===============================
   // PEDIDO DE COMPRA HANDLERS
   // ===============================
-  const handleOpenPedidoCompra = (material: any) => {
+  const handleOpenPedidoCompra = useCallback((material: MateriaPrimaModel) => {
     setPedidoMaterial(material);
     setPedidoDialogOpen(true);
-  };
+  }, []);
 
   // ===============================
   // ROW ACTIONS
@@ -228,7 +229,7 @@ const MateriaPrima: React.FC = () => {
         </Tooltip>
       </Box>
     ),
-    [],
+    [handleOpenMovimentacao, handleOpenPedidoCompra, handleOpenDialog, handleDelete],
   );
 
   return (
@@ -275,7 +276,7 @@ const MateriaPrima: React.FC = () => {
         <Box sx={{ p: 2 }}>
           {tabValue === 0 && (
             <MateriaPrimaDashboard
-              onOpenPedidoCompra={handleOpenPedidoCompra}
+              onOpenPedidoCompra={handleOpenPedidoCompra as unknown as (material: { id: number; item: string; quantidade: number; estoqueMinimo: number; unidade?: string }) => void}
             />
           )}
           {tabValue === 1 && (
@@ -312,7 +313,6 @@ const MateriaPrima: React.FC = () => {
             tipoMovimentacao: values.tipoMovimentacao,
             qtde: values.qtde,
             dataMovimentacao: values.dataMovimentacao,
-            fornecedor: values.fornecedor || undefined,
             notas: values.notas || undefined,
           });
           showSnackbar({
@@ -338,7 +338,6 @@ const MateriaPrima: React.FC = () => {
             await api.post(ENDPOINTS.PEDIDOS_COMPRA, {
               materiaPrimaId: values.materiaPrimaId,
               qtSolicitada: values.qtSolicitada,
-              fornecedor: values.fornecedor || undefined,
             });
             showSnackbar({
               message: "Pedido de compra aberto com sucesso!",

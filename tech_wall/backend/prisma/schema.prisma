@@ -63,9 +63,9 @@ model Cliente {
 model MateriaPrima {
   id                    Int                    @id @default(autoincrement())
   item                  String
-  quantidade            Int                    @default(0)
+  quantidade            Float                  @default(0)
   unidade               String?
-  estoqueMinimo         Int?                   @default(0) @map("estoque_minimo")
+  estoqueMinimo         Float?                 @default(0) @map("estoque_minimo")
   deletedAt             DateTime?              @map("deleted_at")
   materiaisModeloCasa   MaterialModeloCasa[]
   materiaisPlaca        MaterialPlaca[]
@@ -80,7 +80,7 @@ model MateriaPrima {
 model MaterialModeloCasa {
   modeloCasaId   Int          @map("modelo_casa_id")
   materiaPrimaId Int          @map("materia_prima_id")
-  qtModelo       Int          @map("qt_modelo")
+  qtModelo       Float        @map("qt_modelo")
   materiaPrima   MateriaPrima @relation(fields: [materiaPrimaId], references: [id], onDelete: Cascade)
   modeloCasa     ModeloCasa   @relation(fields: [modeloCasaId], references: [id], onDelete: Cascade)
 
@@ -152,7 +152,7 @@ model MovimentacaoMaterial {
   materiaPrimaId         Int                    @map("materia_prima_id")
   tipoMovimentacao       String                 @map("tipo_movimentacao") @db.Char(1)
   dataMovimentacao       DateTime               @map("data_movimentacao")
-  qtde                   Int
+  qtde                   Float
   fornecedor             String?
   notas                  String?
   createdAt              DateTime?              @default(now()) @map("created_at")
@@ -257,7 +257,7 @@ model VendaItemOverride {
   id             Int          @id @default(autoincrement())
   vendaId        Int          @map("venda_id")
   materiaPrimaId Int          @map("materia_prima_id")
-  qtFinal        Int          @map("qt_final")
+  qtFinal        Float        @map("qt_final")
   materiaPrima   MateriaPrima @relation(fields: [materiaPrimaId], references: [id])
   venda          Venda        @relation(fields: [vendaId], references: [id], onDelete: Cascade)
 
@@ -268,7 +268,7 @@ model VendaItemOverride {
 model MaterialPlaca {
   placaId        Int          @map("placa_id")
   materiaPrimaId Int          @map("materia_prima_id")
-  quantidade     Int
+  quantidade     Float
   materiaPrima   MateriaPrima @relation(fields: [materiaPrimaId], references: [id], onDelete: Cascade)
   placa          Placa        @relation(fields: [placaId], references: [id], onDelete: Cascade)
 
@@ -304,6 +304,7 @@ model Placa {
 
   statusProducao      StatusProducaoPlaca @default(AGUARDANDO) @map("status")
   statusPlaca         StatusPlaca         @default(DISPONIVEL) @map("status_placa")
+  reforco             ReforcoPlaca?       @default(S_P)
   materiaisConsumidos Json?               @map("materiais_consumidos")
 
   updatedAt         DateTime? @updatedAt @map("updated_at")
@@ -361,6 +362,14 @@ enum StatusPlaca {
   @@map("status_placa")
 }
 
+enum ReforcoPlaca {
+  UM_P   @map("1P")
+  DOIS_P @map("2P")
+  S_P    @map("S/P")
+
+  @@map("reforco_placa")
+}
+
 model RequisitoModeloCasa {
   id           Int           @id @default(autoincrement())
   modeloCasaId Int           @map("modelo_casa_id")
@@ -378,6 +387,7 @@ model RequisitoModeloCasa {
   tramaDireitaId  Int? @map("trama_direita_id")
   tramaSuperiorId Int? @map("trama_superior_id")
   tramaInferiorId Int? @map("trama_inferior_id")
+  reforco         ReforcoPlaca? @default(S_P)
 
   // Campos para CORTE_ESPECIFICO
   corteId Int? @map("corte_id")
@@ -407,6 +417,7 @@ model VendaRequisito {
   tramaDireitaId  Int? @map("trama_direita_id")
   tramaSuperiorId Int? @map("trama_superior_id")
   tramaInferiorId Int? @map("trama_inferior_id")
+  reforco         ReforcoPlaca? @default(S_P)
 
   corteId        Int? @map("corte_id")
   placaAlocadaId Int? @map("placa_alocada_id")

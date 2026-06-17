@@ -18,7 +18,7 @@ export class PrismaService
     const softDeleteActions = {
       async delete(this: any, args: any) {
         const ctx = Prisma.getExtensionContext(this);
-        return (ctx as any).update({
+        return await ctx.update({
           ...args,
           data: { deletedAt: new Date() },
         });
@@ -26,7 +26,7 @@ export class PrismaService
 
       async deleteMany(this: any, args: any) {
         const ctx = Prisma.getExtensionContext(this);
-        return (ctx as any).updateMany({
+        return await ctx.updateMany({
           ...args,
           data: { deletedAt: new Date() },
         });

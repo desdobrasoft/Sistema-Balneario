@@ -21,7 +21,7 @@ interface ReceberPedidoFormProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (values: ReceberPedidoFormValues) => Promise<void>;
-  pedido: any;
+  pedido: { id: number; materiaPrima?: { item: string }; qtSolicitada?: number; fornecedor?: string } | null;
 }
 
 // ===============================

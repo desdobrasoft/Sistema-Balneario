@@ -16,7 +16,7 @@ class MaterialPlacaDto {
   @IsNotEmpty()
   materiaPrimaId: number;
 
-  @IsInt()
+  @IsNumber()
   @IsPositive()
   quantidade: number;
 }
@@ -93,6 +93,10 @@ export class CreatePlacaDto {
   @IsBoolean()
   @IsOptional()
   retalhoDescartado?: boolean;
+
+  @IsString()
+  @IsOptional()
+  reforco?: string;
 
   @IsArray()
   @IsOptional()
