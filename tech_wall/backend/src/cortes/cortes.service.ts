@@ -8,9 +8,16 @@ import {
   DataTableResult,
 } from '../common/dto/data-table.dto';
 import { PrismaDatatableHelper } from '../common/utils/datatable.helper';
+import { formatDecimal } from '../common/utils/format.utils';
+import { Corte } from '../generated/prisma/client';
 import { GeometriaPlaca, VetorCorte } from '../placas/utils/geometria.utils';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCorteDto, UpdateCorteDto } from './dto/corte.dto';
+
+/** Estrutura de um Corte retornado pelo Prisma (campos relevantes para o DataTable) */
+type CorteRow = Omit<Corte, 'percurso'> & {
+  percurso: VetorCorte[];
+};
 
 @Injectable()
 export class CortesService {
@@ -66,49 +73,23 @@ export class CortesService {
   async findDatatable(
     query: DataTableParamsDto,
   ): Promise<DataTableResult<any>> {
-    const { skip, take, where, orderBy } =
-      PrismaDatatableHelper.buildPrismaQuery(query, ['nome'], {
-        deletedAt: null,
-      });
-
-    const [dataRaw, total, filtered] = await Promise.all([
-      this.prisma.corte.findMany({
-        where,
-        skip,
-        take,
-        orderBy: Object.keys(orderBy as Record<string, unknown>).length
-          ? orderBy
-          : { id: 'desc' },
-      }),
-      this.prisma.corte.count({ where: { deletedAt: null } }),
-      this.prisma.corte.count({ where }),
-    ]);
-
-    const data = dataRaw.map((corte) => {
-      const isRetangular = GeometriaPlaca.eRetangulo(
-        corte.percurso as unknown as VetorCorte[],
-      );
-      const dimensoes = isRetangular
-        ? `${Number(corte.largura).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} x ${Number(corte.altura).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}`
-        : (corte.percurso as unknown as VetorCorte[])
-            .map((p) =>
-              Number(p.distancia).toLocaleString('pt-BR', {
-                maximumFractionDigits: 2,
-              }),
-            )
-            .join(' x ');
-      return {
-        ...corte,
-        dimensoes,
-      };
+    return PrismaDatatableHelper.execute({
+      prismaModel: this.prisma.corte,
+      query,
+      searchableFields: ['nome'],
+      baseWhere: { deletedAt: null },
+      filterRequestedFields: false,
+      mapRow: (corte: CorteRow) => {
+        const isRetangular = GeometriaPlaca.eRetangulo(corte.percurso);
+        const dimensoes = isRetangular
+          ? `${formatDecimal(corte.largura)} x ${formatDecimal(corte.altura)}`
+          : corte.percurso.map((p) => formatDecimal(p.distancia)).join(' x ');
+        return {
+          ...corte,
+          dimensoes,
+        };
+      },
     });
-
-    return {
-      draw: query.draw || 1,
-      data,
-      recordsTotal: total,
-      recordsFiltered: filtered,
-    };
   }
 
   async findOne(id: number) {

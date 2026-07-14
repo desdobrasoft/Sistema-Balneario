@@ -8,42 +8,98 @@ datasource db {
   provider = "postgresql"
 }
 
-model Role {
-  id          Int        @id @default(autoincrement())
-  role        String     @unique
-  permissions String[]   @default([])
-  users       UserRole[]
+enum ReforcoPlaca {
+  UM_P   @map("1P")
+  DOIS_P @map("2P")
+  S_P    @map("S/P")
 
-  @@map("roles")
+  @@map("reforco_placa")
 }
 
-model UserRole {
-  userId Int  @map("user_id")
-  roleId Int  @map("role_id")
-  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+enum StatusEntrega {
+  PENDENTE_TRANSPORTADORA
+  COLETA_AGENDADA
+  EM_TRANSITO
+  ENTREGUE
+  ATRASADA
+  CANCELADA
 
-  @@id([userId, roleId])
-  @@map("user_roles")
+  @@map("status_entrega")
 }
 
-model User {
-  id                    Int                    @id @default(autoincrement())
-  fullName              String?                @map("full_name")
-  username              String?                @unique
-  email                 String?                @unique
-  passwordHash          String                 @map("password_hash")
-  refreshTokenHash      String?                @map("refresh_token_hash")
-  isActive              Boolean?               @default(true) @map("is_active")
-  qtVendas              Int?                   @default(0) @map("qt_vendas")
-  createdAt             DateTime?              @default(now()) @map("created_at")
-  updatedAt             DateTime?              @updatedAt @map("updated_at")
-  movimentacaoMateriais MovimentacaoMaterial[]
-  pedidosCompra         PedidoCompra[]
-  roles                 UserRole[]
-  vendas                Venda[]
+enum StatusPagamentoVenda {
+  PENDENTE
+  PAGO_PARCIALMENTE
+  PAGO
+  VENCIDO
+  CANCELADO
+  ESTORNO_PENDENTE
 
-  @@map("users")
+  @@map("status_pagamento_venda")
+}
+
+enum StatusPedidoCompra {
+  SOLICITADO
+  COMPRADO
+  ENTREGUE
+  ENTREGUE_COM_ALTERACAO
+  RESOLVIDO
+
+  @@map("status_pedido_compra")
+}
+
+enum StatusPlaca {
+  DISPONIVEL
+  ALOCADA
+  DESCARTADA
+
+  @@map("status_placa")
+}
+
+enum StatusProducao {
+  AGENDADO
+  MATERIAIS_PENDENTES
+  PREPARANDO_MATERIAIS
+  MONTANDO_KIT
+  PRONTO_PARA_ENVIO
+  EM_ESPERA
+  CANCELADO
+
+  @@map("status_producao")
+}
+
+enum StatusProducaoPlaca {
+  AGUARDANDO
+  EM_PRODUCAO
+  FINALIZADA
+}
+
+enum StatusVenda {
+  AGUARDANDO_AGENDAMENTO_PRODUCAO
+  PRODUCAO_AGENDADA
+  KIT_EM_PREPARACAO
+  MATERIAIS_ALOCADOS
+  PRONTO_PARA_ENVIO
+  ENVIADO
+  ENTREGUE
+  AGUARDANDO_REPOSICAO_ESTOQUE
+  CANCELADA
+
+  @@map("status_venda")
+}
+
+enum TipoLancamento {
+  R
+  D
+
+  @@map("tipo_lancamento")
+}
+
+enum TipoRequisito {
+  PLACA_LISA
+  CORTE_ESPECIFICO
+
+  @@map("tipo_requisito")
 }
 
 model Cliente {
@@ -60,21 +116,69 @@ model Cliente {
   @@map("clientes")
 }
 
-model MateriaPrima {
-  id                    Int                    @id @default(autoincrement())
-  item                  String
-  quantidade            Float                  @default(0)
-  unidade               String?
-  estoqueMinimo         Float?                 @default(0) @map("estoque_minimo")
-  deletedAt             DateTime?              @map("deleted_at")
-  materiaisModeloCasa   MaterialModeloCasa[]
-  materiaisPlaca        MaterialPlaca[]
-  movimentacaoMateriais MovimentacaoMaterial[]
-  pedidosCompra         PedidoCompra[]
-  vendaItensOverride    VendaItemOverride[]
+model Corte {
+  id       Int     @id @default(autoincrement())
+  nome     String  @unique
+  percurso Json
+  largura  Decimal @map("largura") @db.Decimal(10, 2)
+  altura   Decimal @map("altura") @db.Decimal(10, 2)
+  pontos   Json?
 
-  @@index([deletedAt], map: "idx_materia_prima_deleted_at")
-  @@map("materia_prima")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  placasGeradas    Placa[]               @relation("PlacaPorCorte")
+  requisitosModelo RequisitoModeloCasa[]
+  vendaRequisitos  VendaRequisito[]
+
+  @@map("cortes")
+}
+
+model Entrega {
+  id                Int                @id @default(autoincrement())
+  vendaId           Int                @unique @map("venda_id")
+  previsaoEntrega   DateTime?          @map("previsao_entrega") @db.Date
+  transportadora    String?
+  status            StatusEntrega
+  createdAt         DateTime?          @default(now()) @map("created_at")
+  updatedAt         DateTime?          @updatedAt @map("updated_at")
+  venda             Venda              @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+  entregasHistorico EntregaHistorico[]
+
+  @@map("entregas")
+}
+
+model EntregaHistorico {
+  id             Int            @id @default(autoincrement())
+  entregaId      Int            @map("entrega_id")
+  statusAnterior StatusEntrega? @map("status_anterior")
+  statusNovo     StatusEntrega  @map("status_novo")
+  notas          String?
+  dataAlteracao  DateTime?      @default(now()) @map("data_alteracao")
+  entrega        Entrega        @relation(fields: [entregaId], references: [id], onDelete: Cascade)
+
+  @@map("entregas_historico")
+}
+
+model LancamentoFinanceiro {
+  id                     Int                    @id @default(autoincrement())
+  tipo                   TipoLancamento
+  statusPagamento        StatusPagamentoVenda   @default(PENDENTE) @map("status_pagamento")
+  descricao              String?
+  valorTotal             Decimal                @map("valor_total") @db.Decimal(12, 2)
+  valorPendente          Decimal                @default(0.00) @map("valor_pendente") @db.Decimal(12, 2)
+  dataVencimento         DateTime?              @map("data_vencimento") @db.Date
+  dataUltimoPagamento    DateTime?              @map("data_ultimo_pagamento")
+  vendaId                Int?                   @map("venda_id")
+  movimentacaoMaterialId Int?                   @map("movimentacao_material_id")
+  createdAt              DateTime?              @default(now()) @map("created_at")
+  updatedAt              DateTime?              @updatedAt @map("updated_at")
+  movimentacaoMaterial   MovimentacaoMaterial?  @relation(fields: [movimentacaoMaterialId], references: [id])
+  venda                  Venda?                 @relation(fields: [vendaId], references: [id])
+  notasFiscais           NotaFiscalLancamento[]
+
+  @@map("lancamentos_financeiros")
 }
 
 model MaterialModeloCasa {
@@ -86,6 +190,35 @@ model MaterialModeloCasa {
 
   @@id([modeloCasaId, materiaPrimaId])
   @@map("materiais_modelo_casa")
+}
+
+model MaterialTipoPlaca {
+  tipoPlacaId    Int   @map("tipo_placa_id")
+  materiaPrimaId Int   @map("materia_prima_id")
+  quantidade     Float
+
+  tipoPlaca    TipoPlaca    @relation(fields: [tipoPlacaId], references: [id], onDelete: Cascade)
+  materiaPrima MateriaPrima @relation(fields: [materiaPrimaId], references: [id], onDelete: Cascade)
+
+  @@id([tipoPlacaId, materiaPrimaId])
+  @@map("materiais_tipo_placa")
+}
+
+model MateriaPrima {
+  id                    Int                    @id @default(autoincrement())
+  item                  String
+  quantidade            Float                  @default(0)
+  unidade               String?
+  estoqueMinimo         Float?                 @default(0) @map("estoque_minimo")
+  deletedAt             DateTime?              @map("deleted_at")
+  materiaisModeloCasa   MaterialModeloCasa[]
+  materiaisTipoPlaca    MaterialTipoPlaca[]
+  movimentacaoMateriais MovimentacaoMaterial[]
+  pedidosCompra         PedidoCompra[]
+  vendaItensOverride    VendaItemOverride[]
+
+  @@index([deletedAt], map: "idx_materia_prima_deleted_at")
+  @@map("materia_prima")
 }
 
 model ModeloCasa {
@@ -108,44 +241,6 @@ model ModeloCasa {
   @@map("modelo_casa")
 }
 
-model Venda {
-  id                     Int                       @id @default(autoincrement())
-  clienteId              Int?                      @map("cliente_id")
-  modeloId               Int?                      @map("modelo_id")
-  userId                 Int?                      @map("user_id")
-  dataVenda              DateTime                  @map("data_venda")
-  preco                  Decimal                   @db.Decimal(12, 2)
-  enderecoEntrega        String                    @map("endereco_entrega")
-  status                 StatusVenda
-  statusPagamento        StatusPagamentoVenda      @map("status_pagamento")
-  isInternal             Boolean                   @default(false) @map("is_internal")
-  suprimentosObra        Json?                     @map("suprimentos_obra")
-  createdAt              DateTime?                 @default(now()) @map("created_at")
-  entrega                Entrega?
-  lancamentosFinanceiros LancamentoFinanceiro[]
-  ordemProducao          OrdemProducao?
-  vendaItensOverride     VendaItemOverride[]
-  vendaRequisitos        VendaRequisito[]
-  vendaSuprimentos       VendaSuprimentoOverride[]
-  cliente                Cliente?                  @relation(fields: [clienteId], references: [id])
-  modeloCasa             ModeloCasa?               @relation(fields: [modeloId], references: [id])
-  user                   User?                     @relation(fields: [userId], references: [id])
-  vendasHistorico        VendaHistorico[]
-
-  @@map("vendas")
-}
-
-model VendaHistorico {
-  id             Int          @id @default(autoincrement())
-  vendaId        Int          @map("venda_id")
-  statusAnterior StatusVenda? @map("status_anterior")
-  statusNovo     StatusVenda  @map("status_novo")
-  dataAlteracao  DateTime?    @default(now()) @map("data_alteracao")
-  venda          Venda        @relation(fields: [vendaId], references: [id], onDelete: Cascade)
-
-  @@map("vendas_historico")
-}
-
 model MovimentacaoMaterial {
   id                     Int                    @id @default(autoincrement())
   userId                 Int?                   @map("user_id")
@@ -163,24 +258,26 @@ model MovimentacaoMaterial {
   @@map("movimentacao_materiais")
 }
 
-model LancamentoFinanceiro {
-  id                     Int                    @id @default(autoincrement())
-  tipo                   TipoLancamento
-  statusPagamento        StatusPagamentoVenda   @default(PENDENTE) @map("status_pagamento")
-  descricao              String?
-  valorTotal             Decimal                @map("valor_total") @db.Decimal(12, 2)
-  valorPendente          Decimal                @default(0.00) @map("valor_pendente") @db.Decimal(12, 2)
-  dataVencimento         DateTime?              @map("data_vencimento") @db.Date
-  dataUltimoPagamento    DateTime?              @map("data_ultimo_pagamento")
-  vendaId                Int?                   @map("venda_id")
-  movimentacaoMaterialId Int?                   @map("movimentacao_material_id")
-  createdAt              DateTime?              @default(now()) @map("created_at")
-  updatedAt              DateTime?              @updatedAt @map("updated_at")
-  movimentacaoMaterial   MovimentacaoMaterial?  @relation(fields: [movimentacaoMaterialId], references: [id])
-  venda                  Venda?                 @relation(fields: [vendaId], references: [id])
-  notasFiscais           NotaFiscalLancamento[]
+model NotaFiscal {
+  id            Int                    @id @default(autoincrement())
+  nomeArquivo   String                 @map("nome_arquivo")
+  tipoArquivo   String                 @map("tipo_arquivo")
+  arquivoBase64 String                 @map("arquivo_base64") @db.Text
+  createdAt     DateTime?              @default(now()) @map("created_at")
+  lancamentos   NotaFiscalLancamento[]
 
-  @@map("lancamentos_financeiros")
+  @@map("notas_fiscais")
+}
+
+model NotaFiscalLancamento {
+  id           Int                  @id @default(autoincrement())
+  notaFiscalId Int                  @map("nota_fiscal_id")
+  lancamentoId Int                  @map("lancamento_id")
+  notaFiscal   NotaFiscal           @relation(fields: [notaFiscalId], references: [id], onDelete: Cascade)
+  lancamento   LancamentoFinanceiro @relation(fields: [lancamentoId], references: [id])
+
+  @@unique([notaFiscalId, lancamentoId])
+  @@map("notas_fiscais_lancamentos")
 }
 
 model OrdemProducao {
@@ -208,33 +305,6 @@ model OrdemProducaoHistorico {
   @@map("ordens_producao_historico")
 }
 
-model Entrega {
-  id                Int                @id @default(autoincrement())
-  vendaId           Int                @unique @map("venda_id")
-  enderecoEntrega   String             @map("endereco_entrega")
-  previsaoEntrega   DateTime           @map("previsao_entrega") @db.Date
-  transportadora    String?
-  status            StatusEntrega
-  createdAt         DateTime?          @default(now()) @map("created_at")
-  updatedAt         DateTime?          @updatedAt @map("updated_at")
-  venda             Venda              @relation(fields: [vendaId], references: [id], onDelete: Cascade)
-  entregasHistorico EntregaHistorico[]
-
-  @@map("entregas")
-}
-
-model EntregaHistorico {
-  id             Int            @id @default(autoincrement())
-  entregaId      Int            @map("entrega_id")
-  statusAnterior StatusEntrega? @map("status_anterior")
-  statusNovo     StatusEntrega  @map("status_novo")
-  notas          String?
-  dataAlteracao  DateTime?      @default(now()) @map("data_alteracao")
-  entrega        Entrega        @relation(fields: [entregaId], references: [id], onDelete: Cascade)
-
-  @@map("entregas_historico")
-}
-
 model PedidoCompra {
   id             Int                @id @default(autoincrement())
   materiaPrimaId Int                @map("materia_prima_id")
@@ -253,58 +323,14 @@ model PedidoCompra {
   @@map("pedidos_compra")
 }
 
-model VendaItemOverride {
-  id             Int          @id @default(autoincrement())
-  vendaId        Int          @map("venda_id")
-  materiaPrimaId Int          @map("materia_prima_id")
-  qtFinal        Float        @map("qt_final")
-  materiaPrima   MateriaPrima @relation(fields: [materiaPrimaId], references: [id])
-  venda          Venda        @relation(fields: [vendaId], references: [id], onDelete: Cascade)
-
-  @@unique([vendaId, materiaPrimaId])
-  @@map("venda_itens_override")
-}
-
-model MaterialPlaca {
-  placaId        Int          @map("placa_id")
-  materiaPrimaId Int          @map("materia_prima_id")
-  quantidade     Float
-  materiaPrima   MateriaPrima @relation(fields: [materiaPrimaId], references: [id], onDelete: Cascade)
-  placa          Placa        @relation(fields: [placaId], references: [id], onDelete: Cascade)
-
-  @@id([placaId, materiaPrimaId])
-  @@map("materiais_placa")
-}
-
 model Placa {
-  id        Int      @id @default(autoincrement())
-  nome      String   @unique
-  descricao String?
-  altura    Decimal? @db.Decimal(10, 2)
-  largura   Decimal? @db.Decimal(10, 2)
-  espessura Decimal? @db.Decimal(10, 2)
-
-  // Trama por aresta
-  tramaEsquerdaAtiva Boolean @default(false) @map("trama_esquerda")
-  tramaEsquerdaId    Int?    @map("trama_esquerda_id")
-
-  tramaDireitaAtiva Boolean @default(false) @map("trama_direita")
-  tramaDireitaId    Int?    @map("trama_direita_id")
-
-  tramaSuperiorAtiva Boolean @default(false) @map("trama_superior")
-  tramaSuperiorId    Int?    @map("trama_superior_id")
-
-  tramaInferiorAtiva Boolean @default(false) @map("trama_inferior")
-  tramaInferiorId    Int?    @map("trama_inferior_id")
-
-  tramaEsquerda Trama? @relation("TramaEsquerdaSide", fields: [tramaEsquerdaId], references: [id])
-  tramaDireita  Trama? @relation("TramaDireitaSide", fields: [tramaDireitaId], references: [id])
-  tramaSuperior Trama? @relation("TramaSuperiorSide", fields: [tramaSuperiorId], references: [id])
-  tramaInferior Trama? @relation("TramaInferiorSide", fields: [tramaInferiorId], references: [id])
+  id          Int     @id @default(autoincrement())
+  nome        String  @unique
+  descricao   String?
+  tipoPlacaId Int     @map("tipo_placa_id")
 
   statusProducao      StatusProducaoPlaca @default(AGUARDANDO) @map("status")
   statusPlaca         StatusPlaca         @default(DISPONIVEL) @map("status_placa")
-  reforco             ReforcoPlaca?       @default(S_P)
   materiaisConsumidos Json?               @map("materiais_consumidos")
 
   updatedAt         DateTime? @updatedAt @map("updated_at")
@@ -317,57 +343,14 @@ model Placa {
   corteOrigemY Decimal? @map("corte_origem_y") @db.Decimal(10, 2)
   corteRotacao Int?     @default(0) @map("corte_rotacao")
 
+  tipoPlaca       TipoPlaca        @relation(fields: [tipoPlacaId], references: [id])
   derivadaDe      Placa?           @relation("PlacaRetalhos", fields: [derivadaDePlacaId], references: [id])
   placasDerivadas Placa[]          @relation("PlacaRetalhos")
   formaCorte      Corte?           @relation("PlacaPorCorte", fields: [formaCorteId], references: [id])
-  materiaisPlaca  MaterialPlaca[]
   vendaRequisitos VendaRequisito[]
 
   @@index([deletedAt], map: "idx_placas_deleted_at")
   @@map("placas")
-}
-
-model Corte {
-  id       Int     @id @default(autoincrement())
-  nome     String  @unique
-  percurso Json
-  largura  Decimal @map("largura") @db.Decimal(10, 2)
-  altura   Decimal @map("altura") @db.Decimal(10, 2)
-  pontos   Json?
-
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-
-  // Relações
-  placasGeradas    Placa[]               @relation("PlacaPorCorte")
-  requisitosModelo RequisitoModeloCasa[]
-  vendaRequisitos  VendaRequisito[]
-
-  @@map("cortes")
-}
-
-enum TipoRequisito {
-  PLACA_LISA
-  CORTE_ESPECIFICO
-
-  @@map("tipo_requisito")
-}
-
-enum StatusPlaca {
-  DISPONIVEL
-  ALOCADA
-  DESCARTADA
-
-  @@map("status_placa")
-}
-
-enum ReforcoPlaca {
-  UM_P   @map("1P")
-  DOIS_P @map("2P")
-  S_P    @map("S/P")
-
-  @@map("reforco_placa")
 }
 
 model RequisitoModeloCasa {
@@ -377,29 +360,160 @@ model RequisitoModeloCasa {
   alias        String?
   parede       String        @default("Geral")
 
-  // Campos para PLACA_LISA
-  largura   Decimal? @db.Decimal(10, 2)
-  altura    Decimal? @db.Decimal(10, 2)
-  espessura Decimal? @db.Decimal(10, 2)
+  tipoPlacaId Int @map("tipo_placa_id")
 
-  // Tramas para PLACA_LISA
-  tramaEsquerdaId Int? @map("trama_esquerda_id")
-  tramaDireitaId  Int? @map("trama_direita_id")
-  tramaSuperiorId Int? @map("trama_superior_id")
-  tramaInferiorId Int? @map("trama_inferior_id")
-  reforco         ReforcoPlaca? @default(S_P)
-
-  // Campos para CORTE_ESPECIFICO
   corteId Int? @map("corte_id")
 
-  modeloCasa    ModeloCasa @relation(fields: [modeloCasaId], references: [id], onDelete: Cascade)
-  corte         Corte?     @relation(fields: [corteId], references: [id])
-  tramaEsquerda Trama?     @relation("ReqModTramaEsq", fields: [tramaEsquerdaId], references: [id])
-  tramaDireita  Trama?     @relation("ReqModTramaDir", fields: [tramaDireitaId], references: [id])
-  tramaSuperior Trama?     @relation("ReqModTramaSup", fields: [tramaSuperiorId], references: [id])
-  tramaInferior Trama?     @relation("ReqModTramaInf", fields: [tramaInferiorId], references: [id])
+  modeloCasa ModeloCasa @relation(fields: [modeloCasaId], references: [id], onDelete: Cascade)
+  corte      Corte?     @relation(fields: [corteId], references: [id])
+  tipoPlaca  TipoPlaca  @relation(fields: [tipoPlacaId], references: [id])
 
   @@map("requisitos_modelo_casa")
+}
+
+model Role {
+  id          Int        @id @default(autoincrement())
+  role        String     @unique
+  permissions String[]   @default([])
+  users       UserRole[]
+
+  @@map("roles")
+}
+
+model TipoPlaca {
+  id        Int          @id @default(autoincrement())
+  nome      String
+  altura    Decimal      @db.Decimal(10, 2)
+  largura   Decimal      @db.Decimal(10, 2)
+  espessura Decimal      @db.Decimal(10, 2)
+  reforco   ReforcoPlaca @default(S_P)
+
+  tramaEsquerdaAtiva Boolean @default(false) @map("trama_esquerda")
+  tramaEsquerdaId    Int?    @map("trama_esquerda_id")
+  tramaDireitaAtiva  Boolean @default(false) @map("trama_direita")
+  tramaDireitaId     Int?    @map("trama_direita_id")
+  tramaSuperiorAtiva Boolean @default(false) @map("trama_superior")
+  tramaSuperiorId    Int?    @map("trama_superior_id")
+  tramaInferiorAtiva Boolean @default(false) @map("trama_inferior")
+  tramaInferiorId    Int?    @map("trama_inferior_id")
+
+  estoqueMinimo      Float?  @default(0) @map("estoque_minimo")
+
+  tramaEsquerda Trama? @relation("TipoPlacaTramaEsq", fields: [tramaEsquerdaId], references: [id])
+  tramaDireita  Trama? @relation("TipoPlacaTramaDir", fields: [tramaDireitaId], references: [id])
+  tramaSuperior Trama? @relation("TipoPlacaTramaSup", fields: [tramaSuperiorId], references: [id])
+  tramaInferior Trama? @relation("TipoPlacaTramaInf", fields: [tramaInferiorId], references: [id])
+
+  materiais            MaterialTipoPlaca[]
+  placas               Placa[]
+  requisitosModeloCasa RequisitoModeloCasa[]
+  vendaRequisitos      VendaRequisito[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([deletedAt], map: "idx_tipos_placa_deleted_at")
+  @@map("tipos_placa")
+}
+
+model Trama {
+  id                    Int       @id @default(autoincrement())
+  nome                  String    @unique
+  alturaBase            Decimal   @map("altura_base") @db.Decimal(10, 2)
+  profundidadeSaliencia Decimal   @map("profundidade_saliencia") @db.Decimal(10, 2)
+  iniciaComSaliencia    Boolean   @default(true) @map("inicia_com_saliencia")
+  direcionamento        String    @default("DIREITA")
+  cortes                Json
+  createdAt             DateTime? @default(now()) @map("created_at")
+  updatedAt             DateTime? @updatedAt @map("updated_at")
+
+  tipoPlacaEsquerda TipoPlaca[] @relation("TipoPlacaTramaEsq")
+  tipoPlacaDireita  TipoPlaca[] @relation("TipoPlacaTramaDir")
+  tipoPlacaSuperior TipoPlaca[] @relation("TipoPlacaTramaSup")
+  tipoPlacaInferior TipoPlaca[] @relation("TipoPlacaTramaInf")
+
+  @@map("tramas")
+}
+
+model User {
+  id                    Int                    @id @default(autoincrement())
+  fullName              String?                @map("full_name")
+  username              String?                @unique
+  email                 String?                @unique
+  passwordHash          String                 @map("password_hash")
+
+  isActive              Boolean?               @default(true) @map("is_active")
+  qtVendas              Int?                   @default(0) @map("qt_vendas")
+  createdAt             DateTime?              @default(now()) @map("created_at")
+  updatedAt             DateTime?              @updatedAt @map("updated_at")
+  movimentacaoMateriais MovimentacaoMaterial[]
+  pedidosCompra         PedidoCompra[]
+  roles                 UserRole[]
+  vendas                Venda[]
+
+  @@map("users")
+}
+
+model UserRole {
+  userId Int  @map("user_id")
+  roleId Int  @map("role_id")
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model Venda {
+  id                     Int                       @id @default(autoincrement())
+  clienteId              Int?                      @map("cliente_id")
+  modeloId               Int?                      @map("modelo_id")
+  userId                 Int?                      @map("user_id")
+  dataVenda              DateTime                  @map("data_venda")
+  preco                  Decimal                   @db.Decimal(12, 2)
+  enderecoEntrega        String                    @map("endereco_entrega")
+  status                 StatusVenda
+  statusPagamento        StatusPagamentoVenda      @map("status_pagamento")
+  isInternal             Boolean                   @default(false) @map("is_internal")
+  suprimentosObra        Json?                     @map("suprimentos_obra")
+  createdAt              DateTime?                 @default(now()) @map("created_at")
+  updatedAt              DateTime?                 @updatedAt @map("updated_at")
+  entrega                Entrega?
+  lancamentosFinanceiros LancamentoFinanceiro[]
+  ordemProducao          OrdemProducao?
+  vendaItensOverride     VendaItemOverride[]
+  vendaRequisitos        VendaRequisito[]
+  vendaSuprimentos       VendaSuprimentoOverride[]
+  cliente                Cliente?                  @relation(fields: [clienteId], references: [id])
+  modeloCasa             ModeloCasa?               @relation(fields: [modeloId], references: [id])
+  user                   User?                     @relation(fields: [userId], references: [id])
+  vendasHistorico        VendaHistorico[]
+
+  @@map("vendas")
+}
+
+model VendaHistorico {
+  id             Int          @id @default(autoincrement())
+  vendaId        Int          @map("venda_id")
+  statusAnterior StatusVenda? @map("status_anterior")
+  statusNovo     StatusVenda  @map("status_novo")
+  dataAlteracao  DateTime?    @default(now()) @map("data_alteracao")
+  venda          Venda        @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+
+  @@map("vendas_historico")
+}
+
+model VendaItemOverride {
+  id             Int          @id @default(autoincrement())
+  vendaId        Int          @map("venda_id")
+  materiaPrimaId Int          @map("materia_prima_id")
+  qtFinal        Float        @map("qt_final")
+  materiaPrima   MateriaPrima @relation(fields: [materiaPrimaId], references: [id])
+  venda          Venda        @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+
+  @@unique([vendaId, materiaPrimaId])
+  @@map("venda_itens_override")
 }
 
 model VendaRequisito {
@@ -409,26 +523,15 @@ model VendaRequisito {
   alias   String?
   parede  String        @default("Geral")
 
-  largura   Decimal? @db.Decimal(10, 2)
-  altura    Decimal? @db.Decimal(10, 2)
-  espessura Decimal? @db.Decimal(10, 2)
-
-  tramaEsquerdaId Int? @map("trama_esquerda_id")
-  tramaDireitaId  Int? @map("trama_direita_id")
-  tramaSuperiorId Int? @map("trama_superior_id")
-  tramaInferiorId Int? @map("trama_inferior_id")
-  reforco         ReforcoPlaca? @default(S_P)
+  tipoPlacaId Int @map("tipo_placa_id")
 
   corteId        Int? @map("corte_id")
   placaAlocadaId Int? @map("placa_alocada_id")
 
-  venda         Venda  @relation(fields: [vendaId], references: [id], onDelete: Cascade)
-  corte         Corte? @relation(fields: [corteId], references: [id])
-  placaAlocada  Placa? @relation(fields: [placaAlocadaId], references: [id])
-  tramaEsquerda Trama? @relation("VendaReqTramaEsq", fields: [tramaEsquerdaId], references: [id])
-  tramaDireita  Trama? @relation("VendaReqTramaDir", fields: [tramaDireitaId], references: [id])
-  tramaSuperior Trama? @relation("VendaReqTramaSup", fields: [tramaSuperiorId], references: [id])
-  tramaInferior Trama? @relation("VendaReqTramaInf", fields: [tramaInferiorId], references: [id])
+  venda        Venda     @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+  corte        Corte?    @relation(fields: [corteId], references: [id])
+  placaAlocada Placa?    @relation(fields: [placaAlocadaId], references: [id])
+  tipoPlaca    TipoPlaca @relation(fields: [tipoPlacaId], references: [id])
 
   @@map("venda_requisitos")
 }
@@ -444,125 +547,4 @@ model VendaSuprimentoOverride {
   venda Venda @relation(fields: [vendaId], references: [id], onDelete: Cascade)
 
   @@map("venda_suprimentos_override")
-}
-
-model Trama {
-  id                    Int       @id @default(autoincrement())
-  nome                  String    @unique
-  alturaBase            Decimal   @map("altura_base") @db.Decimal(10, 2)
-  profundidadeSaliencia Decimal   @map("profundidade_saliencia") @db.Decimal(10, 2)
-  iniciaComSaliencia    Boolean   @default(true) @map("inicia_com_saliencia")
-  direcionamento        String    @default("DIREITA")
-  cortes                Json
-  createdAt             DateTime? @default(now()) @map("created_at")
-  updatedAt             DateTime? @updatedAt @map("updated_at")
-
-  placasEsquerda Placa[] @relation("TramaEsquerdaSide")
-  placasDireita  Placa[] @relation("TramaDireitaSide")
-  placasSuperior Placa[] @relation("TramaSuperiorSide")
-  placasInferior Placa[] @relation("TramaInferiorSide")
-
-  vendaReqsEsquerda VendaRequisito[] @relation("VendaReqTramaEsq")
-  vendaReqsDireita  VendaRequisito[] @relation("VendaReqTramaDir")
-  vendaReqsSuperior VendaRequisito[] @relation("VendaReqTramaSup")
-  vendaReqsInferior VendaRequisito[] @relation("VendaReqTramaInf")
-
-  reqModEsquerda RequisitoModeloCasa[] @relation("ReqModTramaEsq")
-  reqModDireita  RequisitoModeloCasa[] @relation("ReqModTramaDir")
-  reqModSuperior RequisitoModeloCasa[] @relation("ReqModTramaSup")
-  reqModInferior RequisitoModeloCasa[] @relation("ReqModTramaInf")
-
-  @@map("tramas")
-}
-
-enum StatusPagamentoVenda {
-  PENDENTE
-  PAGO_PARCIALMENTE
-  PAGO
-  VENCIDO
-  CANCELADO
-
-  @@map("status_pagamento_venda")
-}
-
-enum StatusVenda {
-  AGUARDANDO_AGENDAMENTO_PRODUCAO
-  PRODUCAO_AGENDADA
-  KIT_EM_PREPARACAO
-  MATERIAIS_ALOCADOS
-  PRONTO_PARA_ENVIO
-  ENVIADO
-  ENTREGUE
-  AGUARDANDO_REPOSICAO_ESTOQUE
-  CANCELADA
-
-  @@map("status_venda")
-}
-
-enum TipoLancamento {
-  R
-  D
-
-  @@map("tipo_lancamento")
-}
-
-enum StatusProducao {
-  AGENDADO
-  MATERIAIS_PENDENTES
-  PREPARANDO_MATERIAIS
-  MONTANDO_KIT
-  PRONTO_PARA_ENVIO
-  EM_ESPERA
-  CANCELADO
-
-  @@map("status_producao")
-}
-
-enum StatusEntrega {
-  PENDENTE_TRANSPORTADORA
-  COLETA_AGENDADA
-  EM_TRANSITO
-  ENTREGUE
-  ATRASADA
-  CANCELADA
-
-  @@map("status_entrega")
-}
-
-enum StatusPedidoCompra {
-  SOLICITADO
-  COMPRADO
-  ENTREGUE
-  ENTREGUE_COM_ALTERACAO
-  RESOLVIDO
-
-  @@map("status_pedido_compra")
-}
-
-enum StatusProducaoPlaca {
-  AGUARDANDO
-  EM_PRODUCAO
-  FINALIZADA
-}
-
-model NotaFiscal {
-  id            Int                    @id @default(autoincrement())
-  nomeArquivo   String                 @map("nome_arquivo")
-  tipoArquivo   String                 @map("tipo_arquivo")
-  arquivoBase64 String                 @map("arquivo_base64") @db.Text
-  createdAt     DateTime?              @default(now()) @map("created_at")
-  lancamentos   NotaFiscalLancamento[]
-
-  @@map("notas_fiscais")
-}
-
-model NotaFiscalLancamento {
-  id           Int                  @id @default(autoincrement())
-  notaFiscalId Int                  @map("nota_fiscal_id")
-  lancamentoId Int                  @map("lancamento_id")
-  notaFiscal   NotaFiscal           @relation(fields: [notaFiscalId], references: [id], onDelete: Cascade)
-  lancamento   LancamentoFinanceiro @relation(fields: [lancamentoId], references: [id])
-
-  @@unique([notaFiscalId, lancamentoId])
-  @@map("notas_fiscais_lancamentos")
 }

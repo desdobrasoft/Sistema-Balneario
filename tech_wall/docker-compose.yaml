@@ -45,7 +45,6 @@ services:
     secrets:
       - db-password
       - jwt-secret
-      - jwt-refresh-secret
       - admin-user
       - admin-password
     depends_on:
@@ -63,7 +62,6 @@ services:
     secrets:
       - db-password
       - jwt-secret
-      - jwt-refresh-secret
     deploy:
       mode: replicated
       replicas: 3
@@ -110,8 +108,6 @@ secrets:
     file: ~/db/password.txt
   jwt-secret:
     file: ~/secrets/jwt_secret.txt
-  jwt-refresh-secret:
-    file: ~/secrets/jwt_refresh_secret.txt
   admin-user:
     file: ~/secrets/admin_user.txt
   admin-password:

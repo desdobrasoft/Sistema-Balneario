@@ -16,10 +16,11 @@ import Typography from "@mui/material/Typography";
 // project imports
 import DataTableDialog from "components/datatable/DataTableDialog";
 import RequisitosEditor, {
-  type RequisitoOverride,
+  type RequisitoEditorItem,
 } from "components/RequisitosEditor";
 import { ENDPOINTS } from "config/endpoints";
 import api from "services/api";
+import type { CreateVendaDto, VendaRequisitoOverrideDto } from "types/dtos";
 import CustomizeVendaDialog, {
   type VendaFullCustomization,
 } from "./CustomizeVendaDialog";
@@ -42,7 +43,7 @@ export interface IVendaForm {
   enderecoEntrega: string;
   dataVenda: string;
   isAvulso: boolean;
-  placasAvulsas: RequisitoOverride[];
+  placasAvulsas: RequisitoEditorItem[];
   overrides: VendaFullCustomization | null;
 }
 
@@ -70,47 +71,26 @@ const initialValues: IVendaForm = {
   overrides: null,
 };
 
-interface RawVendaRequisito {
-  tipo: "PLACA_LISA" | "CORTE_ESPECIFICO";
-  largura?: string | number;
-  altura?: string | number;
-  espessura?: string | number;
-  tramaEsquerdaId?: number | null;
-  tramaDireitaId?: number | null;
-  tramaSuperiorId?: number | null;
-  tramaInferiorId?: number | null;
-  corteId?: number | null;
-  reforco?: string;
-}
-
 const groupVendaRequisitos = (
-  reqs: RawVendaRequisito[],
-): RequisitoOverride[] => {
+  reqs: VendaRequisitoOverrideDto[],
+): RequisitoEditorItem[] => {
   if (!reqs || !Array.isArray(reqs)) return [];
-  const grouped: RequisitoOverride[] = [];
+  const grouped: RequisitoEditorItem[] = [];
   for (const r of reqs) {
-    const key = `${r.tipo}-${r.largura}-${r.altura}-${r.espessura}-${r.tramaEsquerdaId}-${r.tramaDireitaId}-${r.tramaSuperiorId}-${r.tramaInferiorId}-${r.corteId}-${r.reforco}`;
+    const corteId = r.corteId ?? null;
+    const key = `${r.tipo}-${r.tipoPlacaId}-${corteId}`;
     const existing = grouped.find(
-      (g) =>
-        `${g.tipo}-${g.largura}-${g.altura}-${g.espessura}-${g.tramaEsquerdaId}-${g.tramaDireitaId}-${g.tramaSuperiorId}-${g.tramaInferiorId}-${g.corteId}-${g.reforco}` ===
-        key,
+      (g) => `${g.tipo}-${g.tipoPlacaId}-${g.corteId ?? null}` === key,
     );
     if (existing) {
       existing.quantidade = (existing.quantidade || 0) + 1;
     } else {
       grouped.push({
-        tipo: r.tipo,
-        largura: r.largura ? parseFloat(r.largura.toString()) : undefined,
-        altura: r.altura ? parseFloat(r.altura.toString()) : undefined,
-        espessura: r.espessura ? parseFloat(r.espessura.toString()) : undefined,
-        tramaEsquerdaId: r.tramaEsquerdaId || null,
-        tramaDireitaId: r.tramaDireitaId || null,
-        tramaSuperiorId: r.tramaSuperiorId || null,
-        tramaInferiorId: r.tramaInferiorId || null,
-        corteId: r.corteId || null,
-        reforco: r.reforco || "S_P",
-        quantidade: 1,
+        corteId: corteId || undefined,
         parede: "Geral",
+        quantidade: 1,
+        tipo: r.tipo,
+        tipoPlacaId: r.tipoPlacaId || 0,
       });
     }
   }
@@ -176,7 +156,7 @@ const VendaForm = ({
           !item.modeloId &&
           !(item.modeloCasa as Record<string, unknown>)?.id
             ? groupVendaRequisitos(
-                (item.vendaRequisitos as RawVendaRequisito[]) || [],
+                (item.vendaRequisitos as VendaRequisitoOverrideDto[]) || [],
               )
             : [],
         overrides: null,
@@ -191,7 +171,7 @@ const VendaForm = ({
         open={open}
         onClose={onClose}
         onSubmit={async (values) => {
-          const payload: Record<string, unknown> = {
+          const payload: CreateVendaDto = {
             clienteId: values.clienteId,
             dataVenda: new Date(values.dataVenda).toISOString(),
             preco: values.preco,
@@ -202,37 +182,51 @@ const VendaForm = ({
           };
 
           if (values.isAvulso) {
-            const reqs: Array<Record<string, unknown>> = [];
+            const reqs: VendaRequisitoOverrideDto[] = [];
             for (const placa of values.placasAvulsas) {
               const qty = placa.quantidade || 0;
               for (let i = 0; i < Number(qty); i++) {
                 reqs.push({
                   tipo: placa.tipo,
-                  largura: placa.largura,
-                  altura: placa.altura,
-                  espessura: placa.espessura,
-                  tramaEsquerdaId: placa.tramaEsquerdaId || null,
-                  tramaDireitaId: placa.tramaDireitaId || null,
-                  tramaSuperiorId: placa.tramaSuperiorId || null,
-                  tramaInferiorId: placa.tramaInferiorId || null,
-                  corteId: placa.corteId || null,
-                  reforco: placa.reforco,
+                  tipoPlacaId: placa.tipoPlacaId || 0,
+                  corteId: placa.corteId || undefined,
+                  parede: placa.parede || "Geral",
+                  alias: placa.alias || undefined,
                 });
               }
             }
             payload.requisitosOverride = reqs;
           } else {
             payload.modeloId = values.modeloId;
-            payload.itensOverride =
-              values.overrides?.itens?.map((o) => ({
-                materiaPrimaId: o.materiaPrimaId,
-                qtFinal: o.qtFinal,
-              })) || [];
-            payload.requisitosOverride = values.overrides?.requisitos || [];
-            payload.suprimentosOverride = values.overrides?.suprimentos || [];
+            if (values.overrides) {
+              payload.itensOverride =
+                values.overrides.itens?.map((o) => ({
+                  materiaPrimaId: o.materiaPrimaId,
+                  qtFinal: o.qtFinal,
+                })) || [];
+              payload.requisitosOverride =
+                values.overrides.requisitos?.map((r) => ({
+                  alias: r.alias || undefined,
+                  corteId: r.corteId || undefined,
+                  parede: r.parede,
+                  tipo: r.tipo,
+                  tipoPlacaId: r.tipoPlacaId || 0,
+                })) || [];
+              payload.suprimentosOverride = values.overrides.suprimentos || [];
+            } else {
+              delete payload.itensOverride;
+              delete payload.requisitosOverride;
+              delete payload.suprimentosOverride;
+            }
           }
 
           if (item) {
+            const ordemProd = item.ordemProducao as Record<string, string> | undefined;
+            if (ordemProd?.status && ordemProd.status !== "MATERIAIS_PENDENTES") {
+              delete payload.itensOverride;
+              delete payload.requisitosOverride;
+              delete payload.modeloId;
+            }
             await api.patch(`${ENDPOINTS.VENDAS}/${item.id}`, payload);
           } else {
             await api.post(ENDPOINTS.VENDAS, payload);
@@ -241,12 +235,17 @@ const VendaForm = ({
         }}
         title={item ? "Editar Venda" : "Registrar Nova Venda"}
         maxWidth="md"
-        item={item as unknown as IVendaForm | null}
+        item={item ? getInitialValues() : null}
         initialValues={getInitialValues()}
         validationSchema={validationSchema}
         renderForm={(formik) => {
           const selectedModeloObj = modelos.find(
             (m) => m.id === formik.values.modeloId,
+          );
+
+          const ordemProd = item?.ordemProducao as Record<string, string> | undefined;
+          const isProducaoIniciada = Boolean(
+            item && ordemProd?.status && ordemProd.status !== "MATERIAIS_PENDENTES"
           );
 
           return (
@@ -320,7 +319,7 @@ const VendaForm = ({
                           formik.setFieldValue("overrides", null);
                         }
                       }}
-                      disabled={!!item}
+                      disabled={!!item || isProducaoIniciada}
                       error={
                         formik.touched.modeloId &&
                         Boolean(formik.errors.modeloId)
@@ -348,6 +347,7 @@ const VendaForm = ({
                       }
                       showParedes={false}
                       showQuantidade={true}
+                      disabled={isProducaoIniciada}
                     />
                   </Grid>
                 )}
@@ -375,7 +375,7 @@ const VendaForm = ({
                   />
                 </Grid>
 
-                {formik.values.modeloId && !item && (
+                {Boolean(formik.values.modeloId) && !item && (
                   <Grid size={12}>
                     <Box
                       sx={{

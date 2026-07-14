@@ -38,18 +38,22 @@ interface Requisito {
   alias?: string;
   parede?: string;
   tipo?: string;
-  largura?: number;
-  altura?: number;
-  espessura?: number;
-  corte?: { nome: string };
-  tramaEsquerdaId?: number;
-  tramaDireitaId?: number;
-  tramaSuperiorId?: number;
-  tramaInferiorId?: number;
-  tramaEsquerda?: { nome: string };
-  tramaDireita?: { nome: string };
-  tramaSuperior?: { nome: string };
-  tramaInferior?: { nome: string };
+  corteId?: number;
+  corte?: { nome: string; largura: number; altura: number };
+  tipoPlacaId?: number;
+  tipoPlaca?: {
+    nome: string;
+    largura: number;
+    altura: number;
+    tramaEsquerdaAtiva: boolean;
+    tramaDireitaAtiva: boolean;
+    tramaSuperiorAtiva: boolean;
+    tramaInferiorAtiva: boolean;
+    tramaEsquerda?: { nome: string };
+    tramaDireita?: { nome: string };
+    tramaSuperior?: { nome: string };
+    tramaInferior?: { nome: string };
+  };
 }
 
 interface Placa {
@@ -343,117 +347,152 @@ const IniciarProducaoDialog: React.FC<IniciarProducaoDialogProps> = ({
           Alocação de Placas (Mapa de Cortes)
         </Typography>
 
-        <Stack spacing={2}>
-          {requisitos.map((req: Requisito) => {
-            const compatible = compatiblePlatesMap[req.id] || [];
-
-            return (
-              <Box
-                key={req.id}
+        <Stack spacing={3}>
+          {Object.entries(
+            requisitos.reduce((acc: Record<string, Requisito[]>, req: Requisito) => {
+              const parede = req.parede || "Geral";
+              if (!acc[parede]) acc[parede] = [];
+              acc[parede].push(req);
+              return acc;
+            }, {})
+          ).map(([parede, reqs]) => (
+            <Box key={parede} sx={{ mb: 2 }}>
+              <Typography
+                variant="subtitle2"
+                color="primary"
                 sx={{
-                  p: 1.5,
-                  border: "1px solid",
-                  borderColor: "divider",
-                  borderRadius: 1,
+                  fontWeight: "bold",
+                  textTransform: "uppercase",
+                  mb: 1.5,
+                  borderBottom: "2px solid",
+                  borderColor: "primary.main",
+                  display: "inline-block",
+                  pb: 0.5,
                 }}
               >
-                <Grid container spacing={2} sx={{ alignItems: "center" }}>
-                  <Grid size={5}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: "bold" }}>
-                      {req.alias} - {req.parede}
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ display: "block" }}
+                Parede: {parede}
+              </Typography>
+              <Stack spacing={2}>
+                {reqs.map((req: Requisito) => {
+                  const compatible = compatiblePlatesMap[req.id] || [];
+
+                  return (
+                    <Box
+                      key={req.id}
+                      sx={{
+                        p: 1.5,
+                        border: "1px solid",
+                        borderColor: "divider",
+                        borderRadius: 1,
+                        bgcolor: "background.paper",
+                      }}
                     >
-                      {req.tipo === "PLACA_LISA"
-                        ? `${Number(req.largura)}x${Number(req.altura)}x${Number(req.espessura)}cm`
-                        : `${req.corte?.nome || "Corte Custom"} (${Number(req.largura)}x${Number(req.altura)}cm)`}
-                    </Typography>
+                      <Grid container spacing={2} sx={{ alignItems: "center" }}>
+                        <Grid size={5}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: "bold" }}>
+                            {req.alias}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ display: "block" }}
+                          >
+                            {req.tipo === "PLACA_LISA"
+                              ? req.tipoPlaca
+                                ? `${req.tipoPlaca.nome} (${Number(req.tipoPlaca.largura)}x${Number(req.tipoPlaca.altura)}cm)`
+                                : "Placa Lisa"
+                              : `${req.corte?.nome || "Corte Custom"} (${Number(req.corte?.largura || 0)}x${Number(req.corte?.altura || 0)}cm)`}
+                          </Typography>
 
-                    {/* Exibição das Tramas */}
-                    {(req.tramaEsquerdaId ||
-                      req.tramaDireitaId ||
-                      req.tramaSuperiorId ||
-                      req.tramaInferiorId) && (
-                      <Box
-                        sx={{
-                          mt: 0.5,
-                          display: "flex",
-                          gap: 0.5,
-                          flexWrap: "wrap",
-                        }}
-                      >
-                        {req.tramaEsquerda && (
-                          <Chip
-                            label={`E: ${req.tramaEsquerda.nome}`}
-                            size="small"
-                            variant="outlined"
-                            sx={{ fontSize: "0.65rem", height: 20 }}
-                          />
-                        )}
-                        {req.tramaDireita && (
-                          <Chip
-                            label={`D: ${req.tramaDireita.nome}`}
-                            size="small"
-                            variant="outlined"
-                            sx={{ fontSize: "0.65rem", height: 20 }}
-                          />
-                        )}
-                        {req.tramaSuperior && (
-                          <Chip
-                            label={`S: ${req.tramaSuperior.nome}`}
-                            size="small"
-                            variant="outlined"
-                            sx={{ fontSize: "0.65rem", height: 20 }}
-                          />
-                        )}
-                        {req.tramaInferior && (
-                          <Chip
-                            label={`I: ${req.tramaInferior.nome}`}
-                            size="small"
-                            variant="outlined"
-                            sx={{ fontSize: "0.65rem", height: 20 }}
-                          />
-                        )}
-                      </Box>
-                    )}
-                  </Grid>
+                          {/* Exibição das Tramas */}
+                          {(req.tipoPlaca?.tramaEsquerdaAtiva ||
+                            req.tipoPlaca?.tramaDireitaAtiva ||
+                            req.tipoPlaca?.tramaSuperiorAtiva ||
+                            req.tipoPlaca?.tramaInferiorAtiva) && (
+                            <Box
+                              sx={{
+                                mt: 0.5,
+                                display: "flex",
+                                gap: 0.5,
+                                flexWrap: "wrap",
+                              }}
+                            >
+                              {req.tipoPlaca?.tramaEsquerdaAtiva &&
+                                req.tipoPlaca.tramaEsquerda && (
+                                  <Chip
+                                    label={`E: ${req.tipoPlaca.tramaEsquerda.nome}`}
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{ fontSize: "0.65rem", height: 20 }}
+                                  />
+                                )}
+                              {req.tipoPlaca?.tramaDireitaAtiva &&
+                                req.tipoPlaca.tramaDireita && (
+                                  <Chip
+                                    label={`D: ${req.tipoPlaca.tramaDireita.nome}`}
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{ fontSize: "0.65rem", height: 20 }}
+                                  />
+                                )}
+                              {req.tipoPlaca?.tramaSuperiorAtiva &&
+                                req.tipoPlaca.tramaSuperior && (
+                                  <Chip
+                                    label={`S: ${req.tipoPlaca.tramaSuperior.nome}`}
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{ fontSize: "0.65rem", height: 20 }}
+                                  />
+                                )}
+                              {req.tipoPlaca?.tramaInferiorAtiva &&
+                                req.tipoPlaca.tramaInferior && (
+                                  <Chip
+                                    label={`I: ${req.tipoPlaca.tramaInferior.nome}`}
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{ fontSize: "0.65rem", height: 20 }}
+                                  />
+                                )}
+                            </Box>
+                          )}
+                        </Grid>
 
-                  <Grid size={7}>
-                    <Autocomplete
-                      size="small"
-                      options={compatible.filter(
-                        (p) =>
-                          !Object.entries(localAllocations).some(
-                            ([rid, aloc]) =>
-                              parseInt(rid) !== req.id && aloc?.id === p.id,
-                          ),
-                      )}
-                      getOptionLabel={(o) =>
-                        `${o.nome} (${o.largura}x${o.altura}cm)`
-                      }
-                      value={localAllocations[req.id] || null}
-                      onChange={(_, v) => handleLocalAlocar(req.id, v)}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Selecionar Placa do Estoque"
-                          error={!localAllocations[req.id]}
-                          helperText={
-                            !localAllocations[req.id]
-                              ? "Alocação obrigatória"
-                              : "Placa vinculada"
-                          }
-                        />
-                      )}
-                    />
-                  </Grid>
-                </Grid>
-              </Box>
-            );
-          })}
+                        <Grid size={7}>
+                          <Autocomplete
+                            size="small"
+                            options={compatible.filter(
+                              (p) =>
+                                !Object.entries(localAllocations).some(
+                                  ([rid, aloc]) =>
+                                    parseInt(rid) !== req.id && aloc?.id === p.id,
+                                ),
+                            )}
+                            getOptionLabel={(o) =>
+                              `${o.nome} (${o.largura}x${o.altura}cm)`
+                            }
+                            value={localAllocations[req.id] || null}
+                            onChange={(_, v) => handleLocalAlocar(req.id, v)}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                label="Selecionar Placa do Estoque"
+                                error={!localAllocations[req.id]}
+                                helperText={
+                                  !localAllocations[req.id]
+                                    ? "Alocação obrigatória"
+                                    : "Placa vinculada"
+                                }
+                              />
+                            )}
+                          />
+                        </Grid>
+                      </Grid>
+                    </Box>
+                  );
+                })}
+              </Stack>
+            </Box>
+          ))}
         </Stack>
       </DialogContent>
       <DialogActions sx={{ p: 2 }}>

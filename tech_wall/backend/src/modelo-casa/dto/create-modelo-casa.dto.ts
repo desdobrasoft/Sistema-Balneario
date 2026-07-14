@@ -26,12 +26,6 @@ enum TipoRequisito {
   CORTE_ESPECIFICO = 'CORTE_ESPECIFICO',
 }
 
-enum ReforcoPlaca {
-  UM_P = 'UM_P',
-  DOIS_P = 'DOIS_P',
-  S_P = 'S_P',
-}
-
 class RequisitoDto {
   @IsEnum(TipoRequisito)
   tipo: TipoRequisito;
@@ -44,43 +38,13 @@ class RequisitoDto {
   @IsNotEmpty()
   parede: string;
 
-  // Campos para PLACA_LISA
-  @IsNumber()
-  @IsOptional()
-  largura?: number;
-
-  @IsNumber()
-  @IsOptional()
-  altura?: number;
-
-  @IsNumber()
-  @IsOptional()
-  espessura?: number;
-
   @IsInt()
-  @IsOptional()
-  tramaEsquerdaId?: number;
+  @IsNotEmpty()
+  tipoPlacaId: number;
 
-  @IsInt()
-  @IsOptional()
-  tramaDireitaId?: number;
-
-  @IsInt()
-  @IsOptional()
-  tramaSuperiorId?: number;
-
-  @IsInt()
-  @IsOptional()
-  tramaInferiorId?: number;
-
-  // Campos para CORTE_ESPECIFICO
   @IsInt()
   @IsOptional()
   corteId?: number;
-
-  @IsEnum(ReforcoPlaca)
-  @IsOptional()
-  reforco?: ReforcoPlaca;
 }
 
 export class CreateModeloCasaDto {

@@ -89,39 +89,12 @@ export class UsersService {
   async findDatatable(
     query: DataTableParamsDto,
   ): Promise<DataTableResult<any>> {
-    const { skip, take, where, orderBy } =
-      PrismaDatatableHelper.buildPrismaQuery(query, [
-        'fullName',
-        'username',
-        'email',
-      ]);
-
-    const [rawData, total, filtered] = await Promise.all([
-      this.prisma.user.findMany({
-        where,
-        skip,
-        take,
-        include: {
-          roles: {
-            include: {
-              role: true,
-            },
-          },
-        },
-        orderBy: Object.keys(orderBy as Record<string, unknown>).length
-          ? orderBy
-          : { id: 'desc' },
-      }),
-      this.prisma.user.count(),
-      this.prisma.user.count({ where }),
-    ]);
-
-    const requestedFields = (query.columns
-      ?.map((c) => c.data)
-      .filter((d) => d && d !== 'null') || []) as string[];
-
-    const data = rawData.map((user) => {
-      const flatObj: any = {
+    return PrismaDatatableHelper.execute({
+      prismaModel: this.prisma.user,
+      query,
+      searchableFields: ['fullName', 'username', 'email'],
+      include: { roles: { include: { role: true } } },
+      mapRow: (user) => ({
         id: user.id,
         fullName: user.fullName,
         username: user.username,
@@ -130,25 +103,8 @@ export class UsersService {
         isActive: user.isActive,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
-      };
-
-      if (requestedFields.length === 0) return flatObj;
-
-      const result: any = {};
-      requestedFields.forEach((field) => {
-        if (flatObj[field] !== undefined) {
-          result[field] = flatObj[field];
-        }
-      });
-      return result;
+      }),
     });
-
-    return {
-      draw: query.draw || 1,
-      data,
-      recordsTotal: total,
-      recordsFiltered: filtered,
-    };
   }
 
   async findByIdWithRoles(id: number) {

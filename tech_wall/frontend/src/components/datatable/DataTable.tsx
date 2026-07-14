@@ -23,9 +23,16 @@ export interface DTFilter {
   value: unknown;
 }
 
+export type CustomConfigColumns<T = unknown> = ConfigColumns & {
+  reactRender?: (data: unknown, row: T) => React.ReactNode;
+};
+
 export interface DataTableProps<T> {
-  onFetchData: (data: Record<string, unknown>, filters?: DTFilter[]) => Promise<unknown>;
-  columns: ConfigColumns[];
+  onFetchData: (
+    data: Record<string, unknown>,
+    filters?: DTFilter[],
+  ) => Promise<unknown>;
+  columns: CustomConfigColumns<T>[];
   filters?: DTFilter[];
   rowActions?: (item: T) => React.ReactNode;
   actionColumnWidth?: string | null;
@@ -66,7 +73,36 @@ function DataTableFn<T extends object>(
 
   const hasRowActions = !!rowActions;
   const memoizedColumns = useMemo(() => {
-    if (!hasRowActions) return columns;
+    const processedColumns = columns.map((col) => {
+      const { reactRender, ...rest } = col;
+      if (!reactRender) return rest as ConfigColumns;
+      
+      return {
+        ...rest,
+        // Override render to return a placeholder container
+        render: () => '<div class="datatable-react-cell-container" style="display:flex; width: 100%; height: 100%; align-items:center;"></div>',
+        // Hook into cell creation to mount the React component
+        createdCell: function (td: Node, cellData: unknown, rowData: unknown, row: number, colIdx: number) {
+          const tdElement = td as HTMLElement;
+          const container = tdElement.querySelector('.datatable-react-cell-container');
+          if (container) {
+            let root = (container as ReactContainer)._reactRoot;
+            if (!root) {
+              root = createRoot(container);
+              (container as ReactContainer)._reactRoot = root;
+            }
+            root.render(reactRender(cellData, rowData as T));
+          }
+          
+          // Call original createdCell if it existed
+          if (rest.createdCell) {
+            rest.createdCell.call(this, td as HTMLTableCellElement, cellData, rowData, row, colIdx);
+          }
+        }
+      } as ConfigColumns;
+    });
+
+    if (!hasRowActions) return processedColumns;
 
     const actionColumn: ConfigColumns = {
       title: "Ações",
@@ -78,7 +114,7 @@ function DataTableFn<T extends object>(
       render: () =>
         '<div class="datatable-action-container" style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;"></div>',
     };
-    return [...columns, actionColumn];
+    return [...processedColumns, actionColumn];
   }, [columns, hasRowActions, actionColumnWidth]);
 
   useEffect(() => {
@@ -100,15 +136,20 @@ function DataTableFn<T extends object>(
         url: "https://cdn.datatables.net/plug-ins/2.3.3/i18n/pt-BR.json",
       },
       layout: {
-        topStart: 'pageLength', topEnd: 'search',
-        bottomStart: 'info', bottomEnd: 'paging'
+        topStart: "pageLength",
+        topEnd: "search",
+        bottomStart: "info",
+        bottomEnd: "paging",
       },
       responsive: true,
       searching: true,
       serverSide: true,
       ajax: async (data, callback) => {
         try {
-          const res = await latestOnFetchData.current(data as Record<string, unknown>, latestFilters.current);
+          const res = await latestOnFetchData.current(
+            data as Record<string, unknown>,
+            latestFilters.current,
+          );
           callback(res);
         } catch (err) {
           if (latestOnError.current) latestOnError.current(err);

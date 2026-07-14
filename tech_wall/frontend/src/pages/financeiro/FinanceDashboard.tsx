@@ -20,7 +20,7 @@ import Typography from "@mui/material/Typography";
 import { ENDPOINTS } from "config/endpoints";
 import { useErrorHandler } from "hooks/useErrorHandler";
 import api from "services/api";
-import { TipoLancamento } from "types/enums";
+import { StatusPagamentoVenda, TipoLancamento } from "types/enums";
 
 // ===============================
 // STAT CARD
@@ -58,33 +58,25 @@ const FinanceStatCard: React.FC<{
 // ===============================
 interface LancamentoData {
   tipo: TipoLancamento;
+  statusPagamento: StatusPagamentoVenda;
   valorTotal: string;
   valorPendente: string;
 }
 
-interface PedidoData {
-  valorUnitario?: string;
-  qtSolicitada: string;
-  status: string;
-}
+
 
 const FinanceDashboard: React.FC = () => {
   const theme = useTheme();
   const handleError = useErrorHandler();
   const [data, setData] = useState<LancamentoData[]>([]);
-  const [pedidos, setPedidos] = useState<PedidoData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [resLancamentos, resPedidos] = await Promise.all([
-          api.get(ENDPOINTS.LANCAMENTOS),
-          api.get(ENDPOINTS.PEDIDOS_COMPRA),
-        ]);
+        const resLancamentos = await api.get(ENDPOINTS.LANCAMENTOS);
         setData(Array.isArray(resLancamentos.data) ? resLancamentos.data : []);
-        setPedidos(Array.isArray(resPedidos.data) ? resPedidos.data : []);
       } catch (error) {
         handleError(error);
       } finally {
@@ -98,40 +90,43 @@ const FinanceDashboard: React.FC = () => {
     const receitas = data.filter((d) => d.tipo === TipoLancamento.R);
     const despesas = data.filter((d) => d.tipo === TipoLancamento.D);
 
-    const totalRecebido = receitas.reduce(
+    const receitasAtivas = receitas.filter(
+      (d) =>
+        d.statusPagamento !== StatusPagamentoVenda.CANCELADO &&
+        d.statusPagamento !== StatusPagamentoVenda.ESTORNO_PENDENTE,
+    );
+
+    const totalRecebido = receitasAtivas.reduce(
       (sum, d) =>
         sum + (parseFloat(d.valorTotal) - parseFloat(d.valorPendente)),
       0,
     );
-    const totalPagoLancamentos = despesas.reduce(
+    const totalPago = despesas.reduce(
       (sum, d) =>
         sum + (parseFloat(d.valorTotal) - parseFloat(d.valorPendente)),
       0,
     );
 
-    const totalPagoPedidos = pedidos.reduce((sum, p) => {
-      // Considera pago se já foi marcado pelo financeiro (tem valorUnitario e não é apenas SOLICITADO)
-      if (p.valorUnitario && p.status !== "SOLICITADO") {
-        return sum + parseFloat(p.valorUnitario);
-      }
-      return sum;
-    }, 0);
-
-    const totalPago = totalPagoLancamentos + totalPagoPedidos;
-
-    const aReceber = receitas.reduce(
+    const aReceber = receitasAtivas.reduce(
       (sum, d) => sum + parseFloat(d.valorPendente),
       0,
     );
-    // Pedidos de compra não têm valor parcial pendente na lógica atual,
-    // então aPagar baseia-se apenas nos lançamentos financeiros do tipo despesa.
-    const aPagar = despesas.reduce(
-      (sum, d) => sum + parseFloat(d.valorPendente),
+
+    const receitasEstornoPendente = receitas.filter(
+      (d) => d.statusPagamento === StatusPagamentoVenda.ESTORNO_PENDENTE,
+    );
+
+    const valorAEstornar = receitasEstornoPendente.reduce(
+      (sum, d) => sum + (parseFloat(d.valorTotal) - parseFloat(d.valorPendente)),
       0,
     );
+
+    const aPagar =
+      despesas.reduce((sum, d) => sum + parseFloat(d.valorPendente), 0) +
+      valorAEstornar;
 
     return { totalRecebido, totalPago, aReceber, aPagar };
-  }, [data, pedidos]);
+  }, [data]);
 
   if (loading) {
     return (

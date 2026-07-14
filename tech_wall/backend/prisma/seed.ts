@@ -103,12 +103,13 @@ async function main() {
     { item: 'Aditivo', unidade: 'l' },
   ];
 
+  const materiaisMap: Record<string, number> = {};
   for (const mat of defaultMateriais) {
     const existing = await prisma.materiaPrima.findFirst({
       where: { item: mat.item },
     });
     if (!existing) {
-      await prisma.materiaPrima.create({
+      const created = await prisma.materiaPrima.create({
         data: {
           item: mat.item,
           unidade: mat.unidade,
@@ -116,7 +117,56 @@ async function main() {
           estoqueMinimo: 0,
         },
       });
+      materiaisMap[mat.item] = created.id;
       console.log(`Materia Prima '${mat.item}' criada.`);
+    } else {
+      materiaisMap[mat.item] = existing.id;
+    }
+  }
+
+  // Insert Default TiposPlaca: Mono (1P) e Duo (2P)
+  const tiposPlaca = [
+    { nome: 'Mono', reforco: 'UM_P' as const },
+    { nome: 'Duo', reforco: 'DOIS_P' as const },
+  ];
+
+  const receitaMateriais = [
+    { item: 'Aditivo', quantidade: 1.8 },
+    { item: 'Cimento', quantidade: 50 },
+    { item: 'EPS', quantidade: 2.3 },
+  ];
+
+  for (const tipo of tiposPlaca) {
+    const existing = await prisma.tipoPlaca.findFirst({
+      where: { nome: tipo.nome },
+    });
+    if (!existing) {
+      const created = await prisma.tipoPlaca.create({
+        data: {
+          nome: tipo.nome,
+          largura: 61,
+          altura: 300,
+          espessura: 9,
+          reforco: tipo.reforco,
+        },
+      });
+
+      for (const mat of receitaMateriais) {
+        const mpId = materiaisMap[mat.item];
+        if (mpId) {
+          await prisma.materialTipoPlaca.create({
+            data: {
+              tipoPlacaId: created.id,
+              materiaPrimaId: mpId,
+              quantidade: mat.quantidade,
+            },
+          });
+        }
+      }
+
+      console.log(`Tipo de Placa '${tipo.nome}' (${tipo.reforco}) criado com receita de materiais.`);
+    } else {
+      console.log(`Tipo de Placa '${tipo.nome}' já existe. Pulando.`);
     }
   }
 

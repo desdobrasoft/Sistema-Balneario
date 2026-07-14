@@ -13,9 +13,8 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
+import { DataTableParamsDto } from '../common/dto/data-table.dto';
 import { AplicarCorteDto } from './dto/aplicar-corte.dto';
-import { BaixaProducaoPlacaDto } from './dto/baixa-producao-placa.dto';
-import { CreatePlacaBatchDto } from './dto/create-placa-batch.dto';
 import { CreatePlacaDto } from './dto/create-placa.dto';
 import { GerenciarProducaoPlacaDto } from './dto/gerenciar-producao-placa.dto';
 import { PlacaQueryDto } from './dto/placa-query.dto';
@@ -33,11 +32,6 @@ export class PlacasController {
     return this.placasService.create(createPlacaDto);
   }
 
-  @Post('batch')
-  createBatch(@Body() createPlacaBatchDto: CreatePlacaBatchDto) {
-    return this.placasService.createBatch(createPlacaBatchDto);
-  }
-
   @Get()
   findAll() {
     return this.placasService.findAll();
@@ -48,6 +42,12 @@ export class PlacasController {
   async datatable(@Body() body: PlacaQueryDto) {
     const result = await this.placasService.findDatatable(body);
     return result;
+  }
+
+  @Post('estoque/datatable')
+  @HttpCode(200)
+  async estoqueDatatable(@Body() body: DataTableParamsDto) {
+    return this.placasService.findEstoqueDatatable(body);
   }
 
   @Get(':id')
@@ -74,15 +74,6 @@ export class PlacasController {
     @Body() gerenciarProducaoPlacaDto: GerenciarProducaoPlacaDto,
   ) {
     return this.placasService.gerenciarProducao(id, gerenciarProducaoPlacaDto);
-  }
-
-  @Post(':id/baixa-producao')
-  @HttpCode(200)
-  baixaProducao(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: BaixaProducaoPlacaDto,
-  ) {
-    return this.placasService.baixaProducao(id, dto);
   }
 
   // ===== APLICAR CORTE EM PLACA =====

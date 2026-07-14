@@ -4,7 +4,7 @@ import {
   DataTableResult,
 } from '../common/dto/data-table.dto';
 import { PrismaDatatableHelper } from '../common/utils/datatable.helper';
-import { getIdsByNumericPartialMatch } from '../common/utils/prisma-search.utils';
+import { formatDecimal } from '../common/utils/format.utils';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateModeloCasaDto } from './dto/create-modelo-casa.dto';
 import { UpdateModeloCasaDto } from './dto/update-modelo-casa.dto';
@@ -39,15 +39,8 @@ export class ModeloCasaService {
           tipo: r.tipo,
           alias: r.alias || null,
           parede: r.parede || 'Geral',
-          largura: r.largura || null,
-          altura: r.altura || null,
-          espessura: r.espessura || null,
-          tramaEsquerdaId: r.tramaEsquerdaId || null,
-          tramaDireitaId: r.tramaDireitaId || null,
-          tramaSuperiorId: r.tramaSuperiorId || null,
-          tramaInferiorId: r.tramaInferiorId || null,
+          tipoPlacaId: r.tipoPlacaId,
           corteId: r.corteId || null,
-          reforco: r.reforco || null,
         }));
         await tx.requisitoModeloCasa.createMany({ data: reqsParaCriar });
       }
@@ -66,91 +59,49 @@ export class ModeloCasaService {
   async findDatatable(
     query: DataTableParamsDto,
   ): Promise<DataTableResult<any>> {
-    const {
-      skip,
-      take,
-      where: generatedWhere,
-      orderBy,
-    } = PrismaDatatableHelper.buildPrismaQuery(
+    return PrismaDatatableHelper.execute({
+      prismaModel: this.prisma.modeloCasa,
+      prismaClient: this.prisma,
       query,
-      ['nome', 'descricao', 'materiaisModeloCasa.some.materiaPrima.item'],
-      { deletedAt: null },
-    );
-
-    const where = { ...generatedWhere };
-
-    if (query.search?.value) {
-      const searchVal = query.search.value;
-      const idsByPrice = await getIdsByNumericPartialMatch(
-        this.prisma,
-        'modelo_casa',
-        ['preco'],
-        searchVal,
-      );
-
-      if (idsByPrice.length > 0) {
-        if (where.OR) {
-          where.OR.push({ id: { in: idsByPrice } });
-        } else {
-          where.OR = [{ id: { in: idsByPrice } }];
-        }
-      }
-    }
-
-    const [data, total, filtered] = await Promise.all([
-      this.prisma.modeloCasa.findMany({
-        where,
-        skip,
-        take,
-        orderBy: Object.keys(orderBy as Record<string, unknown>).length
-          ? orderBy
-          : { id: 'desc' },
-        include: {
-          materiaisModeloCasa: {
-            orderBy: { materiaPrima: { item: 'asc' } },
-            include: { materiaPrima: true },
-          },
-          requisitos: {
-            include: { corte: true },
+      searchableFields: [
+        'nome',
+        'descricao',
+        'materiaisModeloCasa.some.materiaPrima.item',
+      ],
+      numericSearchFields: ['preco'],
+      tableName: 'modelo_casa',
+      baseWhere: { deletedAt: null },
+      include: {
+        materiaisModeloCasa: {
+          orderBy: { materiaPrima: { item: 'asc' } },
+          include: { materiaPrima: true },
+        },
+        requisitos: {
+          include: {
+            corte: true,
+            tipoPlaca: {
+              include: {
+                tramaEsquerda: true,
+                tramaDireita: true,
+                tramaSuperior: true,
+                tramaInferior: true,
+              },
+            },
           },
         },
-      }),
-      this.prisma.modeloCasa.count({ where: { deletedAt: null } }),
-      this.prisma.modeloCasa.count({ where }),
-    ]);
-
-    const requestedFields = (query.columns
-      ?.map((c) => c.data)
-      .filter((d) => d && d !== 'null') || []) as string[];
-
-    const finalData = data.map((modelo: any) => {
-      const flatObj: any = {
+      },
+      mapRow: (modelo) => ({
         id: modelo.id,
         nome: modelo.nome,
         descricao: modelo.descricao,
         tempoFabricacao: modelo.tempoFabricacao,
-        preco: modelo.preco,
+        preco: formatDecimal(modelo.preco),
+        imagemBase64: modelo.imagemBase64,
         createdAt: modelo.createdAt,
         updatedAt: modelo.updatedAt,
-      };
-
-      if (requestedFields.length === 0) return flatObj;
-
-      const result: any = {};
-      requestedFields.forEach((field) => {
-        if (flatObj[field] !== undefined) {
-          result[field] = flatObj[field];
-        }
-      });
-      return result;
+      }),
+      filterRequestedFields: false,
     });
-
-    return {
-      draw: query.draw || 1,
-      data: finalData,
-      recordsTotal: total,
-      recordsFiltered: filtered,
-    };
   }
 
   async findOne(id: number, tx?: any) {
@@ -162,7 +113,17 @@ export class ModeloCasaService {
           include: { materiaPrima: true },
         },
         requisitos: {
-          include: { corte: true },
+          include: {
+            corte: true,
+            tipoPlaca: {
+              include: {
+                tramaEsquerda: true,
+                tramaDireita: true,
+                tramaSuperior: true,
+                tramaInferior: true,
+              },
+            },
+          },
         },
       },
     });
@@ -209,15 +170,8 @@ export class ModeloCasaService {
           tipo: r.tipo,
           alias: r.alias || null,
           parede: r.parede || 'Geral',
-          largura: r.largura || null,
-          altura: r.altura || null,
-          espessura: r.espessura || null,
-          tramaEsquerdaId: r.tramaEsquerdaId || null,
-          tramaDireitaId: r.tramaDireitaId || null,
-          tramaSuperiorId: r.tramaSuperiorId || null,
-          tramaInferiorId: r.tramaInferiorId || null,
+          tipoPlacaId: r.tipoPlacaId,
           corteId: r.corteId || null,
-          reforco: r.reforco || null,
         }));
         await tx.requisitoModeloCasa.createMany({ data: reqsParaCriar });
       }

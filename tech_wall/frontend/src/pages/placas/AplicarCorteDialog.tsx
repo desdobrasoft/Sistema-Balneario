@@ -24,6 +24,7 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 
 // project imports
+import Stack from "@mui/material/Stack";
 import { ENDPOINTS } from "config/endpoints";
 import { useErrorHandler } from "hooks/useErrorHandler";
 import { useSnackbar } from "hooks/useSnackbar";
@@ -95,17 +96,26 @@ const PlacasAplicarCorteDialog: React.FC<AplicarCorteDialogProps> = ({
   const [cortesAplicados, setCortesAplicados] = useState<PlacaDerivada[]>([]);
 
   const [selectedCorte, setSelectedCorte] = useState<CorteOption | null>(null);
-  const [origemX, setOrigemX] = useState<number>(0);
-  const [origemY, setOrigemY] = useState<number>(0);
+  const [origemX, setOrigemX] = useState<number | "">(0);
+  const [origemY, setOrigemY] = useState<number | "">(0);
   const [rotacao, setRotacao] = useState<number>(0);
-  const [nomePlacaFilha, setNomePlacaFilha] = useState("");
-  const [placaCompleta, setPlacaCompleta] = useState<(PlacaModel & { formaCorteId?: number, formaCorte?: CorteOption, corteRotacao?: number }) | null>(null);
 
-  // Dimensões derivadas da placa completa (buscada via GET)
-  const placaLargura = placaCompleta?.largura
-    ? Number(placaCompleta.largura)
+  const [placaCompleta, setPlacaCompleta] = useState<
+    | (PlacaModel & {
+        formaCorteId?: number;
+        formaCorte?: CorteOption;
+        corteRotacao?: number;
+      })
+    | null
+  >(null);
+
+  // Dimensões derivadas da placa completa (buscada via GET) - agora via tipoPlaca
+  const placaLargura = placaCompleta?.tipoPlaca?.largura
+    ? Number(placaCompleta.tipoPlaca.largura)
     : 0;
-  const placaAltura = placaCompleta?.altura ? Number(placaCompleta.altura) : 0;
+  const placaAltura = placaCompleta?.tipoPlaca?.altura
+    ? Number(placaCompleta.tipoPlaca.altura)
+    : 0;
   const placaReady = placaLargura > 0 && placaAltura > 0;
 
   // ===============================
@@ -135,7 +145,7 @@ const PlacasAplicarCorteDialog: React.FC<AplicarCorteDialogProps> = ({
   useEffect(() => {
     if (open && placa) {
       carregarDados();
-      setNomePlacaFilha("");
+
       setOrigemX(0);
       setOrigemY(0);
       setRotacao(0);
@@ -205,8 +215,8 @@ const PlacasAplicarCorteDialog: React.FC<AplicarCorteDialogProps> = ({
 
     const pontos = calcularPontosCorte(
       selectedCorte,
-      origemX,
-      origemY,
+      origemX === "" ? 0 : origemX,
+      origemY === "" ? 0 : origemY,
       rotacao,
     );
     const bbox = GeometriaCorte.calcularBoundingBox(pontos);
@@ -293,14 +303,14 @@ const PlacasAplicarCorteDialog: React.FC<AplicarCorteDialogProps> = ({
     const clean = val.replace(",", ".");
     const n = parseFloat(clean);
     if (!isNaN(n)) setOrigemX(n);
-    else if (val === "") setOrigemX(0);
+    else if (val === "") setOrigemX("");
   };
 
   const handleYChange = (val: string) => {
     const clean = val.replace(",", ".");
     const n = parseFloat(clean);
     if (!isNaN(n)) setOrigemY(n);
-    else if (val === "") setOrigemY(0);
+    else if (val === "") setOrigemY("");
   };
 
   const cortesFiltrados = useMemo(() => {
@@ -329,16 +339,15 @@ const PlacasAplicarCorteDialog: React.FC<AplicarCorteDialogProps> = ({
   }, [placaPontos, toSvgPath]);
 
   const handleApply = async () => {
-    if (!placa || !selectedCorte || !nomePlacaFilha.trim()) return;
+    if (!placa || !selectedCorte) return;
 
     setSubmitting(true);
     try {
       await api.post(`${ENDPOINTS.PLACAS}/${placa.id}/aplicar-corte`, {
         corteId: selectedCorte.id,
-        origemX,
-        origemY,
+        origemX: origemX === "" ? 0 : origemX,
+        origemY: origemY === "" ? 0 : origemY,
         rotacao,
-        nomePlacaFilha: nomePlacaFilha.trim(),
       });
 
       showSnackbar({
@@ -421,45 +430,75 @@ const PlacasAplicarCorteDialog: React.FC<AplicarCorteDialogProps> = ({
             )}
           </Box>
         ) : (
-          <Grid container spacing={3} sx={{ flex: 1, overflow: "hidden" }}>
+          <Grid
+            container
+            spacing={3}
+            sx={{ flex: 1, overflow: "hidden", height: "100%" }}
+          >
             {/* ===== ESQUERDA: Controles (Form) ===== */}
-            <Grid size={{ xs: 12, md: 4 }} sx={{ overflow: "auto" }}>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <Grid
+              size={{ xs: 12, md: 4 }}
+              sx={{
+                overflow: "auto",
+                maxHeight: "100%",
+                height: "100%",
+                pb: 2,
+              }}
+            >
+              <Stack spacing={2}>
                 {/* Sliders em L + botões de rotação dentro de um "quadrado" */}
-                <Box
+                <Stack
                   sx={{
-                    display: "flex",
-                    flexDirection: "column",
+                    aspectRatio: 1,
                     border: "1px solid",
                     borderColor: "divider",
                     borderRadius: 1,
-                    p: 1,
+                    p: 2,
                   }}
                 >
                   {/* Corpo: Slider Y à esquerda + centro com botões */}
-                  <Box sx={{ display: "flex", flex: 1 }}>
-                    {/* Slider Y vertical */}
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        width: 40,
-                        mr: 1,
-                      }}
-                    >
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ mb: 0.5 }}
+                  <Stack direction="row" sx={{ flex: 1 }}>
+                    {/* Slider Y vertical e labels */}
+                    <Stack direction="row" sx={{ pb: "10px", width: 90 }}>
+                      <Stack
+                        sx={{
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
                       >
-                        Y
-                      </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {placaAltura}
+                        </Typography>
+
+                        <TextField
+                          size="small"
+                          value={origemY}
+                          onChange={(e) => handleYChange(e.target.value)}
+                          disabled={!selectedCorte}
+                          slotProps={{
+                            htmlInput: {
+                              step: 0.1,
+                              type: "number",
+                              style: {
+                                textAlign: "center",
+                                padding: "4px",
+                                fontSize: "12px",
+                              },
+                            },
+                          }}
+                        />
+
+                        <Typography variant="caption" color="text.secondary">
+                          Y
+                        </Typography>
+                      </Stack>
+
                       <Slider
+                        disabled={!selectedCorte}
                         orientation="vertical"
-                        value={origemY}
-                        min={0}
                         max={placaAltura}
+                        min={0}
+                        onChange={(_, val) => setOrigemY(val as number)}
                         step={0.1}
                         valueLabelDisplay="auto"
                         valueLabelFormat={(v) =>
@@ -467,38 +506,18 @@ const PlacasAplicarCorteDialog: React.FC<AplicarCorteDialogProps> = ({
                             maximumFractionDigits: 1,
                           })
                         }
-                        onChange={(_, val) => setOrigemY(val as number)}
-                        disabled={!selectedCorte}
-                        sx={{ minHeight: 120 }}
+                        value={origemY === "" ? 0 : origemY}
                       />
-                      <TextField
-                        size="small"
-                        value={origemY}
-                        onChange={(e) => handleYChange(e.target.value)}
-                        disabled={!selectedCorte}
-                        slotProps={{
-                          htmlInput: {
-                            step: 0.1,
-                            type: "number",
-                            style: {
-                              textAlign: "center",
-                              padding: "4px",
-                              fontSize: "12px",
-                            },
-                          },
-                        }}
-                        sx={{ mt: 1, width: 50 }}
-                      />
-                    </Box>
+                    </Stack>
 
                     {/* Centro: botões de rotação */}
-                    <Box
+                    <Stack
+                      direction="row"
+                      spacing={2}
                       sx={{
-                        display: "flex",
                         flexGrow: 1,
                         justifyContent: "center",
                         alignItems: "center",
-                        gap: 2,
                       }}
                     >
                       <Tooltip title="Rotacionar 90° anti-horário">
@@ -532,15 +551,23 @@ const PlacasAplicarCorteDialog: React.FC<AplicarCorteDialogProps> = ({
                           </IconButton>
                         </span>
                       </Tooltip>
-                    </Box>
-                  </Box>
+                    </Stack>
+                  </Stack>
 
                   {/* Slider X horizontal (borda inferior do "quadrado") */}
-                  <Box sx={{ mt: 1, ml: "40px" }}>
+                  <Stack
+                    sx={{
+                      alignSelf: "end",
+                      height: 90,
+                      pl: "100px",
+                      width: "100%",
+                    }}
+                  >
                     <Slider
-                      value={origemX}
-                      min={0}
+                      disabled={!selectedCorte}
                       max={placaLargura}
+                      min={0}
+                      onChange={(_, val) => setOrigemX(val as number)}
                       step={0.1}
                       valueLabelDisplay="auto"
                       valueLabelFormat={(v) =>
@@ -548,19 +575,21 @@ const PlacasAplicarCorteDialog: React.FC<AplicarCorteDialogProps> = ({
                           maximumFractionDigits: 1,
                         })
                       }
-                      onChange={(_, val) => setOrigemX(val as number)}
-                      disabled={!selectedCorte}
+                      value={origemX === "" ? 0 : origemX}
                     />
-                    <Box
+
+                    <Stack
+                      direction="row"
                       sx={{
+                        alignItems: "center",
                         display: "flex",
                         justifyContent: "space-between",
-                        alignItems: "center",
                       }}
                     >
                       <Typography variant="caption" color="text.secondary">
-                        X: 0
+                        X
                       </Typography>
+
                       <TextField
                         size="small"
                         value={origemX}
@@ -579,12 +608,13 @@ const PlacasAplicarCorteDialog: React.FC<AplicarCorteDialogProps> = ({
                         }}
                         sx={{ width: 60 }}
                       />
+
                       <Typography variant="caption" color="text.secondary">
                         {placaLargura}
                       </Typography>
-                    </Box>
-                  </Box>
-                </Box>
+                    </Stack>
+                  </Stack>
+                </Stack>
 
                 {/* Seletor de Corte */}
                 <Autocomplete
@@ -606,18 +636,6 @@ const PlacasAplicarCorteDialog: React.FC<AplicarCorteDialogProps> = ({
                     />
                   )}
                   disabled={loading || submitting}
-                />
-
-                {/* Nome da Placa Filha */}
-                <TextField
-                  label="Nome da Placa Filha"
-                  size="small"
-                  fullWidth
-                  value={nomePlacaFilha}
-                  onChange={(e) => setNomePlacaFilha(e.target.value)}
-                  disabled={submitting}
-                  required
-                  helperText="Deve ser único no sistema"
                 />
 
                 {/* Info/Alertas */}
@@ -664,7 +682,7 @@ const PlacasAplicarCorteDialog: React.FC<AplicarCorteDialogProps> = ({
                     {cortesAplicados.length} corte(s) já aplicado(s).
                   </Alert>
                 )}
-              </Box>
+              </Stack>
             </Grid>
 
             {/* ===== DIREITA: Workspace SVG ===== */}
@@ -776,9 +794,7 @@ const PlacasAplicarCorteDialog: React.FC<AplicarCorteDialogProps> = ({
         <Button
           variant="contained"
           onClick={handleApply}
-          disabled={
-            !selectedCorte || isInvalid || submitting || !nomePlacaFilha.trim()
-          }
+          disabled={!selectedCorte || isInvalid || submitting}
         >
           {submitting ? <CircularProgress size={24} /> : "Aplicar Corte"}
         </Button>

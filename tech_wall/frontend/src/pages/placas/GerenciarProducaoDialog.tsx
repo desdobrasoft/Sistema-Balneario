@@ -27,7 +27,7 @@ import type { PlacaModel } from "./Form";
 interface FinalizarProducaoDialogProps {
   open: boolean;
   onClose: () => void;
-  placa: PlacaModel & { materiaisPlaca?: { materiaPrimaId: number; quantidade: number; materiaPrima?: { item: string, quantidade: number } }[] } | null;
+  placa: PlacaModel | null;
   onSuccess: () => void;
 }
 
@@ -44,9 +44,9 @@ const GerenciarProducaoDialog: React.FC<FinalizarProducaoDialogProps> = ({
 
   /* eslint-disable react-hooks/set-state-in-effect -- Intentional: initializing consumos from placa data on dialog open */
   useEffect(() => {
-    if (open && placa?.materiaisPlaca) {
+    if (open && placa?.tipoPlaca?.materiais) {
       const initialConsumos: Record<string, number> = {};
-      placa.materiaisPlaca.forEach((mp) => {
+      placa.tipoPlaca.materiais.forEach((mp) => {
         initialConsumos[mp.materiaPrimaId.toString()] = mp.quantidade;
       });
       setConsumos(initialConsumos);
@@ -62,16 +62,15 @@ const GerenciarProducaoDialog: React.FC<FinalizarProducaoDialogProps> = ({
   };
 
   const hasDeviation = () => {
-    if (!placa?.materiaisPlaca) return false;
-    return placa.materiaisPlaca.some(
-      (mp) => consumos[mp.materiaPrimaId.toString()] !== mp.quantidade
+    if (!placa?.tipoPlaca?.materiais) return false;
+    return placa.tipoPlaca.materiais.some(
+      (mp) => consumos[mp.materiaPrimaId.toString()] !== mp.quantidade,
     );
   };
 
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      await api.get(`${ENDPOINTS.PRODUCAO}/placas/${placa?.id || 0}/ordens-suprimentos`);
       await api.post(`${ENDPOINTS.PLACAS}/${placa?.id}/gerenciar-producao`, {
         status: "FINALIZADA",
         materiaisConsumidos: consumos,
@@ -92,7 +91,9 @@ const GerenciarProducaoDialog: React.FC<FinalizarProducaoDialogProps> = ({
         errorMessage = error.message;
       }
       if (typeof error === "object" && error !== null && "response" in error) {
-        errorMessage = (error as { response?: { data?: { message?: string } } }).response?.data?.message || errorMessage;
+        errorMessage =
+          (error as { response?: { data?: { message?: string } } }).response
+            ?.data?.message || errorMessage;
       }
       showSnackbar({
         title: "Erro ao Finalizar",
@@ -109,21 +110,37 @@ const GerenciarProducaoDialog: React.FC<FinalizarProducaoDialogProps> = ({
   const isDeviation = hasDeviation();
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth scroll="paper">
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      scroll="paper"
+    >
       <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <CheckCircleIcon color="success" />
         Finalizar Produção - {placa.nome}
       </DialogTitle>
       <DialogContent dividers>
         <Typography variant="body2" sx={{ mb: 2 }}>
-          Confirme a quantidade de material que foi de fato consumida para a produção desta placa.
+          Confirme a quantidade de material que foi de fato consumida para a
+          produção desta placa.
         </Typography>
 
-        <Box sx={{ border: "1px solid", borderColor: "divider", borderRadius: 1 }}>
+        <Box
+          sx={{ border: "1px solid", borderColor: "divider", borderRadius: 1 }}
+        >
           <Button
             fullWidth
             onClick={() => setMateriaisExpanded(!materiaisExpanded)}
-            sx={{ display: "flex", justifyContent: "space-between", px: 2, py: 1.5, textTransform: "none", color: "text.primary" }}
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              px: 2,
+              py: 1.5,
+              textTransform: "none",
+              color: "text.primary",
+            }}
           >
             <Typography variant="subtitle2" sx={{ fontWeight: "bold" }}>
               Consumo de Materiais
@@ -132,13 +149,15 @@ const GerenciarProducaoDialog: React.FC<FinalizarProducaoDialogProps> = ({
           </Button>
           <Collapse in={materiaisExpanded}>
             <Divider />
-            <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2 }}>
-              {placa.materiaisPlaca?.length === 0 ? (
+            <Box
+              sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2 }}
+            >
+              {placa.tipoPlaca?.materiais?.length === 0 ? (
                 <Typography variant="body2" color="text.secondary">
-                  Esta placa não possui receita de materiais cadastrada.
+                  Este tipo de placa não possui receita de materiais cadastrada.
                 </Typography>
               ) : (
-                placa.materiaisPlaca?.map((mp) => {
+                placa.tipoPlaca?.materiais?.map((mp) => {
                   const idMp = mp.materiaPrimaId.toString();
                   const planejado = mp.quantidade;
                   const real = consumos[idMp] || 0;
@@ -147,32 +166,91 @@ const GerenciarProducaoDialog: React.FC<FinalizarProducaoDialogProps> = ({
                   const insuficiente = real > emEstoque;
 
                   return (
-                    <Box key={idMp} sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Box
+                      key={idMp}
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 0.5,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
                         <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                          {mp.materiaPrima?.item}
+                          {mp.materiaPrima?.item}{" "}
+                          <Typography
+                            component="span"
+                            variant="caption"
+                            color="text.secondary"
+                          >
+                            ({mp.materiaPrima?.unidade || "un"})
+                          </Typography>
                         </Typography>
                         {delta !== 0 && (
-                          <Typography variant="caption" sx={{ color: delta > 0 ? "error.main" : "success.main", fontWeight: "bold" }}>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: delta > 0 ? "error.main" : "success.main",
+                              fontWeight: "bold",
+                            }}
+                          >
                             {delta > 0 ? `+${delta}` : delta} (Desvio)
                           </Typography>
                         )}
                       </Box>
 
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                        <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1 }}>
-                          Planejado: {planejado} | Estoque Atual: {emEstoque}
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                      >
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ flexGrow: 1 }}
+                        >
+                          Planejado: {planejado}
                         </Typography>
                         <TextField
                           size="small"
                           type="number"
                           value={consumos[idMp] === 0 ? "" : consumos[idMp]}
-                          onChange={(e) => handleConsumoChange(idMp, e.target.value)}
-                          slotProps={{ htmlInput: { min: 0, style: { textAlign: "right" } } }}
+                          onChange={(e) =>
+                            handleConsumoChange(idMp, e.target.value)
+                          }
+                          slotProps={{
+                            htmlInput: {
+                              min: 0,
+                              style: { textAlign: "right" },
+                            },
+                          }}
                           sx={{ width: 100 }}
                           error={insuficiente}
-                          helperText={insuficiente ? "Estoque incf." : ""}
                         />
+                      </Box>
+
+                      <Box
+                        sx={{
+                          bgcolor: "action.hover",
+                          borderRadius: 1,
+                          fontFamily: "monospace",
+                          fontSize: "0.85rem",
+                          mt: 0.5,
+                          px: 1.5,
+                          py: 0.75,
+                        }}
+                      >
+                        {emEstoque} - {real} &rarr;{" "}
+                        <Typography
+                          component="span"
+                          color={emEstoque - real < 0 ? "error" : "success"}
+                        >
+                          {emEstoque - real} {mp.materiaPrima?.unidade || "un"}{" "}
+                          no estoque
+                        </Typography>
                       </Box>
                     </Box>
                   );
@@ -192,7 +270,11 @@ const GerenciarProducaoDialog: React.FC<FinalizarProducaoDialogProps> = ({
           onClick={handleSubmit}
           disabled={submitting}
         >
-          {submitting ? "Confirmando..." : (isDeviation ? "Finalizar com Desvio" : "Finalizar")}
+          {submitting
+            ? "Confirmando..."
+            : isDeviation
+              ? "Finalizar com Desvio"
+              : "Finalizar"}
         </Button>
       </DialogActions>
     </Dialog>

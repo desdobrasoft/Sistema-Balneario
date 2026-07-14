@@ -54,7 +54,9 @@ const NovoPedidoFinanceiroForm: React.FC<NovoPedidoFinanceiroFormProps> = ({
 }) => {
   const handleError = useErrorHandler();
   const { showSnackbar } = useSnackbar();
-  const [materiais, setMateriais] = useState<{ id: number; item: string; unidade?: string }[]>([]);
+  const [materiais, setMateriais] = useState<
+    { id: number; item: string; unidade?: string }[]
+  >([]);
 
   useEffect(() => {
     if (open) {

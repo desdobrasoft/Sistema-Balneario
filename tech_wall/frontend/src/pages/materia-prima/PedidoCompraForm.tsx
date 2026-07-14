@@ -20,7 +20,12 @@ interface PedidoCompraFormProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (values: PedidoCompraFormValues) => Promise<void>;
-  material: { id: number; item: string; quantidade: number; unidade?: string } | null;
+  material: {
+    id: number;
+    item: string;
+    quantidade: number;
+    unidade?: string;
+  } | null;
 }
 
 // ===============================
@@ -59,16 +64,20 @@ const PedidoCompraForm: React.FC<PedidoCompraFormProps> = ({
       initialValues={{ ...initialValues, materiaPrimaId: material?.id || 0 }}
       validationSchema={validationSchema}
       renderForm={(formik) => (
-        <Grid container spacing={3} sx={{ mt: 1 }}>
+        <Grid container spacing={2}>
           <Grid size={12}>
             <Typography variant="body2" color="text.secondary">
               Solicitando compra para:{" "}
               <strong>{material?.item || "Material"}</strong>
               {material?.quantidade != null && (
                 <>
-                  {" "}— Estoque atual:{" "}
+                  {" "}
+                  — Estoque atual:{" "}
                   <strong>
-                    {material.quantidade} {material.unidade || ""}
+                    {Intl.NumberFormat("pt-BR", {
+                      maximumFractionDigits: 2,
+                    }).format(material.quantidade)}{" "}
+                    {material.unidade || ""}
                   </strong>
                 </>
               )}

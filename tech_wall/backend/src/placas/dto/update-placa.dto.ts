@@ -1,10 +1,15 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreatePlacaDto } from './create-placa.dto';
+import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
 
-import { IsBoolean, IsOptional } from 'class-validator';
+export class UpdatePlacaDto {
+  @IsString()
+  @IsOptional()
+  descricao?: string;
 
-export class UpdatePlacaDto extends PartialType(CreatePlacaDto) {
   @IsBoolean()
   @IsOptional()
-  ajustarEstoqueConsumido?: boolean;
+  retalhoDescartado?: boolean;
+
+  @IsNumber()
+  @IsOptional()
+  tipoPlacaId?: number;
 }

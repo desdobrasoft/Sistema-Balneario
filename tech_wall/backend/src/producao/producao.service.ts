@@ -4,14 +4,20 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ClientesService } from '../clientes/clientes.service';
+import {
+  DataTableParamsDto,
+  DataTableResult,
+} from '../common/dto/data-table.dto';
+import { PrismaDatatableHelper } from '../common/utils/datatable.helper';
 import { EntregasService } from '../entregas/entregas.service';
 import {
   Prisma,
   StatusPagamentoVenda,
+  StatusPlaca,
   StatusProducao,
+  StatusProducaoPlaca,
   StatusVenda,
 } from '../generated/prisma/client';
-import { GeometriaPlaca, VetorCorte } from '../placas/utils/geometria.utils';
 import { PrismaService } from '../prisma/prisma.service';
 import { BulkAlocacaoDto } from './dto/bulk-alocacao.dto';
 import { CreateInternalOrderDto } from './dto/create-internal-order.dto';
@@ -44,25 +50,20 @@ const includeRelations = {
         include: {
           corte: true,
           placaAlocada: true,
-          tramaEsquerda: true,
-          tramaDireita: true,
-          tramaSuperior: true,
-          tramaInferior: true,
+          tipoPlaca: {
+            include: {
+              tramaEsquerda: true,
+              tramaDireita: true,
+              tramaSuperior: true,
+              tramaInferior: true,
+            },
+          },
         },
       },
     },
   },
   ordensProducaoHistorico: { orderBy: { dataAlteracao: 'asc' } },
 } as const;
-
-import {
-  DataTableParamsDto,
-  DataTableResult,
-} from '../common/dto/data-table.dto';
-import {
-  buildSearchFilter,
-  getIdsByNumericPartialMatch,
-} from '../common/utils/prisma-search.utils';
 
 @Injectable()
 export class ProducaoService {
@@ -82,57 +83,20 @@ export class ProducaoService {
   async findDatatable(
     query: DataTableParamsDto,
   ): Promise<DataTableResult<any>> {
-    const { start = 0, length = 10, search } = query;
-    const skip = start;
-    const limit = length;
-
-    const baseWhere: any = {};
-    let where = { ...baseWhere };
-
-    if (search && search.value) {
-      // Busca em IDs de venda e IDs de ordem
-      const idsByOrder = await getIdsByNumericPartialMatch(
-        this.prisma,
-        'ordens_producao',
-        ['id', 'venda_id'],
-        search.value,
-      );
-
-      const searchFilter = buildSearchFilter(search.value, [
+    return PrismaDatatableHelper.execute({
+      prismaModel: this.prisma.ordemProducao,
+      prismaClient: this.prisma,
+      query,
+      searchableFields: [
         'venda.cliente.nome',
         'venda.modeloCasa.nome',
         'status',
-      ]);
-
-      if (idsByOrder.length > 0) {
-        if (searchFilter.OR) {
-          searchFilter.OR.push({ id: { in: idsByOrder } });
-        } else {
-          searchFilter.OR = [{ id: { in: idsByOrder } }];
-        }
-      }
-
-      where = { ...baseWhere, ...searchFilter };
-    }
-
-    const [data, total, filtered] = await Promise.all([
-      this.prisma.ordemProducao.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { id: 'desc' },
-        include: includeRelations,
-      }),
-      this.prisma.ordemProducao.count({ where: baseWhere }),
-      this.prisma.ordemProducao.count({ where }),
-    ]);
-
-    const requestedFields = (query.columns
-      ?.map((c) => c.data)
-      .filter((d) => d && d !== 'null') || []) as string[];
-
-    const finalData = data.map((ordem: any) => {
-      const flatObj: any = {
+      ],
+      numericSearchFields: ['id', 'venda_id'],
+      tableName: 'ordens_producao',
+      defaultOrderBy: { id: 'desc' },
+      include: includeRelations,
+      mapRow: (ordem: any) => ({
         id: ordem.id,
         status: ordem.status,
         dataAgendamento: ordem.dataAgendamento,
@@ -143,27 +107,25 @@ export class ProducaoService {
             ? 'Venda de Placas'
             : ordem.venda?.modeloCasa?.nome || 'N/A',
         isVendaPlacas: ordem.venda ? ordem.venda.modeloId === null : false,
-        venda: ordem.venda,
+        venda: ordem.venda
+          ? {
+              ...ordem.venda,
+              modeloCasa: {
+                nome:
+                  ordem.venda.modeloId === null
+                    ? 'Venda de Placas'
+                    : ordem.venda.modeloCasa?.nome || 'N/A',
+              },
+            }
+          : null,
         ordensProducaoHistorico: ordem.ordensProducaoHistorico,
-      };
-
-      if (requestedFields.length === 0) return flatObj;
-
-      const result: any = {};
-      requestedFields.forEach((field) => {
-        if (flatObj[field] !== undefined) {
-          result[field] = flatObj[field];
-        }
-      });
-      return result;
+        hasPlacasAlocadas:
+          ordem.venda?.vendaRequisitos?.some(
+            (r: any) => r.placaAlocadaId !== null,
+          ) || false,
+      }),
+      filterRequestedFields: false,
     });
-
-    return {
-      draw: query.draw || 1,
-      data: finalData,
-      recordsTotal: total,
-      recordsFiltered: filtered,
-    };
   }
 
   async findOne(id: number, tx?: Prisma.TransactionClient) {
@@ -177,6 +139,12 @@ export class ProducaoService {
         `Ordem de produção com ID ${id} não encontrada.`,
       );
     }
+
+    // Remover a imagem base64 para evitar payloads gigantes
+    if (ordem.venda?.modeloCasa?.imagemBase64) {
+      ordem.venda.modeloCasa.imagemBase64 = null;
+    }
+
     return ordem;
   }
 
@@ -225,13 +193,7 @@ export class ProducaoService {
             tipo: r.tipo,
             alias: r.alias,
             parede: r.parede,
-            largura: r.largura,
-            altura: r.altura,
-            espessura: r.espessura,
-            tramaEsquerdaId: r.tramaEsquerdaId,
-            tramaDireitaId: r.tramaDireitaId,
-            tramaSuperiorId: r.tramaSuperiorId,
-            tramaInferiorId: r.tramaInferiorId,
+            tipoPlacaId: r.tipoPlacaId,
             corteId: r.corteId,
           })),
         });
@@ -349,22 +311,20 @@ export class ProducaoService {
       });
 
       // Mapeamento e atualização do status da Venda (sincronização)
-      let novoStatusVenda:
-        | import('../generated/prisma/client').StatusVenda
-        | null = null;
+      let novoStatusVenda: StatusVenda | null = null;
       if (dto.status === StatusProducao.AGENDADO)
-        novoStatusVenda = 'PRODUCAO_AGENDADA';
+        novoStatusVenda = StatusVenda.PRODUCAO_AGENDADA;
       else if (dto.status === StatusProducao.MATERIAIS_PENDENTES)
-        novoStatusVenda = 'AGUARDANDO_AGENDAMENTO_PRODUCAO';
+        novoStatusVenda = StatusVenda.AGUARDANDO_AGENDAMENTO_PRODUCAO;
       else if (
         dto.status === StatusProducao.PREPARANDO_MATERIAIS ||
         dto.status === StatusProducao.EM_ESPERA
       )
-        novoStatusVenda = 'MATERIAIS_ALOCADOS';
+        novoStatusVenda = StatusVenda.MATERIAIS_ALOCADOS;
       else if (dto.status === StatusProducao.MONTANDO_KIT)
-        novoStatusVenda = 'KIT_EM_PREPARACAO';
+        novoStatusVenda = StatusVenda.KIT_EM_PREPARACAO;
       else if (dto.status === StatusProducao.CANCELADO)
-        novoStatusVenda = 'CANCELADA';
+        novoStatusVenda = StatusVenda.CANCELADA;
 
       if (novoStatusVenda && ordem.vendaId) {
         // O TS do prisma pode acusar se pegarmos o enum direto de venda, faremos o query
@@ -421,16 +381,15 @@ export class ProducaoService {
       if (!entregaExistente) {
         await this.entregasService.create({
           vendaId: ordem.vendaId,
-          enderecoEntrega: ordem.venda.enderecoEntrega,
-          previsaoEntrega: new Date(
-            new Date().setDate(new Date().getDate() + 7),
-          ).toISOString(),
         });
       }
 
       const ordemAtualizada = await tx.ordemProducao.update({
         where: { id },
-        data: { status: StatusProducao.PRONTO_PARA_ENVIO },
+        data: {
+          status: StatusProducao.PRONTO_PARA_ENVIO,
+          dataAgendamento: ordem.dataAgendamento || new Date(),
+        },
       });
 
       await tx.ordemProducaoHistorico.create({
@@ -446,16 +405,16 @@ export class ProducaoService {
       const vendaAtual = await tx.venda.findUnique({
         where: { id: ordem.vendaId },
       });
-      if (vendaAtual && vendaAtual.status !== 'PRONTO_PARA_ENVIO') {
+      if (vendaAtual && vendaAtual.status !== StatusVenda.PRONTO_PARA_ENVIO) {
         await tx.venda.update({
           where: { id: ordem.vendaId },
-          data: { status: 'PRONTO_PARA_ENVIO' },
+          data: { status: StatusVenda.PRONTO_PARA_ENVIO },
         });
         await tx.vendaHistorico.create({
           data: {
             vendaId: ordem.vendaId,
             statusAnterior: vendaAtual.status,
-            statusNovo: 'PRONTO_PARA_ENVIO',
+            statusNovo: StatusVenda.PRONTO_PARA_ENVIO,
           },
         });
       }
@@ -471,108 +430,31 @@ export class ProducaoService {
     });
     if (!req) throw new NotFoundException('Requisito não encontrado');
 
-    const isCorte = req.tipo === 'CORTE_ESPECIFICO';
-    const percurso = isCorte
-      ? ((req.corte?.percurso as VetorCorte[] | undefined) ?? null)
-      : null;
-
-    const reqW = Number(req.largura || 0);
-    const reqH = Number(req.altura || 0);
-    const reqTramas = {
-      L: req.tramaEsquerdaId,
-      R: req.tramaDireitaId,
-      T: req.tramaSuperiorId,
-      B: req.tramaInferiorId,
-    };
-
-    // Um requisito é considerado "retangular" se for PLACA_LISA ou se o corte for retangular.
-    // Se for retangular, permitimos troca de lados (simetria) e rotação.
-    let isRetangular = !isCorte;
-    if (isCorte && percurso) {
-      isRetangular = GeometriaPlaca.eRetangulo(percurso);
-      // Fallback: se o percurso não for estritamente retangular (ex: fechamento redundante),
-      // mas as dimensões do requisito batem com o que foi informado, tratamos como retangular.
-      if (!isRetangular && reqW > 0 && reqH > 0) {
-        // Se temos largura/altura e o percurso tem pelo menos 4 pontos, consideramos retangular para fins de simetria
-        if (percurso.length >= 4) isRetangular = true;
-      }
-    }
-
     const placas =
       availablePlacas ||
       (await this.prisma.placa.findMany({
         where: {
-          statusPlaca: 'DISPONIVEL',
-          statusProducao: 'FINALIZADA',
+          statusPlaca: StatusPlaca.DISPONIVEL,
+          statusProducao: StatusProducaoPlaca.FINALIZADA,
           deletedAt: null,
           placasDerivadas: { none: {} },
         },
+        include: { tipoPlaca: true },
       }));
 
-    const normalizeTrama = (val: any) => {
-      if (val === null || val === undefined) return 0;
-      const n = Number(val);
-      return isNaN(n) ? 0 : n;
-    };
+    // Compatibilidade simplificada via tipoPlacaId
+    // Para PLACA_LISA: basta o tipoPlaca ter mesmas dimensões, tramas e reforço que o requisito
+    // Para CORTE_ESPECIFICO: exige mesmo formaCorteId
+    const results = placas.filter((p: any) => {
+      const tipo = p.tipoPlaca;
+      if (!tipo) return false;
 
-    const compareSets = (set1: any[], set2: any[]) => {
-      const s1 = set1.map(normalizeTrama).sort((a, b) => a - b);
-      const s2 = set2.map(normalizeTrama).sort((a, b) => a - b);
-      return s1[0] === s2[0] && s1[1] === s2[1];
-    };
+      // Se a placa não pertencer ao mesmo tipo de placa do requisito, já recusa.
+      if (p.tipoPlacaId !== req.tipoPlacaId) return false;
 
-    const results = placas.filter((p) => {
-      if (p.reforco !== req.reforco) return false;
-
-      const pW = Number(p.largura || 0);
-      const pH = Number(p.altura || 0);
-      const pTramas = {
-        L: p.tramaEsquerdaAtiva ? p.tramaEsquerdaId : null,
-        R: p.tramaDireitaAtiva ? p.tramaDireitaId : null,
-        T: p.tramaSuperiorAtiva ? p.tramaSuperiorId : null,
-        B: p.tramaInferiorAtiva ? p.tramaInferiorId : null,
-      };
-
-      if (isRetangular) {
-        // Opção 1: Dimensões Batem (0º ou 180º ou Flip)
-        if (Math.abs(pW - reqW) < 0.1 && Math.abs(pH - reqH) < 0.1) {
-          const horizMatch = compareSets(
-            [pTramas.L, pTramas.R],
-            [reqTramas.L, reqTramas.R],
-          );
-          const vertMatch = compareSets(
-            [pTramas.T, pTramas.B],
-            [reqTramas.T, reqTramas.B],
-          );
-          if (horizMatch && vertMatch) return true;
-        }
-
-        // Opção 2: Dimensões Invertidas (90º ou 270º)
-        if (Math.abs(pW - reqH) < 0.1 && Math.abs(pH - reqW) < 0.1) {
-          // Horizontal da placa (L/R) vs Vertical do requisito (T/B)
-          const horizMatch = compareSets(
-            [pTramas.L, pTramas.R],
-            [reqTramas.T, reqTramas.B],
-          );
-          // Vertical da placa (T/B) vs Horizontal do requisito (L/R)
-          const vertMatch = compareSets(
-            [pTramas.T, pTramas.B],
-            [reqTramas.L, reqTramas.R],
-          );
-          if (horizMatch && vertMatch) return true;
-        }
-      } else {
-        // CORTE COMPLEXO: Exige mesmo ID de corte e tramas nas posições exatas
-        if (p.formaCorteId !== req.corteId) return false;
-        const match =
-          normalizeTrama(pTramas.L) === normalizeTrama(reqTramas.L) &&
-          normalizeTrama(pTramas.R) === normalizeTrama(reqTramas.R) &&
-          normalizeTrama(pTramas.T) === normalizeTrama(reqTramas.T) &&
-          normalizeTrama(pTramas.B) === normalizeTrama(reqTramas.B);
-        return match;
-      }
-
-      return false;
+      // Para cortes, a placa deve ter o mesmo corteId (formaCorteId)
+      // Para PLACA_LISA (sem corte), a placa também não deve ter corte
+      return (p.formaCorteId || null) === (req.corteId || null);
     });
 
     return results;
@@ -583,11 +465,12 @@ export class ProducaoService {
 
     const placas = await this.prisma.placa.findMany({
       where: {
-        statusPlaca: 'DISPONIVEL',
-        statusProducao: 'FINALIZADA',
+        statusPlaca: StatusPlaca.DISPONIVEL,
+        statusProducao: StatusProducaoPlaca.FINALIZADA,
         deletedAt: null,
         placasDerivadas: { none: {} },
       },
+      include: { tipoPlaca: true },
     });
 
     const results: Record<number, any[]> = {};
@@ -595,11 +478,11 @@ export class ProducaoService {
       const comp = await this.findCompatiblePlates(reqId, placas).catch(
         () => [],
       );
-      results[reqId] = comp.map((p) => ({
+      results[reqId] = comp.map((p: any) => ({
         id: p.id,
         nome: p.nome,
-        largura: p.largura,
-        altura: p.altura,
+        largura: p.tipoPlaca ? Number(p.tipoPlaca.largura) : 0,
+        altura: p.tipoPlaca ? Number(p.tipoPlaca.altura) : 0,
       }));
     }
     return results;
@@ -626,7 +509,7 @@ export class ProducaoService {
               `Placa #${item.placaId} não encontrada`,
             );
           if (
-            placa.statusPlaca !== 'DISPONIVEL' &&
+            placa.statusPlaca !== StatusPlaca.DISPONIVEL &&
             req.placaAlocadaId !== item.placaId
           ) {
             throw new ConflictException(
@@ -638,14 +521,14 @@ export class ProducaoService {
           if (req.placaAlocadaId && req.placaAlocadaId !== item.placaId) {
             await tx.placa.update({
               where: { id: req.placaAlocadaId },
-              data: { statusPlaca: 'DISPONIVEL' },
+              data: { statusPlaca: StatusPlaca.DISPONIVEL },
             });
           }
 
           // Aloca a nova
           await tx.placa.update({
             where: { id: item.placaId },
-            data: { statusPlaca: 'ALOCADA' },
+            data: { statusPlaca: StatusPlaca.ALOCADA },
           });
           await tx.vendaRequisito.update({
             where: { id: item.requisitoId },
@@ -659,7 +542,7 @@ export class ProducaoService {
           if (req?.placaAlocadaId) {
             await tx.placa.update({
               where: { id: req.placaAlocadaId },
-              data: { statusPlaca: 'DISPONIVEL' },
+              data: { statusPlaca: StatusPlaca.DISPONIVEL },
             });
             await tx.vendaRequisito.update({
               where: { id: item.requisitoId },
@@ -681,7 +564,7 @@ export class ProducaoService {
 
       const placa = await tx.placa.findUnique({ where: { id: placaId } });
       if (!placa) throw new NotFoundException('Placa não encontrada');
-      if (placa.statusPlaca !== 'DISPONIVEL') {
+      if (placa.statusPlaca !== StatusPlaca.DISPONIVEL) {
         throw new ConflictException(
           'Esta placa não está disponível para alocação.',
         );
@@ -691,7 +574,7 @@ export class ProducaoService {
       if (req.placaAlocadaId) {
         await tx.placa.update({
           where: { id: req.placaAlocadaId },
-          data: { statusPlaca: 'DISPONIVEL' },
+          data: { statusPlaca: StatusPlaca.DISPONIVEL },
         });
       }
 
@@ -703,7 +586,7 @@ export class ProducaoService {
 
       await tx.placa.update({
         where: { id: placaId },
-        data: { statusPlaca: 'ALOCADA' },
+        data: { statusPlaca: StatusPlaca.ALOCADA },
       });
 
       return { success: true };
@@ -719,7 +602,7 @@ export class ProducaoService {
 
       await tx.placa.update({
         where: { id: req.placaAlocadaId },
-        data: { statusPlaca: 'DISPONIVEL' },
+        data: { statusPlaca: StatusPlaca.DISPONIVEL },
       });
 
       await tx.vendaRequisito.update({
@@ -732,9 +615,50 @@ export class ProducaoService {
   }
 
   async remove(id: number) {
-    await this.findOne(id); // Garante que a ordem existe
-    return this.prisma.ordemProducao.delete({
+    const ordem = await this.findOne(id);
+    if (ordem.status === StatusProducao.CANCELADO) {
+      throw new ConflictException('Ordem já está cancelada.');
+    }
+    return this.prisma.ordemProducao.update({
       where: { id },
+      data: { status: StatusProducao.CANCELADO },
+    });
+  }
+
+  async desalocarTodasPlacas(id: number) {
+    return this.prisma.$transaction(async (tx) => {
+      const ordem = await this.findOne(id, tx);
+      if (ordem.status !== StatusProducao.CANCELADO) {
+        throw new ConflictException(
+          'Só é possível desalocar as placas de uma ordem cancelada.',
+        );
+      }
+
+      const requisitos = ordem.venda?.vendaRequisitos || [];
+      const requisitosAlocados = requisitos.filter(
+        (r) => r.placaAlocadaId !== null,
+      );
+
+      if (requisitosAlocados.length === 0) {
+        throw new ConflictException('Nenhuma placa alocada para esta ordem.');
+      }
+
+      const placaIds = requisitosAlocados.map((r) => r.placaAlocadaId!);
+
+      await tx.placa.updateMany({
+        where: { id: { in: placaIds } },
+        data: { statusPlaca: StatusPlaca.DISPONIVEL },
+      });
+
+      await tx.vendaRequisito.updateMany({
+        where: { id: { in: requisitosAlocados.map((r) => r.id) } },
+        data: { placaAlocadaId: null },
+      });
+
+      return {
+        success: true,
+        message: `${placaIds.length} placas desalocadas com sucesso.`,
+      };
     });
   }
 }

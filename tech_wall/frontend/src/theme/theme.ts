@@ -39,29 +39,30 @@ const sharedComponents = {
   },
 };
 
+const darkBase = createTheme({
+  palette: { mode: "dark", contrastThreshold: 4.5, tonalOffset: 0.2 },
+});
+
+const lightBase = createTheme({
+  palette: { mode: "light", contrastThreshold: 4.5, tonalOffset: 0.2 },
+});
+
 // ===============================
 // DARK THEME (default)
 // ===============================
 const darkTheme = createTheme({
   palette: {
     mode: "dark",
-    primary: {
-      main: "#9575CD",
-      light: "#B39DDB",
-      dark: "#7E57C2",
-      contrastText: "#fff",
-    },
-    secondary: {
-      main: "#7C4DFF",
-    },
+    primary: darkBase.palette.augmentColor({ color: { main: "#4ECDC4" } }),
+    secondary: darkBase.palette.augmentColor({ color: { main: "#1B2D4F" } }),
     background: {
-      default: "#1a1a2e", // deep navy for content
-      paper: "#16213e", // slightly lighter for cards
+      default: "#1a1a1a",
+      paper: "#2c2c2c",
     },
     divider: "rgba(255,255,255,0.08)",
     text: {
       primary: "#E8E8E8",
-      secondary: "#A0A0B0",
+      secondary: "#A0A0A0",
     },
   },
   typography: sharedTypography,
@@ -83,23 +84,16 @@ const darkTheme = createTheme({
 const lightTheme = createTheme({
   palette: {
     mode: "light",
-    primary: {
-      main: "#7E57C2",
-      light: "#B39DDB",
-      dark: "#512DA8",
-      contrastText: "#fff",
-    },
-    secondary: {
-      main: "#7C4DFF",
-    },
+    primary: lightBase.palette.augmentColor({ color: { main: "#1B2D4F" } }),
+    secondary: lightBase.palette.augmentColor({ color: { main: "#4ECDC4" } }),
     background: {
-      default: "#F5F5F5",
-      paper: "#FFFFFF",
+      default: "#FFFFFF",
+      paper: "#F2F2F2",
     },
     divider: "rgba(0,0,0,0.08)",
     text: {
-      primary: "#212121",
-      secondary: "#757575",
+      primary: "#151515",
+      secondary: "#444444",
     },
   },
   typography: sharedTypography,

@@ -3,13 +3,16 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { DataTableResult } from '../common/dto/data-table.dto';
+import {
+  DataTableColumnDto,
+  DataTableOrderDto,
+  DataTableParamsDto,
+  DataTableResult,
+} from '../common/dto/data-table.dto';
 import { PrismaDatatableHelper } from '../common/utils/datatable.helper';
-import { getIdsByNumericPartialMatch } from '../common/utils/prisma-search.utils';
-import { Prisma } from '../generated/prisma/client';
+import { formatDecimal } from '../common/utils/format.utils';
 import { PrismaService } from '../prisma/prisma.service';
 import { AplicarCorteDto } from './dto/aplicar-corte.dto';
-import { CreatePlacaBatchDto } from './dto/create-placa-batch.dto';
 import { CreatePlacaDto } from './dto/create-placa.dto';
 import { GerenciarProducaoPlacaDto } from './dto/gerenciar-producao-placa.dto';
 import { PlacaQueryDto } from './dto/placa-query.dto';
@@ -25,180 +28,124 @@ export class PlacasService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreatePlacaDto) {
-    const { materiais, darBaixaImediata, retalhoDescartado, ...placaDataRaw } =
-      dto;
-
-    // Garante que tramas inativas sejam salvas como null
-    const placaData: any = { ...placaDataRaw };
-    if (placaData.tramaEsquerdaAtiva === false)
-      placaData.tramaEsquerdaId = null;
-    if (placaData.tramaDireitaAtiva === false) placaData.tramaDireitaId = null;
-    if (placaData.tramaSuperiorAtiva === false)
-      placaData.tramaSuperiorId = null;
-    if (placaData.tramaInferiorAtiva === false)
-      placaData.tramaInferiorId = null;
-
-    return this.prisma.$transaction(async (tx) => {
-      const placa = await tx.placa.create({
-        data: {
-          ...placaData,
-          statusProducao: darBaixaImediata ? 'FINALIZADA' : 'AGUARDANDO',
-          statusPlaca: retalhoDescartado ? 'DESCARTADA' : 'DISPONIVEL',
-        },
-      });
-
-      const finalMateriais = materiais ? [...materiais] : [];
-
-      if (finalMateriais.length > 0) {
-        await tx.materialPlaca.createMany({
-          data: finalMateriais.map((m) => ({
-            placaId: placa.id,
-            materiaPrimaId: m.materiaPrimaId,
-            quantidade: m.quantidade,
-          })),
-        });
-
-        if (darBaixaImediata) {
-          const consumos: Record<string, number> = {};
-          for (const m of finalMateriais) {
-            const mp = await tx.materiaPrima.findUnique({
-              where: { id: m.materiaPrimaId },
-            });
-            if (!mp || mp.quantidade < m.quantidade) {
-              throw new BadRequestException(
-                `Material insuficiente para a baixa imediata: ${mp?.item || m.materiaPrimaId}`,
-              );
-            }
-            await tx.materiaPrima.update({
-              where: { id: m.materiaPrimaId },
-              data: { quantidade: { decrement: m.quantidade } },
-            });
-            consumos[m.materiaPrimaId.toString()] = m.quantidade;
-          }
-          await tx.placa.update({
-            where: { id: placa.id },
-            data: { materiaisConsumidos: consumos },
-          });
-        }
-      }
-
-      return this.findOne(placa.id, tx);
-    });
-  }
-
-  async createBatch(dto: CreatePlacaBatchDto) {
     const {
-      prefixo = '',
-      sufixo = '',
-      valorInicial,
+      tipoPlacaId,
       quantidade,
-      algarismos,
-      materiais,
-      darBaixaImediata,
-      retalhoDescartado,
-      ...placaDataBaseRaw
+      jaFinalizada,
+      deduzirMateriaPrima,
+      economiaInfo,
     } = dto;
 
-    // Garante que tramas inativas sejam salvas como null no lote
-    const placaDataBase: any = { ...placaDataBaseRaw };
-    if (placaDataBase.tramaEsquerdaAtiva === false)
-      placaDataBase.tramaEsquerdaId = null;
-    if (placaDataBase.tramaDireitaAtiva === false)
-      placaDataBase.tramaDireitaId = null;
-    if (placaDataBase.tramaSuperiorAtiva === false)
-      placaDataBase.tramaSuperiorId = null;
-    if (placaDataBase.tramaInferiorAtiva === false)
-      placaDataBase.tramaInferiorId = null;
+    // Busca o tipo de placa com materiais
+    const tipoPlaca = await this.prisma.tipoPlaca.findUnique({
+      where: { id: tipoPlacaId },
+      include: {
+        materiais: { include: { materiaPrima: true } },
+      },
+    });
+
+    if (!tipoPlaca || tipoPlaca.deletedAt) {
+      throw new NotFoundException('Tipo de placa não encontrado.');
+    }
 
     return this.prisma.$transaction(async (tx) => {
-      let currentPadding = algarismos || valorInicial.toString().length;
-      let valoresEncontrados: number[] = [];
-      let valorDeBusca = valorInicial;
+      // Calcula economia por placa para cada material (se aplicável)
+      const economiaPorPlaca = new Map<number, number>();
+      if (
+        jaFinalizada &&
+        deduzirMateriaPrima &&
+        economiaInfo &&
+        economiaInfo.itens.length > 0
+      ) {
+        for (const item of economiaInfo.itens) {
+          const materialTipo = tipoPlaca.materiais.find(
+            (m) => m.materiaPrimaId === item.materiaPrimaId,
+          );
+          if (!materialTipo) continue;
 
-      // Loop principal para encontrar a quantidade necessária
-      while (valoresEncontrados.length < quantidade) {
-        const paddingNecessarioIdx = valorDeBusca.toString().length;
-
-        // Se o valor de busca atual exigir mais dígitos que o padding atual,
-        // precisamos atualizar o padding e reiniciar a busca para garantir consistência em todo o lote.
-        if (paddingNecessarioIdx > currentPadding && !algarismos) {
-          currentPadding = paddingNecessarioIdx;
-          valoresEncontrados = [];
-          valorDeBusca = valorInicial;
-          continue;
+          if (economiaInfo.modo === 'individual') {
+            if (item.quantidade >= materialTipo.quantidade) {
+              throw new BadRequestException(
+                `Economia individual (${item.quantidade}) deve ser menor que o consumo por placa (${materialTipo.quantidade}) para o material "${materialTipo.materiaPrima.item}".`,
+              );
+            }
+            economiaPorPlaca.set(item.materiaPrimaId, item.quantidade);
+          } else {
+            // modo total
+            const consumoTotal = materialTipo.quantidade * quantidade;
+            if (item.quantidade >= consumoTotal) {
+              throw new BadRequestException(
+                `Economia total (${item.quantidade}) deve ser menor que o consumo total (${consumoTotal}) para o material "${materialTipo.materiaPrima.item}".`,
+              );
+            }
+            // Distribui igualmente entre as placas
+            economiaPorPlaca.set(
+              item.materiaPrimaId,
+              item.quantidade / quantidade,
+            );
+          }
         }
-
-        const nomeCandidato = `${prefixo}${valorDeBusca
-          .toString()
-          .padStart(currentPadding, '0')}${sufixo}`;
-
-        const existe = await tx.$queryRaw<any[]>(
-          Prisma.sql`SELECT id FROM placas WHERE nome = ${nomeCandidato} LIMIT 1`,
-        );
-
-        if (existe.length === 0) {
-          valoresEncontrados.push(valorDeBusca);
-        }
-
-        valorDeBusca++;
       }
 
-      // Agora criamos as placas com os nomes finais garantidos
+      // Cria as placas
       const resultados = [];
-      for (const v of valoresEncontrados) {
-        const nomeFinal = `${prefixo}${v
-          .toString()
-          .padStart(currentPadding, '0')}${sufixo}`;
-
+      for (let i = 0; i < quantidade; i++) {
+        // Cria a placa primeiro para obter o ID
         const placa = await tx.placa.create({
           data: {
-            ...placaDataBase,
-            nome: nomeFinal,
-            statusProducao: darBaixaImediata ? 'FINALIZADA' : 'AGUARDANDO',
-            statusPlaca: retalhoDescartado ? 'DESCARTADA' : 'DISPONIVEL',
+            nome: '__TEMP__', // Temporário, será atualizado com P{id}
+            tipoPlacaId,
+            statusProducao: jaFinalizada ? 'FINALIZADA' : 'AGUARDANDO',
+            statusPlaca: 'DISPONIVEL',
           },
         });
 
-        const finalMateriais = materiais ? [...materiais] : [];
+        // Atualiza o nome com P{id}
+        const nome = `P${placa.id}`;
+        await tx.placa.update({
+          where: { id: placa.id },
+          data: { nome },
+        });
 
-        if (finalMateriais.length > 0) {
-          await tx.materialPlaca.createMany({
-            data: finalMateriais.map((m) => ({
-              placaId: placa.id,
-              materiaPrimaId: m.materiaPrimaId,
-              quantidade: m.quantidade,
-            })),
-          });
+        // Se jaFinalizada e deduzirMateriaPrima, deduz do estoque
+        if (jaFinalizada && deduzirMateriaPrima) {
+          const consumos: Record<string, number> = {};
+          for (const material of tipoPlaca.materiais) {
+            const economia = economiaPorPlaca.get(material.materiaPrimaId) || 0;
+            const consumoReal = material.quantidade - economia;
 
-          if (darBaixaImediata) {
-            const consumos: Record<string, number> = {};
-            for (const m of finalMateriais) {
+            if (consumoReal > 0) {
               const mp = await tx.materiaPrima.findUnique({
-                where: { id: m.materiaPrimaId },
+                where: { id: material.materiaPrimaId },
               });
-              if (!mp || mp.quantidade < m.quantidade) {
+              if (!mp || mp.quantidade < consumoReal) {
                 throw new BadRequestException(
-                  `Material insuficiente para a baixa imediata no lote: ${mp?.item || m.materiaPrimaId}`,
+                  `Material insuficiente para a baixa: ${mp?.item || material.materiaPrimaId}`,
                 );
               }
               await tx.materiaPrima.update({
-                where: { id: m.materiaPrimaId },
-                data: { quantidade: { decrement: m.quantidade } },
+                where: { id: material.materiaPrimaId },
+                data: { quantidade: { decrement: consumoReal } },
               });
-              consumos[m.materiaPrimaId.toString()] = m.quantidade;
+              consumos[material.materiaPrimaId.toString()] = consumoReal;
             }
+          }
+
+          if (Object.keys(consumos).length > 0) {
             await tx.placa.update({
               where: { id: placa.id },
               data: { materiaisConsumidos: consumos },
             });
           }
         }
-        resultados.push(placa);
+
+        resultados.push({ ...placa, nome });
       }
 
       return {
-        message: `${quantidade} placas criadas com sucesso (Padding: ${currentPadding}).`,
+        message: `${quantidade} placa(s) criada(s) com sucesso.`,
         ids: resultados.map((r) => r.id),
+        nomes: resultados.map((r) => r.nome),
       };
     });
   }
@@ -206,109 +153,269 @@ export class PlacasService {
   async findAll() {
     return this.prisma.placa.findMany({
       orderBy: { id: 'desc' },
+      include: {
+        tipoPlaca: true,
+      },
     });
   }
 
   async findDatatable(query: PlacaQueryDto): Promise<DataTableResult<any>> {
     const { availableForCut, apenasFinais } = query;
-    const {
-      skip,
-      take,
-      where: generatedWhere,
-      orderBy,
-    } = PrismaDatatableHelper.buildPrismaQuery(query, [
-      'nome',
-      'descricao',
-      'materiaisPlaca.some.materiaPrima.item',
-    ]);
-    const finalWhere = { ...generatedWhere };
+
+    // Build dynamic baseWhere from query filters
+    const baseWhere: any = {};
     if (availableForCut === 'true') {
-      finalWhere.statusPlaca = 'DISPONIVEL';
+      baseWhere.statusPlaca = 'DISPONIVEL';
     }
     if (apenasFinais === 'true') {
-      finalWhere.placasDerivadas = { none: {} };
+      baseWhere.placasDerivadas = { none: {} };
     }
-    if (query.search?.value) {
-      const searchVal = query.search.value;
-      const idsByValues = await getIdsByNumericPartialMatch(
-        this.prisma,
-        'placas',
-        ['id'],
-        searchVal,
-      );
-      if (idsByValues.length > 0) {
-        if (finalWhere.OR) {
-          finalWhere.OR.push({
-            id: { in: idsByValues.map((id) => Number(id)) },
+    if ((query as any).tipoPlacaId) {
+      baseWhere.tipoPlacaId = Number((query as any).tipoPlacaId);
+    }
+
+    // Map para strings amigáveis da interface (para statusExibicao)
+    const mapStatusExibicao = (statusPlaca: string, statusProducao: string) => {
+      if (statusPlaca === 'DISPONIVEL') {
+        if (statusProducao === 'AGUARDANDO') return 'Aguardando';
+        if (statusProducao === 'EM_PRODUCAO') return 'Em Produção';
+        if (statusProducao === 'FINALIZADA') return 'Finalizada';
+        return statusProducao;
+      }
+      if (statusPlaca === 'ALOCADA') return 'Alocada';
+      if (statusPlaca === 'DESCARTADA') return 'Descartada';
+      return statusPlaca;
+    };
+
+    return PrismaDatatableHelper.execute({
+      prismaModel: this.prisma.placa,
+      prismaClient: this.prisma,
+      query,
+      searchableFields: ['nome', 'descricao', 'tipoPlaca.nome'],
+      numericSearchFields: ['id'],
+      tableName: 'placas',
+      baseWhere,
+      customSearchEnhancer: (searchVal: string) => {
+        const lower = searchVal.toLowerCase();
+        const orConditions: any[] = [];
+
+        // Match exato case-insensitive baseado no texto renderizado
+        if ('aguardando'.includes(lower)) {
+          orConditions.push({
+            statusPlaca: 'DISPONIVEL',
+            statusProducao: 'AGUARDANDO',
           });
-        } else {
-          finalWhere.OR = [{ id: { in: idsByValues.map((id) => Number(id)) } }];
         }
-      }
-    }
-    const [dataRaw, total, filtered] = await Promise.all([
-      this.prisma.placa.findMany({
-        where: finalWhere,
-        skip,
-        take,
-        orderBy: Object.keys(orderBy as Record<string, unknown>).length
-          ? orderBy
-          : { id: 'desc' },
-        include: {
-          materiaisPlaca: { include: { materiaPrima: true } },
-          _count: { select: { placasDerivadas: true } },
-          tramaEsquerda: true,
-          tramaDireita: true,
-          tramaSuperior: true,
-          tramaInferior: true,
-          formaCorte: true,
+        if ('em produção'.includes(lower) || 'em producao'.includes(lower)) {
+          orConditions.push({
+            statusPlaca: 'DISPONIVEL',
+            statusProducao: 'EM_PRODUCAO',
+          });
+        }
+        if ('finalizada'.includes(lower)) {
+          orConditions.push({
+            statusPlaca: 'DISPONIVEL',
+            statusProducao: 'FINALIZADA',
+          });
+        }
+        if ('alocada'.includes(lower)) {
+          orConditions.push({ statusPlaca: 'ALOCADA' });
+        }
+        if ('descartada'.includes(lower)) {
+          orConditions.push({ statusPlaca: 'DESCARTADA' });
+        }
+        return orConditions;
+      },
+      orderByTranslator: (field, dir) => {
+        if (field === 'statusExibicao') {
+          // Ordena primeiro por placa, depois por produção (ou seja, Agrupando)
+          return [{ statusPlaca: dir }, { statusProducao: dir }];
+        }
+        return null;
+      },
+      include: {
+        tipoPlaca: {
+          include: {
+            materiais: { include: { materiaPrima: true } },
+          },
         },
-      }),
-      this.prisma.placa.count(),
-      this.prisma.placa.count({ where: finalWhere }),
-    ]);
-    const requestedFields = (query.columns
-      ?.map((c) => c.data)
-      .filter((d) => d && d !== 'null') || []) as string[];
-    const data = dataRaw.map((placa: any) => {
-      let dimensoes = `${Number(placa.largura).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} x ${Number(placa.altura).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}`;
+        _count: { select: { placasDerivadas: true } },
+        formaCorte: true,
+      },
+      mapRow: (placa: any) => {
+        // Dimensões vêm do tipoPlaca
+        const largura = Number(placa.tipoPlaca?.largura || 0);
+        const altura = Number(placa.tipoPlaca?.altura || 0);
 
-      if (
-        placa.formaCorte &&
-        !GeometriaPlaca.eRetangulo(placa.formaCorte.percurso as VetorCorte[])
-      ) {
-        dimensoes = (placa.formaCorte.percurso as VetorCorte[])
-          .map((p) =>
-            Number(p.distancia).toLocaleString('pt-BR', {
-              maximumFractionDigits: 2,
-            }),
-          )
-          .join(' x ');
-      }
+        let dimensoes = `${formatDecimal(largura)} x ${formatDecimal(altura)}`;
 
-      const flatObj: any = {
-        ...placa,
-        statusExibicao:
-          placa.statusPlaca === 'DISPONIVEL'
-            ? placa.statusProducao
-            : placa.statusPlaca,
-        nome: placa.formaCorteId ? `${placa.nome} (Corte)` : placa.nome,
-        dimensoes,
-        espessuraFormatada: `${Number(placa.espessura || 0).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}`,
-      };
+        if (
+          placa.formaCorte &&
+          !GeometriaPlaca.eRetangulo(placa.formaCorte.percurso as VetorCorte[])
+        ) {
+          dimensoes = (placa.formaCorte.percurso as VetorCorte[])
+            .map((p) => formatDecimal(p.distancia))
+            .join(' x ');
+        }
 
-      if (requestedFields.length === 0) return flatObj;
-      const result: any = {};
-      requestedFields.forEach((field) => {
-        if (flatObj[field] !== undefined) result[field] = flatObj[field];
-      });
-      return result;
+        return {
+          ...placa,
+          tipoPlacaNome: placa.tipoPlaca?.nome || 'N/A',
+          statusExibicao: mapStatusExibicao(
+            String(placa.statusPlaca),
+            String(placa.statusProducao),
+          ),
+          nome: placa.nome,
+          dimensoes,
+          espessuraFormatada: formatDecimal(placa.tipoPlaca?.espessura || 0),
+        };
+      },
     });
+  }
+
+  // Endpoint para tab Estoque: agrupado por tipoPlacaId
+  // Usa busca/ordenação em memória pois `quantidade` é um campo computado (_count)
+  async findEstoqueDatatable(
+    query: DataTableParamsDto,
+  ): Promise<DataTableResult<any>> {
+    const skip = query.start || 0;
+    const take = query.length || 10;
+
+    // 1. Busca TODOS os tipos de placa (dataset pequeno) com contagem filtrada
+    const allTipos = await this.prisma.tipoPlaca.findMany({
+      where: { deletedAt: null },
+      include: {
+        _count: {
+          select: {
+            placas: {
+              where: {
+                statusProducao: 'FINALIZADA',
+                statusPlaca: 'DISPONIVEL',
+                deletedAt: null,
+                derivadaDePlacaId: null,
+                placasDerivadas: { none: {} },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const totalCount = allTipos.length;
+
+    // 2. Mapeia para objetos planos (valores numéricos crus para ordenação)
+    interface EstoqueRow {
+      id: number;
+      nome: string;
+      largura: number;
+      altura: number;
+      quantidade: number;
+      estoqueMinimo: number;
+    }
+
+    let data: EstoqueRow[] = allTipos.map((tipo) => ({
+      id: tipo.id,
+      nome: tipo.nome,
+      largura: Number(tipo.largura),
+      altura: Number(tipo.altura),
+      quantidade: tipo._count.placas,
+      estoqueMinimo: Number(tipo.estoqueMinimo || 0),
+    }));
+
+    // 3. Filtro de busca (em memória, suporta texto e numérico incluindo quantidade)
+    const searchVal: string = String(query.search?.value ?? '');
+    if (searchVal) {
+      const lowerSearch = searchVal.toLowerCase();
+      const isNumericSearch = /^[\d.,\s]+$/.test(searchVal.trim());
+      const numericStr = isNumericSearch
+        ? searchVal.replace(/[^0-9.,]/g, '').replace(',', '.')
+        : null;
+
+      data = data.filter((item) => {
+        // Match textual em nome (case-insensitive)
+        if (item.nome.toLowerCase().includes(lowerSearch)) return true;
+        // Match numérico parcial em id, largura, altura, quantidade
+        if (numericStr) {
+          if (String(item.id).includes(numericStr)) return true;
+          if (String(item.largura).includes(numericStr)) return true;
+          if (String(item.altura).includes(numericStr)) return true;
+          if (String(item.quantidade).includes(numericStr)) return true;
+        }
+        return false;
+      });
+    }
+
+    const filteredCount = data.length;
+
+    // 4. Ordenação (suporta qualquer campo, incluindo quantidade)
+    const columns: DataTableColumnDto[] = query.columns ?? [];
+    const orders: DataTableOrderDto[] = query.order ?? [];
+
+    if (orders.length > 0 && columns.length > 0) {
+      const orderConfig = orders[0];
+      const colIdx = orderConfig.column;
+      const column = colIdx !== undefined ? columns[colIdx] : undefined;
+      const field = column?.data as keyof EstoqueRow | undefined;
+      if (field && data.length > 0 && field in data[0]) {
+        const dir = orderConfig.dir === 'desc' ? -1 : 1;
+        data.sort((a, b) => {
+          if (field === 'quantidade') {
+            const isLowA = a.quantidade <= a.estoqueMinimo;
+            const isLowB = b.quantidade <= b.estoqueMinimo;
+
+            if (isLowA && !isLowB) return -1;
+            if (!isLowA && isLowB) return 1;
+
+            return (a.quantidade - b.quantidade) * dir;
+          }
+
+          const valA = a[field];
+          const valB = b[field];
+          if (typeof valA === 'number' && typeof valB === 'number') {
+            return (valA - valB) * dir;
+          }
+          return String(valA).localeCompare(String(valB), 'pt-BR') * dir;
+        });
+      }
+    } else {
+      // Ordenação padrão: por nome
+      data.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+    }
+
+    // 5. Paginação em memória
+    const pagedData = data.slice(skip, skip + take);
+
+    // 6. Formata campos numéricos para exibição (após ordenação)
+    const formattedData: Record<string, unknown>[] = pagedData.map((item) => ({
+      ...item,
+      largura: formatDecimal(item.largura),
+      altura: formatDecimal(item.altura),
+    }));
+
+    // 7. Filtra campos solicitados pelo DataTables
+    const requestedFields = columns
+      .map((c) => c.data)
+      .filter(
+        (d: string | undefined): d is string =>
+          typeof d === 'string' && d !== 'null',
+      );
+
+    const finalData =
+      requestedFields.length > 0
+        ? formattedData.map((item) => {
+            const result: Record<string, unknown> = {};
+            for (const field of requestedFields) {
+              if (item[field] !== undefined) result[field] = item[field];
+            }
+            return result;
+          })
+        : formattedData;
+
     return {
       draw: query.draw || 1,
-      data,
-      recordsTotal: total,
-      recordsFiltered: filtered,
+      data: finalData,
+      recordsTotal: totalCount,
+      recordsFiltered: filteredCount,
     };
   }
 
@@ -317,15 +424,15 @@ export class PlacasService {
     const placa = await prisma.placa.findUnique({
       where: { id },
       include: {
-        materiaisPlaca: {
+        tipoPlaca: {
           include: {
-            materiaPrima: true,
+            materiais: {
+              include: {
+                materiaPrima: true,
+              },
+            },
           },
         },
-        tramaEsquerda: true,
-        tramaDireita: true,
-        tramaSuperior: true,
-        tramaInferior: true,
         formaCorte: true,
       },
     });
@@ -345,99 +452,19 @@ export class PlacasService {
       );
     }
 
-    const {
-      materiais,
-      ajustarEstoqueConsumido,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      darBaixaImediata: _darBaixaImediata,
-      retalhoDescartado,
-      ...placaDataRaw
-    } = dto;
+    const { retalhoDescartado, ...updateData } = dto;
 
-    return this.prisma.$transaction(async (tx) => {
-      const dataToUpdate: any = { ...placaDataRaw };
+    const dataToUpdate: any = { ...updateData };
 
-      // Garante que tramas inativas sejam salvas como null na edição
-      if (dataToUpdate.tramaEsquerdaAtiva === false)
-        dataToUpdate.tramaEsquerdaId = null;
-      if (dataToUpdate.tramaDireitaAtiva === false)
-        dataToUpdate.tramaDireitaId = null;
-      if (dataToUpdate.tramaSuperiorAtiva === false)
-        dataToUpdate.tramaSuperiorId = null;
-      if (dataToUpdate.tramaInferiorAtiva === false)
-        dataToUpdate.tramaInferiorId = null;
+    if (retalhoDescartado !== undefined) {
+      dataToUpdate.statusPlaca = retalhoDescartado
+        ? 'DESCARTADA'
+        : 'DISPONIVEL';
+    }
 
-      if (retalhoDescartado !== undefined) {
-        dataToUpdate.statusPlaca = retalhoDescartado
-          ? 'DESCARTADA'
-          : 'DISPONIVEL';
-      }
-
-      await tx.placa.update({
-        where: { id },
-        data: dataToUpdate,
-      });
-
-      if (materiais) {
-        if (
-          ajustarEstoqueConsumido &&
-          placaAntiga.statusProducao === 'FINALIZADA'
-        ) {
-          // Calculate delta and adjust stock
-          const antigosMap = new Map();
-          placaAntiga.materiaisPlaca.forEach((m: any) =>
-            antigosMap.set(m.materiaPrimaId, m.quantidade),
-          );
-
-          for (const m of materiais) {
-            const antigoQty = antigosMap.get(m.materiaPrimaId) || 0;
-            const delta = m.quantidade - antigoQty;
-
-            if (delta > 0) {
-              const mp = await tx.materiaPrima.findUnique({
-                where: { id: m.materiaPrimaId },
-              });
-              if (!mp || mp.quantidade < delta) {
-                throw new BadRequestException(
-                  `Material insuficiente para o ajuste de estoque: ${mp?.item || m.materiaPrimaId}`,
-                );
-              }
-              await tx.materiaPrima.update({
-                where: { id: m.materiaPrimaId },
-                data: { quantidade: { decrement: delta } },
-              });
-            } else if (delta < 0) {
-              await tx.materiaPrima.update({
-                where: { id: m.materiaPrimaId },
-                data: { quantidade: { increment: Math.abs(delta) } },
-              });
-            }
-            antigosMap.delete(m.materiaPrimaId);
-          }
-
-          // Any remaining materials in antigosMap were removed, so we return them to stock
-          for (const [mpId, antigoQty] of antigosMap.entries()) {
-            await tx.materiaPrima.update({
-              where: { id: mpId },
-              data: { quantidade: { increment: antigoQty } },
-            });
-          }
-        }
-
-        // Delete existing materials and create new ones
-        await tx.materialPlaca.deleteMany({ where: { placaId: id } });
-        if (materiais.length > 0) {
-          await tx.materialPlaca.createMany({
-            data: materiais.map((m) => ({
-              placaId: id,
-              materiaPrimaId: m.materiaPrimaId,
-              quantidade: m.quantidade,
-            })),
-          });
-        }
-      }
-
-      return this.findOne(id, tx);
+    return this.prisma.placa.update({
+      where: { id },
+      data: dataToUpdate,
     });
   }
 
@@ -513,59 +540,16 @@ export class PlacasService {
     });
   }
 
-  async baixaProducao(id: number, dto: { quantidade: number }) {
-    const { quantidade } = dto;
-
-    return this.prisma.$transaction(async (tx) => {
-      const placa = await this.findOne(id, tx);
-
-      // Verificar se há material em estoque
-      for (const materiaisPlaca of placa.materiaisPlaca) {
-        const materiaPrima = await tx.materiaPrima.findUnique({
-          where: { id: materiaisPlaca.materiaPrimaId },
-        });
-
-        if (
-          !materiaPrima ||
-          materiaPrima.quantidade < materiaisPlaca.quantidade * quantidade
-        ) {
-          throw new BadRequestException(
-            `Material insuficiente em estoque: ${materiaisPlaca.materiaPrima.item}`,
-          );
-        }
-      }
-
-      // Debitar materiais do estoque
-      for (const materiaisPlaca of placa.materiaisPlaca) {
-        await tx.materiaPrima.update({
-          where: { id: materiaisPlaca.materiaPrimaId },
-          data: {
-            quantidade: {
-              decrement: materiaisPlaca.quantidade * quantidade,
-            },
-          },
-        });
-      }
-
-      // Atualizar status para finalizada
-      await tx.placa.update({
-        where: { id },
-        data: {
-          statusProducao: 'FINALIZADA',
-        },
-      });
-
-      return this.findOne(id, tx);
-    });
-  }
-
   // ===== APLICAR CORTE EM PLACA =====
 
   async aplicarCorte(placaId: number, dto: AplicarCorteDto) {
     return this.prisma.$transaction(async (tx) => {
       const placa = await tx.placa.findUnique({
         where: { id: placaId },
-        include: { placasDerivadas: { include: { formaCorte: true } } },
+        include: {
+          tipoPlaca: true,
+          placasDerivadas: { include: { formaCorte: true } },
+        },
       });
       if (!placa) throw new NotFoundException('Placa não encontrada');
 
@@ -582,11 +566,15 @@ export class PlacasService {
       );
       const bbox = GeometriaPlaca.calcularBoundingBox(pontos);
 
+      // Dimensões vêm do tipoPlaca
+      const placaLargura = Number(placa.tipoPlaca.largura);
+      const placaAltura = Number(placa.tipoPlaca.altura);
+
       if (
         bbox.x < 0 ||
         bbox.y < 0 ||
-        bbox.x + bbox.width > Number(placa.largura) ||
-        bbox.y + bbox.height > Number(placa.altura)
+        bbox.x + bbox.width > placaLargura ||
+        bbox.y + bbox.height > placaAltura
       ) {
         throw new BadRequestException(
           'O corte excede os limites físicos da placa.',
@@ -613,14 +601,15 @@ export class PlacasService {
         }
       }
 
+      // Gerar nome automático PXCY
+      const numFilhas = placa.placasDerivadas.length;
+      const nomePlacaFilha = `P${placa.id}C${numFilhas + 1}`;
+
       return tx.placa.create({
         data: {
-          nome: dto.nomePlacaFilha,
+          nome: nomePlacaFilha,
           descricao: `Gerada por corte "${corte.nome}" na placa ${placa.nome}`,
-          largura: bbox.width,
-          altura: bbox.height,
-          espessura: placa.espessura,
-          reforco: placa.reforco,
+          tipoPlacaId: placa.tipoPlacaId,
           derivadaDePlacaId: placa.id,
           formaCorteId: corte.id,
           corteOrigemX: dto.origemX,

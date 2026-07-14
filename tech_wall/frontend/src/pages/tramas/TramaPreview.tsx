@@ -70,7 +70,8 @@ const TramaPreview: React.FC<TramaPreviewProps> = ({ values }) => {
             textAnchor="end"
             alignmentBaseline="middle"
           >
-            {Number(h).toFixed(2)}cm
+            {`${Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 }).format(h)} `}
+            cm
           </text>,
         );
 
@@ -111,7 +112,8 @@ const TramaPreview: React.FC<TramaPreviewProps> = ({ values }) => {
             textAnchor="start"
             alignmentBaseline="middle"
           >
-            {Number(h).toFixed(2)}cm
+            {`${Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 }).format(h)} `}
+            cm
           </text>,
         );
 
@@ -134,7 +136,8 @@ const TramaPreview: React.FC<TramaPreviewProps> = ({ values }) => {
           textAnchor="middle"
           transform={`rotate(-90, 10, ${totalHeight / 2})`}
         >
-          {Number(totalHeight).toFixed(2)}cm
+          {`${Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 }).format(totalHeight)} `}
+          cm
         </text>,
       );
     } else {
@@ -149,7 +152,8 @@ const TramaPreview: React.FC<TramaPreviewProps> = ({ values }) => {
           textAnchor="middle"
           transform={`rotate(90, 90, ${totalHeight / 2})`}
         >
-          {Number(totalHeight).toFixed(2)}cm
+          {`${Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 }).format(totalHeight)} `}
+          cm
         </text>,
       );
     }
@@ -169,7 +173,9 @@ const TramaPreview: React.FC<TramaPreviewProps> = ({ values }) => {
         fill="#777"
         textAnchor="middle"
       >
-        Saliência: {Number(salienciaSize).toFixed(2)}cm
+        Saliência:{" "}
+        {`${Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 }).format(salienciaSize)} `}
+        cm
       </text>,
     );
 

@@ -7,7 +7,6 @@ DB_PASSWORD=$(cat /run/secrets/db-password)
 
 # Lê os segredos JWT dos arquivos de segredo
 export JWT_SECRET=$(cat /run/secrets/jwt-secret)
-export JWT_REFRESH_SECRET=$(cat /run/secrets/jwt-refresh-secret)
 
 # Exporta a DATABASE_URL completa, agora com a senha lida do segredo
 export DATABASE_URL="postgresql://tech_wall:${DB_PASSWORD}@db:5432/tech_wall?schema=public"

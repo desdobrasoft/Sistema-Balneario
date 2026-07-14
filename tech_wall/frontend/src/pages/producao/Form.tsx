@@ -20,6 +20,7 @@ import { StatusProducao, StatusProducaoLabels } from "types/enums";
 interface ProducaoFormValues {
   status: StatusProducao;
   notas: string;
+  dataAgendamento?: string;
 }
 
 interface ProducaoFormProps {
@@ -29,6 +30,7 @@ interface ProducaoFormProps {
     status?: StatusProducao;
     venda?: { id: number };
     vendaId?: number;
+    dataAgendamento?: string;
     ordensProducaoHistorico?: {
       statusAnterior?: StatusProducao;
       statusNovo?: StatusProducao;
@@ -45,11 +47,17 @@ interface ProducaoFormProps {
 const validationSchema = yup.object().shape({
   status: yup.string().required("Obrigatório"),
   notas: yup.string(),
+  dataAgendamento: yup.date().when("status", {
+    is: StatusProducao.AGENDADO,
+    then: (schema) => schema.required("Data de agendamento é obrigatória"),
+    otherwise: (schema) => schema.optional().nullable(),
+  }),
 });
 
 const initialValues: ProducaoFormValues = {
   status: StatusProducao.AGENDADO,
   notas: "",
+  dataAgendamento: "",
 };
 
 // ===============================
@@ -66,6 +74,9 @@ const ProducaoForm: React.FC<ProducaoFormProps> = ({
       return {
         status: item.status || StatusProducao.AGENDADO,
         notas: "",
+        dataAgendamento: item.dataAgendamento 
+          ? new Date(item.dataAgendamento).toISOString().split("T")[0]
+          : "",
       };
     }
     return initialValues;
@@ -111,6 +122,29 @@ const ProducaoForm: React.FC<ProducaoFormProps> = ({
                 ))}
             </TextField>
           </Grid>
+
+          {formik.values.status === StatusProducao.AGENDADO && (
+            <Grid size={12}>
+              <TextField
+                fullWidth
+                type="date"
+                name="dataAgendamento"
+                label="Data de Agendamento"
+                size="small"
+                value={formik.values.dataAgendamento}
+                onChange={formik.handleChange}
+                slotProps={{ inputLabel: { shrink: true } }}
+                error={
+                  formik.touched.dataAgendamento &&
+                  Boolean(formik.errors.dataAgendamento)
+                }
+                helperText={
+                  formik.touched.dataAgendamento &&
+                  (formik.errors.dataAgendamento as string)
+                }
+              />
+            </Grid>
+          )}
 
           <Grid size={12}>
             <TextField

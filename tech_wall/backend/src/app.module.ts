@@ -18,14 +18,17 @@ import { PedidosCompraModule } from './pedidos-compra/pedidos-compra.module';
 import { PlacasModule } from './placas/placas.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProducaoModule } from './producao/producao.module';
+import { ScheduleModule } from '@nestjs/schedule';
 import { RolesModule } from './roles/roles.module';
 import { TramasModule } from './tramas/tramas.module';
+import { TiposPlacaModule } from './tipos-placa/tipos-placa.module';
 import { UsersModule } from './users/users.module';
 import { VendasModule } from './vendas/vendas.module';
 import { CortesModule } from './cortes/cortes.module';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     AuthModule,
     UsersModule,
     RolesModule,
@@ -45,6 +48,7 @@ import { CortesModule } from './cortes/cortes.module';
     DashboardModule,
     PlacasModule,
     TramasModule,
+    TiposPlacaModule,
     CortesModule,
   ],
   controllers: [AppController],

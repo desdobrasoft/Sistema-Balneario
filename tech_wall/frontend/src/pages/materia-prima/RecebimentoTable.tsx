@@ -6,12 +6,13 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 // material-ui
 import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 
 // project imports
-import DataTable from "components/datatable/DataTable";
+import DataTable, { type CustomConfigColumns } from "components/datatable/DataTable";
 import { ENDPOINTS } from "config/endpoints";
 import { useSnackbar } from "hooks/useSnackbar";
 import api from "services/api";
@@ -35,15 +36,16 @@ const RecebimentoTable: React.FC = () => {
   const { showSnackbar } = useSnackbar();
 
   const [receberOpen, setReceberOpen] = useState(false);
-  const [selectedPedido, setSelectedPedido] = useState<RecebimentoRow | null>(null);
+  const [selectedPedido, setSelectedPedido] = useState<RecebimentoRow | null>(
+    null,
+  );
 
-  const columns = useMemo(
+  const columns = useMemo<CustomConfigColumns<RecebimentoRow>[]>(
     () => [
-      { title: "ID Pedido", data: "id" },
       {
         title: "Material",
-        data: "materiaPrima",
-        render: (data: { item?: string } | null) => data?.item || "N/A",
+        data: "materiaPrima.item",
+        defaultContent: "–––",
       },
       { title: "Fornecedor", data: "fornecedor" },
       {
@@ -61,32 +63,46 @@ const RecebimentoTable: React.FC = () => {
       {
         title: "Status",
         data: "status",
-        render: (data: string) => {
-          let bg = "#e0e0e0",
-            text = "#000",
-            border = "#bdbdbd";
-          if (data === "SOLICITADO") {
-            bg = "#fff3e0";
-            text = "#e65100";
-            border = "#ffb74d";
-          } else if (data === "COMPRADO") {
-            bg = "#e3f2fd";
-            text = "#1565c0";
-            border = "#64b5f6";
-          } else if (data === "ENTREGUE") {
-            bg = "#e8f5e9";
-            text = "#2e7d32";
-            border = "#81c784";
-          } else if (data === "ENTREGUE_COM_ALTERACAO") {
-            bg = "#e3f2fd";
-            text = "#1565c0";
-            border = "#64b5f6";
-          } else if (data === "RESOLVIDO") {
-            bg = "#f3e5f5";
-            text = "#7b1fa2";
-            border = "#ce93d8";
+        reactRender: (data: unknown) => {
+          const status = data as string;
+          let label = status;
+          let color = "#757575"; // default grey
+
+          switch (status) {
+            case "SOLICITADO":
+              label = "Solicitado";
+              color = "#ed6c02"; // warning
+              break;
+            case "COMPRADO":
+              label = "Comprado";
+              color = "#0288d1"; // info
+              break;
+            case "ENTREGUE":
+              label = "Entregue";
+              color = "#2e7d32"; // success
+              break;
+            case "ENTREGUE_COM_ALTERACAO":
+              label = "Entregue c/ Alteração";
+              color = "#1976d2"; // primary
+              break;
+            case "RESOLVIDO":
+              label = "Resolvido";
+              color = "#9c27b0"; // secondary
+              break;
           }
-          return `<span style="display:inline-block;padding:2px 10px;border-radius:16px;font-size:0.75rem;font-weight:500;background:${bg};color:${text};border:1px solid ${border};text-transform:uppercase;">${data}</span>`;
+
+          return (
+            <Chip
+              label={label}
+              size="small"
+              sx={{
+                bgcolor: `${color}20`,
+                color: color,
+                border: `1px solid ${color}`,
+                fontWeight: "bold",
+              }}
+            />
+          );
         },
       },
       {
@@ -117,8 +133,6 @@ const RecebimentoTable: React.FC = () => {
     setSelectedPedido(pedido);
     setReceberOpen(true);
   }, []);
-
-
 
   return (
     <Box>
@@ -154,9 +168,7 @@ const RecebimentoTable: React.FC = () => {
 
             if (actions.length === 0) return null;
 
-            return (
-              <Box sx={{ display: "flex", gap: 1 }}>{actions}</Box>
-            );
+            return <Box sx={{ display: "flex", gap: 1 }}>{actions}</Box>;
           },
           [handleReceber],
         )}

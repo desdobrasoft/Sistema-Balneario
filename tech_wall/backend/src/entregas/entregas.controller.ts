@@ -14,7 +14,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { DataTableParamsDto } from '../common/dto/data-table.dto';
-import { UpdateEntregaDto } from './dto/update-entrega.dto';
+import { ActionEntregaDto, AgendarColetaDto } from './dto/entrega-actions.dto';
 import { EntregasService } from './entregas.service';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -40,11 +40,53 @@ export class EntregasController {
     return this.entregasService.findOne(id);
   }
 
-  @Patch(':id')
-  update(
+  @Post(':id/agendar-coleta')
+  agendarColeta(
     @Param('id', ParseIntPipe) id: number,
-    @Body(ValidationPipe) dto: UpdateEntregaDto,
+    @Body(ValidationPipe) dto: AgendarColetaDto,
   ) {
-    return this.entregasService.update(id, dto);
+    return this.entregasService.agendarColeta(
+      id,
+      dto.transportadora,
+      dto.previsaoEntrega,
+      dto.notas,
+    );
+  }
+
+  @Patch(':id/editar-agendamento')
+  editarAgendamento(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(ValidationPipe) dto: AgendarColetaDto,
+  ) {
+    return this.entregasService.editarAgendamento(
+      id,
+      dto.transportadora,
+      dto.previsaoEntrega,
+      dto.notas,
+    );
+  }
+
+  @Post(':id/iniciar')
+  iniciarEntrega(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(ValidationPipe) dto: ActionEntregaDto,
+  ) {
+    return this.entregasService.iniciarEntrega(id, dto.notas);
+  }
+
+  @Post(':id/finalizar')
+  finalizarEntrega(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(ValidationPipe) dto: ActionEntregaDto,
+  ) {
+    return this.entregasService.finalizarEntrega(id, dto.notas);
+  }
+
+  @Post(':id/cancelar')
+  cancelarEntrega(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(ValidationPipe) dto: ActionEntregaDto,
+  ) {
+    return this.entregasService.cancelarEntrega(id, dto.notas);
   }
 }

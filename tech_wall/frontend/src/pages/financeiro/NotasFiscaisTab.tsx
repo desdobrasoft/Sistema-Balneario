@@ -50,7 +50,8 @@ const NotasFiscaisTab: React.FC = () => {
       {
         title: "Lançamentos Vinculados",
         data: "_count",
-        render: (data: { lancamentos?: number } | null) => data?.lancamentos ?? 0,
+        render: (data: { lancamentos?: number } | null) =>
+          data?.lancamentos ?? 0,
       },
       {
         title: "Data Upload",
@@ -82,61 +83,67 @@ const NotasFiscaisTab: React.FC = () => {
   // ===============================
   // HANDLERS
   // ===============================
-  const handleDownload = useCallback(async (id: number) => {
-    try {
-      const res = await api.get(`${ENDPOINTS.NOTAS_FISCAIS}/${id}/download`);
-      const { nomeArquivo, tipoArquivo, arquivoBase64 } = res.data;
+  const handleDownload = useCallback(
+    async (id: number) => {
+      try {
+        const res = await api.get(`${ENDPOINTS.NOTAS_FISCAIS}/${id}/download`);
+        const { nomeArquivo, tipoArquivo, arquivoBase64 } = res.data;
 
-      // Decode base64 and trigger download
-      const byteCharacters = atob(arquivoBase64);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
+        // Decode base64 and trigger download
+        const byteCharacters = atob(arquivoBase64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: tipoArquivo });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = nomeArquivo;
+        link.click();
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        handleError(error);
       }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: tipoArquivo });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = nomeArquivo;
-      link.click();
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      handleError(error);
-    }
-  }, [handleError]);
+    },
+    [handleError],
+  );
 
-  const handleDelete = useCallback((id: number) => {
-    showDialog({
-      title: "Excluir Nota Fiscal",
-      body: "Tem certeza de que deseja excluir esta nota fiscal? Os vínculos com lançamentos serão removidos.",
-      actions: [
-        <Button key="cancel" onClick={closeDialog}>
-          Cancelar
-        </Button>,
-        <Button
-          key="confirm"
-          color="error"
-          variant="contained"
-          onClick={async () => {
-            closeDialog();
-            try {
-              await api.delete(`${ENDPOINTS.NOTAS_FISCAIS}/${id}`);
-              showSnackbar({
-                message: "Nota fiscal excluída com sucesso!",
-                severity: "success",
-              });
-              tableRef.current?.reload();
-            } catch (error) {
-              handleError(error);
-            }
-          }}
-        >
-          Excluir
-        </Button>,
-      ],
-    });
-  }, [showDialog, closeDialog, handleError, showSnackbar]);
+  const handleDelete = useCallback(
+    (id: number) => {
+      showDialog({
+        title: "Excluir Nota Fiscal",
+        body: "Tem certeza de que deseja excluir esta nota fiscal? Os vínculos com lançamentos serão removidos.",
+        actions: [
+          <Button key="cancel" onClick={closeDialog}>
+            Cancelar
+          </Button>,
+          <Button
+            key="confirm"
+            color="error"
+            variant="contained"
+            onClick={async () => {
+              closeDialog();
+              try {
+                await api.delete(`${ENDPOINTS.NOTAS_FISCAIS}/${id}`);
+                showSnackbar({
+                  message: "Nota fiscal excluída com sucesso!",
+                  severity: "success",
+                });
+                tableRef.current?.reload();
+              } catch (error) {
+                handleError(error);
+              }
+            }}
+          >
+            Excluir
+          </Button>,
+        ],
+      });
+    },
+    [showDialog, closeDialog, handleError, showSnackbar],
+  );
 
   // ===============================
   // ROW ACTIONS

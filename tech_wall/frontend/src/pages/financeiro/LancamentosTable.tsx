@@ -3,14 +3,16 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 
 // icons
 import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
+import BlockIcon from "@mui/icons-material/Block";
 import EditIcon from "@mui/icons-material/Edit";
 import PaymentsIcon from "@mui/icons-material/Payments";
 
 // material-ui
 import PrintIcon from "@mui/icons-material/Print";
+import { useTheme } from "@mui/material";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 
@@ -30,6 +32,8 @@ import LancamentoDialog, { type LancamentoModel } from "./LancamentoDialog";
 // COMPONENT
 // ===============================
 const LancamentosTable: React.FC = () => {
+  const theme = useTheme();
+
   const [selectedLancamento, setSelectedLancamento] =
     useState<LancamentoModel | null>(null);
   const [dialogMode, setDialogMode] = useState<"create" | "edit" | "pay">(
@@ -43,18 +47,6 @@ const LancamentosTable: React.FC = () => {
   const handleError = useErrorHandler();
 
   // ===============================
-  // CHIP HELPER
-  // ===============================
-  const chipHtml = (label: string, type: "success" | "error" | "warning") => {
-    const colors = {
-      success: { bg: "#E8F5E9", text: "#1B5E20", border: "#A5D6A7" },
-      error: { bg: "#FFEBEE", text: "#B71C1C", border: "#EF9A9A" },
-      warning: { bg: "#FFF3E0", text: "#E65100", border: "#FFCC80" },
-    }[type];
-    return `<span style="display:inline-block;padding:2px 8px;border-radius:16px;font-size:0.75rem;font-weight:500;background:${colors.bg};color:${colors.text};border:1px solid ${colors.border};">${label}</span>`;
-  };
-
-  // ===============================
   // COLUMNS
   // ===============================
   const columns = useMemo(
@@ -63,11 +55,27 @@ const LancamentosTable: React.FC = () => {
       {
         title: "Tipo",
         data: "tipo",
-        render: (data: TipoLancamento) =>
-          chipHtml(
-            data === TipoLancamento.R ? "Receita" : "Despesa",
-            data === TipoLancamento.R ? "success" : "error",
-          ),
+        reactRender: (data: unknown) => {
+          const type = data as TipoLancamento;
+          const label = type === TipoLancamento.R ? "Receita" : "Despesa";
+          const color =
+            type === TipoLancamento.R
+              ? theme.palette.success.main
+              : theme.palette.error.main;
+
+          return (
+            <Chip
+              label={label}
+              size="small"
+              sx={{
+                bgcolor: `${color}20`,
+                color: color,
+                border: `1px solid ${color}`,
+                fontWeight: "bold",
+              }}
+            />
+          );
+        },
       },
       {
         title: "Vlr Total",
@@ -96,11 +104,51 @@ const LancamentosTable: React.FC = () => {
       {
         title: "Status",
         data: "statusPagamento",
-        render: (data: StatusPagamentoVenda) =>
-          chipHtml(
-            data,
-            data === StatusPagamentoVenda.PAGO ? "success" : "warning",
-          ),
+        reactRender: (data: unknown) => {
+          const status = data as StatusPagamentoVenda;
+          let label = "Desconhecido";
+          let color = "#757575"; // default
+
+          switch (status) {
+            case StatusPagamentoVenda.PAGO:
+              label = "Pago";
+              color = theme.palette.success.main;
+              break;
+            case StatusPagamentoVenda.PENDENTE:
+              label = "Pendente";
+              color = theme.palette.warning.main;
+              break;
+            case StatusPagamentoVenda.PAGO_PARCIALMENTE:
+              label = "Pago Parcialmente";
+              color = theme.palette.info.main;
+              break;
+            case StatusPagamentoVenda.CANCELADO:
+              label = "Cancelado";
+              color = "#9c27b0"; // purple
+              break;
+            case StatusPagamentoVenda.ESTORNO_PENDENTE:
+              label = "Estorno Pendente";
+              color = "#e65100"; // deep orange
+              break;
+            case StatusPagamentoVenda.VENCIDO:
+              label = "Vencido";
+              color = theme.palette.error.main;
+              break;
+          }
+
+          return (
+            <Chip
+              label={label}
+              size="small"
+              sx={{
+                bgcolor: `${color}20`,
+                color: color,
+                border: `1px solid ${color}`,
+                fontWeight: "bold",
+              }}
+            />
+          );
+        },
       },
     ],
     [],
@@ -150,14 +198,14 @@ const LancamentosTable: React.FC = () => {
     [handleError],
   );
 
-  const handleDelete = useCallback(
+  const handleCancel = useCallback(
     (id: number) => {
       showDialog({
-        title: "Excluir Lançamento",
-        body: "Tem certeza de que deseja excluir este lançamento? Esta ação não pode ser desfeita.",
+        title: "Cancelar Lançamento",
+        body: "Tem certeza de que deseja cancelar este lançamento? Esta ação não pode ser desfeita.",
         actions: [
           <Button key="cancel" onClick={closeDialog}>
-            Cancelar
+            Voltar
           </Button>,
           <Button
             key="confirm"
@@ -166,9 +214,11 @@ const LancamentosTable: React.FC = () => {
             onClick={async () => {
               closeDialog();
               try {
-                await api.delete(`${ENDPOINTS.LANCAMENTOS}/${id}`);
+                await api.patch(`${ENDPOINTS.LANCAMENTOS}/${id}`, {
+                  statusPagamento: StatusPagamentoVenda.CANCELADO,
+                });
                 showSnackbar({
-                  message: "Lançamento excluído com sucesso!",
+                  message: "Lançamento cancelado com sucesso!",
                   severity: "success",
                 });
                 tableRef.current?.reload();
@@ -177,7 +227,7 @@ const LancamentosTable: React.FC = () => {
               }
             }}
           >
-            Excluir
+            Cancelar Lançamento
           </Button>,
         ],
       });
@@ -189,32 +239,37 @@ const LancamentosTable: React.FC = () => {
   // ROW ACTIONS
   // ===============================
   const renderRowActions = useCallback(
-    (row: LancamentoModel) => (
-      <Box sx={{ display: "flex", gap: 0.5 }}>
-        <Tooltip title="Registrar Pagamento / Estorno">
-          <IconButton
-            color="success"
-            onClick={() => handleOpenDialog(row, "pay")}
-          >
-            <PaymentsIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Editar">
-          <IconButton
-            color="primary"
-            onClick={() => handleOpenDialog(row, "edit")}
-          >
-            <EditIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Excluir">
-          <IconButton color="error" onClick={() => handleDelete(row.id)}>
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </Box>
-    ),
-    [handleDelete, handleOpenDialog],
+    (row: LancamentoModel) => {
+      if (row.statusPagamento === StatusPagamentoVenda.CANCELADO) {
+        return <Box sx={{ display: "flex", gap: 0.5 }} />;
+      }
+      return (
+        <Box sx={{ display: "flex", gap: 0.5 }}>
+          <Tooltip title="Registrar Pagamento / Estorno">
+            <IconButton
+              color="success"
+              onClick={() => handleOpenDialog(row, "pay")}
+            >
+              <PaymentsIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Editar">
+            <IconButton
+              color="primary"
+              onClick={() => handleOpenDialog(row, "edit")}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Cancelar">
+            <IconButton color="error" onClick={() => handleCancel(row.id)}>
+              <BlockIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      );
+    },
+    [handleCancel, handleOpenDialog],
   );
 
   const handleExport = async (

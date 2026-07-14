@@ -24,6 +24,7 @@ export const ENDPOINTS = {
   PLACAS: "/placas",
   CORTES: "/cortes",
   TRAMAS: "/tramas",
+  TIPOS_PLACA: "/tipos-placa",
   TIPOS_MATERIAIS: "/tipos-materiais",
   DASHBOARD: {
     MAIN: "/dashboard",

@@ -3,10 +3,7 @@ import {
   DataTableParamsDto,
   DataTableResult,
 } from '../common/dto/data-table.dto';
-import {
-  buildSearchFilter,
-  getIdsByNumericPartialMatch,
-} from '../common/utils/prisma-search.utils';
+import { PrismaDatatableHelper } from '../common/utils/datatable.helper';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateNotaFiscalDto } from './dto/create-nota-fiscal.dto';
 
@@ -37,66 +34,23 @@ export class NotasFiscaisService {
   async findDatatable(
     query: DataTableParamsDto,
   ): Promise<DataTableResult<any>> {
-    const { start = 0, length = 10, search, draw = 1 } = query;
-    const skip = start;
-    const limit = length;
-    const searchValue = search?.value || '';
-
-    const baseWhere: any = {};
-    let where = { ...baseWhere };
-
-    if (searchValue) {
-      const idsByValues = await getIdsByNumericPartialMatch(
-        this.prisma,
-        'notas_fiscais',
-        ['id'],
-        searchValue,
-      );
-
-      const searchFilter = buildSearchFilter(searchValue, [
-        'nomeArquivo',
-        'tipoArquivo',
-      ]);
-
-      if (idsByValues.length > 0) {
-        if (searchFilter.OR) {
-          searchFilter.OR.push({
-            id: { in: idsByValues.map((id) => Number(id)) },
-          });
-        } else {
-          searchFilter.OR = [
-            { id: { in: idsByValues.map((id) => Number(id)) } },
-          ];
-        }
-      }
-
-      where = { ...baseWhere, ...searchFilter };
-    }
-
-    const [data, total, filtered] = await Promise.all([
-      this.prisma.notaFiscal.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          nomeArquivo: true,
-          tipoArquivo: true,
-          createdAt: true,
-          _count: { select: { lancamentos: true } },
-        },
-      }),
-      this.prisma.notaFiscal.count({ where: baseWhere }),
-      this.prisma.notaFiscal.count({ where }),
-    ]);
-
-    return {
-      draw,
-      data,
-      recordsTotal: total,
-      recordsFiltered: filtered,
-    };
+    return PrismaDatatableHelper.execute({
+      prismaModel: this.prisma.notaFiscal,
+      prismaClient: this.prisma,
+      query,
+      searchableFields: ['nomeArquivo', 'tipoArquivo'],
+      numericSearchFields: ['id'],
+      tableName: 'notas_fiscais',
+      defaultOrderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        nomeArquivo: true,
+        tipoArquivo: true,
+        createdAt: true,
+        _count: { select: { lancamentos: true } },
+      },
+      filterRequestedFields: false,
+    });
   }
 
   async findOne(id: number) {

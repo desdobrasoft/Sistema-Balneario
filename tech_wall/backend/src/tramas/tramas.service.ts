@@ -9,7 +9,7 @@ import {
   DataTableResult,
 } from '../common/dto/data-table.dto';
 import { PrismaDatatableHelper } from '../common/utils/datatable.helper';
-import { getIdsByNumericPartialMatch } from '../common/utils/prisma-search.utils';
+import { formatDecimal } from '../common/utils/format.utils';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTramaDto } from './dto/create-trama.dto';
 import { UpdateTramaDto } from './dto/update-trama.dto';
@@ -53,82 +53,29 @@ export class TramasService {
   async findDatatable(
     query: DataTableParamsDto,
   ): Promise<DataTableResult<any>> {
-    const {
-      skip,
-      take,
-      where: generatedWhere,
-      orderBy,
-    } = PrismaDatatableHelper.buildPrismaQuery(query, [
-      'nome',
-      'direcionamento',
-    ]);
-
-    const finalWhere = { ...generatedWhere };
-
-    if (query.search?.value) {
-      const searchVal = query.search.value;
-      const idsByValues = await getIdsByNumericPartialMatch(
-        this.prisma,
-        'tramas',
-        ['id', 'altura_base', 'profundidade_saliencia', 'cortes'],
-        searchVal,
-      );
-
-      if (idsByValues.length > 0) {
-        if (finalWhere.OR) {
-          finalWhere.OR.push({ id: { in: idsByValues } });
-        } else {
-          finalWhere.OR = [{ id: { in: idsByValues } }];
-        }
-      }
-    }
-
-    const [rawData, total, filtered] = await Promise.all([
-      this.prisma.trama.findMany({
-        where: finalWhere,
-        skip,
-        take,
-        orderBy: Object.keys(orderBy as Record<string, unknown>).length
-          ? orderBy
-          : { id: 'desc' },
-      }),
-      this.prisma.trama.count(),
-      this.prisma.trama.count({ where: finalWhere }),
-    ]);
-
-    const requestedFields = (query.columns
-      ?.map((c) => c.data)
-      .filter((d) => d && d !== 'null') || []) as string[];
-
-    const data = rawData.map((trama) => {
-      const flatObj: any = {
+    return PrismaDatatableHelper.execute({
+      prismaModel: this.prisma.trama,
+      prismaClient: this.prisma,
+      query,
+      searchableFields: ['nome', 'direcionamento'],
+      numericSearchFields: [
+        'id',
+        'altura_base',
+        'profundidade_saliencia',
+        'cortes',
+      ],
+      tableName: 'tramas',
+      mapRow: (trama) => ({
         id: trama.id,
         nome: trama.nome,
-        alturaBase: Number(trama.alturaBase).toFixed(2),
-        profundidadeSaliencia: Number(trama.profundidadeSaliencia).toFixed(2),
+        alturaBase: formatDecimal(trama.alturaBase),
+        profundidadeSaliencia: formatDecimal(trama.profundidadeSaliencia),
         direcionamento: trama.direcionamento,
         cortes: trama.cortes,
         createdAt: trama.createdAt,
         updatedAt: trama.updatedAt,
-      };
-
-      if (requestedFields.length === 0) return flatObj;
-
-      const result: any = {};
-      requestedFields.forEach((field) => {
-        if (flatObj[field] !== undefined) {
-          result[field] = flatObj[field];
-        }
-      });
-      return result;
+      }),
     });
-
-    return {
-      draw: query.draw || 1,
-      data,
-      recordsTotal: total,
-      recordsFiltered: filtered,
-    };
   }
 
   async findOne(id: number) {

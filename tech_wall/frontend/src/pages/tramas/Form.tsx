@@ -1,7 +1,7 @@
 // packages
+import type { FormikProps } from "formik";
 import React, { useEffect } from "react";
 import * as yup from "yup";
-import type { FormikProps } from "formik";
 
 // icons
 import AddIcon from "@mui/icons-material/Add";
@@ -88,7 +88,11 @@ const initialValues = {
 
 type TramaFormValues = typeof initialValues;
 
-const TramaFormContent = ({ formik }: { formik: FormikProps<TramaFormValues> }) => {
+const TramaFormContent = ({
+  formik,
+}: {
+  formik: FormikProps<TramaFormValues>;
+}) => {
   const { values, setFieldValue, handleChange, touched, errors } = formik;
 
   const currentSum: number = values.cortes.reduce(
@@ -286,7 +290,8 @@ const TramaFormContent = ({ formik }: { formik: FormikProps<TramaFormValues> }) 
                         value={corte || ""}
                         error={remainingHeight < 0}
                         onChange={(e) => {
-                          const val = e.target.value === "" ? 0 : Number(e.target.value);
+                          const val =
+                            e.target.value === "" ? 0 : Number(e.target.value);
                           const novosCortes = [...values.cortes];
                           novosCortes[index] = val;
                           setFieldValue("cortes", novosCortes);
@@ -420,7 +425,8 @@ const TramasForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
                 ? item.cortes.map(Number)
                 : [];
               const padronizada =
-                cortes.length > 0 && cortes.every((c: number) => c === cortes[0]);
+                cortes.length > 0 &&
+                cortes.every((c: number) => c === cortes[0]);
               return {
                 ...item,
                 alturaBase: Number(item.alturaBase),

@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { DataTableParamsDto } from '../common/dto/data-table.dto';
 import { CreateMateriaPrimaDto } from './dto/create-materia-prima.dto';
@@ -46,20 +47,20 @@ export class MateriaPrimaController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.materiaPrimaService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.materiaPrimaService.findOne(id);
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateMateriaPrimaDto: UpdateMateriaPrimaDto,
   ) {
-    return this.materiaPrimaService.update(+id, updateMateriaPrimaDto);
+    return this.materiaPrimaService.update(id, updateMateriaPrimaDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.materiaPrimaService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.materiaPrimaService.remove(id);
   }
 }

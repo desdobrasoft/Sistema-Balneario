@@ -20,6 +20,7 @@ import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import MenuIcon from "@mui/icons-material/Menu";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import PeopleIcon from "@mui/icons-material/People";
+import CategoryIcon from "@mui/icons-material/Category";
 import PersonIcon from "@mui/icons-material/Person";
 
 // material-ui components
@@ -93,6 +94,12 @@ const menuItems: NavItem[] = [
     icon: <LineWeightIcon />,
     path: "/tramas",
     permission: "tramas",
+  },
+  {
+    text: "Tipos de Placa",
+    icon: <CategoryIcon />,
+    path: "/tipos-placa",
+    permission: "placas",
   },
   {
     text: "Placas",
@@ -189,6 +196,8 @@ const Drawer = styled(MuiDrawer, {
     ...openedMixin(theme),
     "& .MuiDrawer-paper": {
       ...openedMixin(theme),
+      bgcolor: theme.palette.background.paper,
+      borderTopRightRadius: 0,
       borderTopLeftRadius: 0,
       borderBottomLeftRadius: 0,
     },
@@ -197,20 +206,13 @@ const Drawer = styled(MuiDrawer, {
     ...closedMixin(theme),
     "& .MuiDrawer-paper": {
       ...closedMixin(theme),
+      bgcolor: theme.palette.background.paper,
+      borderTopRightRadius: 0,
       borderTopLeftRadius: 0,
       borderBottomLeftRadius: 0,
     },
   }),
 }));
-
-// ===============================
-// SIDEBAR COLORS (independent of theme mode for a consistently dark sidebar)
-// ===============================
-const sidebarBg = "#16213e";
-const sidebarBgSelected = "rgba(179, 157, 219, 0.12)";
-const sidebarTextColor = "#c0c0d0";
-const sidebarTextActive = "#D1C4E9";
-const sidebarAccent = "#B39DDB";
 
 // ===============================
 // LAYOUT COMPONENT
@@ -228,6 +230,21 @@ const DashboardLayout = () => {
   const { mode, toggleMode } = useThemeStore();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const sidebarAccent =
+    theme.palette.mode === "dark"
+      ? theme.palette.primary.light
+      : theme.palette.primary.dark;
+  const sidebarBgSelected = theme.alpha(sidebarAccent, 0.08);
+  const sidebarTextColor = theme.palette.text.primary;
+  const sidebarTextActive =
+    theme.palette.mode === "dark"
+      ? theme.palette.primary.light
+      : theme.palette.primary.dark;
+  const errorColor =
+    theme.palette.mode === "dark"
+      ? theme.palette.error.light
+      : theme.palette.error.dark;
 
   const pageTitle = useMemo(
     () => getPageTitle(location.pathname),
@@ -360,48 +377,14 @@ const DashboardLayout = () => {
       ? DRAWER_WIDTH
       : DRAWER_WIDTH_COLLAPSED;
 
-  // ===============================
-  // DRAWER CONTENT
-  // ===============================
-  const drawerContent = (
-    <Stack
-      sx={{
-        minHeight: "100%",
-        bgcolor: sidebarBg,
-        color: sidebarTextColor,
-      }}
-    >
-      {/* Logo header */}
-      <Toolbar
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: drawerOpen || isMobile ? "space-between" : "center",
-          px: drawerOpen || isMobile ? 2 : 1,
-          minHeight: "64px !important",
-        }}
-      >
-        {(drawerOpen || isMobile) && (
-          <Typography
-            variant="h6"
-            noWrap
-            sx={{ color: "#fff", fontWeight: "bold", letterSpacing: 0.5 }}
-          >
-            TechWall
-          </Typography>
-        )}
-        {!isMobile && (
-          <IconButton
-            onClick={handleToggleDrawer}
-            sx={{ color: sidebarTextColor }}
-          >
-            {drawerOpen ? <ChevronLeftIcon /> : <MenuIcon />}
-          </IconButton>
-        )}
-      </Toolbar>
+  const appBarTextColor =
+    mode === "dark" ? "secondary.contrastText" : "primary.contrastText";
 
-      <Divider sx={{ borderColor: "rgba(255,255,255,0.06)" }} />
-
+  // ===============================
+  // NAV ITEMS (shared between mobile and desktop drawers)
+  // ===============================
+  const navItems = (
+    <>
       {/* Navigation items */}
       <List sx={{ flex: 1, pt: 1 }}>
         {filteredMenuItems.map((item) => {
@@ -435,7 +418,7 @@ const DashboardLayout = () => {
                       },
                     },
                     "&:hover": {
-                      bgcolor: "rgba(255,255,255,0.04)",
+                      bgcolor: theme.alpha(theme.palette.text.primary, 0.12),
                     },
                   }}
                 >
@@ -463,7 +446,7 @@ const DashboardLayout = () => {
         })}
       </List>
 
-      <Divider sx={{ borderColor: "rgba(255,255,255,0.06)" }} />
+      <Divider />
 
       {/* Footer actions */}
       <List
@@ -472,7 +455,7 @@ const DashboardLayout = () => {
             <ListSubheader
               sx={{
                 bgcolor: "transparent",
-                color: "rgba(255,255,255,0.3)",
+                color: theme.alpha(theme.palette.text.primary, 0.24),
                 lineHeight: "32px",
                 fontSize: "0.7rem",
                 textTransform: "uppercase",
@@ -499,8 +482,8 @@ const DashboardLayout = () => {
                 mx: 1,
                 borderRadius: 2,
                 mb: 1,
-                color: "#ef5350",
-                "&:hover": { bgcolor: "rgba(239,83,80,0.08)" },
+                color: errorColor,
+                "&:hover": { bgcolor: theme.alpha(errorColor, 0.04) },
               }}
             >
               <ListItemIcon
@@ -508,7 +491,7 @@ const DashboardLayout = () => {
                   minWidth: 0,
                   mr: drawerOpen || isMobile ? 2 : "auto",
                   justifyContent: "center",
-                  color: "#ef5350",
+                  color: errorColor,
                 }}
               >
                 <ExitToAppIcon />
@@ -524,7 +507,7 @@ const DashboardLayout = () => {
           </Tooltip>
         </ListItem>
       </List>
-    </Stack>
+    </>
   );
 
   // ===============================
@@ -537,45 +520,86 @@ const DashboardLayout = () => {
         position="fixed"
         elevation={0}
         sx={{
-          zIndex: (t) => t.zIndex.drawer - 1,
-          pl: { md: `${currentDrawerWidth}px` },
-          transition: theme.transitions.create("padding-left", {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
-          bgcolor: mode === "dark" ? "#0f3460" : "primary.main",
+          zIndex: (t) => (isMobile ? t.zIndex.drawer - 1 : t.zIndex.drawer + 1),
+          bgcolor: mode === "dark" ? "secondary.main" : "primary.main",
           borderBottom: `1px solid ${theme.palette.divider}`,
           borderRadius: 0,
         }}
       >
         <Toolbar>
-          {/* Mobile menu button */}
-          {isMobile && (
-            <IconButton
-              color="inherit"
-              edge="start"
-              onClick={handleToggleDrawer}
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
-          )}
+          {/* Left side: App title (desktop) + toggle button */}
+          <Stack
+            direction="row"
+            spacing={0.5}
+            sx={{ alignItems: "center", flexShrink: 0 }}
+          >
+            {/* Mobile: only toggle button */}
+            {isMobile && (
+              <IconButton
+                color="inherit"
+                edge="start"
+                onClick={handleToggleDrawer}
+              >
+                <MenuIcon />
+              </IconButton>
+            )}
 
-          {/* Page title */}
+            {/* Desktop: app title + toggle button */}
+            {!isMobile && (
+              <>
+                <Typography
+                  variant="h6"
+                  noWrap
+                  sx={{
+                    fontWeight: "bold",
+                    letterSpacing: 0.5,
+                    color: appBarTextColor,
+                  }}
+                >
+                  TechWall
+                </Typography>
+                <IconButton
+                  onClick={handleToggleDrawer}
+                  sx={{ color: appBarTextColor }}
+                >
+                  {drawerOpen ? <ChevronLeftIcon /> : <MenuIcon />}
+                </IconButton>
+              </>
+            )}
+          </Stack>
+
+          {/* Center: page title (absolutely centered) */}
           <Typography
             variant="h6"
             noWrap
-            sx={{ flexGrow: 1, fontWeight: 600, color: "#fff" }}
+            sx={{
+              position: "absolute",
+              left: "50%",
+              transform: "translateX(-50%)",
+              fontWeight: 600,
+              color: appBarTextColor,
+              pointerEvents: "none",
+            }}
           >
             {pageTitle}
           </Typography>
 
+          {/* Spacer to push right side to the end */}
+          <Box sx={{ flexGrow: 1 }} />
+
           {/* Right side: user menu */}
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ alignItems: "center", flexShrink: 0 }}
+          >
             <Typography
               variant="body2"
               noWrap
-              sx={{ display: { xs: "none", sm: "block" }, color: "#fff" }}
+              sx={{
+                display: { xs: "none", sm: "block" },
+                color: appBarTextColor,
+              }}
             >
               {user?.fullName || "Usuário"}
             </Typography>
@@ -648,23 +672,31 @@ const DashboardLayout = () => {
         </Toolbar>
       </AppBar>
 
-      {/* Sidebar — Desktop (persistent mini variant) */}
+      {/* Sidebar — Desktop (persistent mini variant, below AppBar) */}
       {!isMobile && (
         <Drawer
           variant="permanent"
           open={drawerOpen}
           sx={{
             "& .MuiDrawer-paper": {
-              bgcolor: sidebarBg,
               borderRight: "none",
+              top: "64px",
+              height: "calc(100% - 64px)",
             },
           }}
         >
-          {drawerContent}
+          <Stack
+            sx={{
+              minHeight: "100%",
+              color: sidebarTextColor,
+            }}
+          >
+            {navItems}
+          </Stack>
         </Drawer>
       )}
 
-      {/* Sidebar — Mobile (temporary overlay) */}
+      {/* Sidebar — Mobile (temporary overlay, covers full screen) */}
       {isMobile && (
         <MuiDrawer
           variant="temporary"
@@ -675,11 +707,42 @@ const DashboardLayout = () => {
             "& .MuiDrawer-paper": {
               width: DRAWER_WIDTH,
               boxSizing: "border-box",
-              bgcolor: sidebarBg,
+              borderTopLeftRadius: 0,
+              borderBottomLeftRadius: 0,
+              borderTopRightRadius: 12,
+              borderBottomRightRadius: 12,
             },
           }}
         >
-          {drawerContent}
+          <Stack
+            sx={{
+              minHeight: "100%",
+              color: sidebarTextColor,
+            }}
+          >
+            {/* Mobile drawer header with app title */}
+            <Toolbar
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                px: 2,
+                minHeight: "56px !important",
+              }}
+            >
+              <Typography
+                variant="h6"
+                noWrap
+                sx={{ fontWeight: "bold", letterSpacing: 0.5 }}
+              >
+                TechWall
+              </Typography>
+            </Toolbar>
+
+            <Divider />
+
+            {navItems}
+          </Stack>
         </MuiDrawer>
       )}
 

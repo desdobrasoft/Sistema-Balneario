@@ -35,7 +35,11 @@ const Clientes: React.FC = () => {
       { data: "id", visible: false },
       { title: "Nome", data: "nome" },
       { title: "Email", data: "email" },
-      { title: "Contato", data: "nroContato", render: (data: string) => data ? formatPhoneNumber(data) : "" }
+      {
+        title: "Contato",
+        data: "nroContato",
+        render: (data: string) => (data ? formatPhoneNumber(data) : ""),
+      },
     ],
     [],
   );
@@ -54,19 +58,22 @@ const Clientes: React.FC = () => {
     };
   }, []);
 
-  const handleOpenDialog = useCallback(async (cliente: ClienteModel | null = null) => {
-    if (cliente) {
-      try {
-        const res = await api.get(`${ENDPOINTS.CLIENTES}/${cliente.id}`);
-        setSelectedCliente(res.data);
-      } catch (error) {
-        handleError(error);
+  const handleOpenDialog = useCallback(
+    async (cliente: ClienteModel | null = null) => {
+      if (cliente) {
+        try {
+          const res = await api.get(`${ENDPOINTS.CLIENTES}/${cliente.id}`);
+          setSelectedCliente(res.data);
+        } catch (error) {
+          handleError(error);
+        }
+      } else {
+        setSelectedCliente(null);
       }
-    } else {
-      setSelectedCliente(null);
-    }
-    setDialogOpen(true);
-  }, [handleError]);
+      setDialogOpen(true);
+    },
+    [handleError],
+  );
 
   const handleCloseDialog = useCallback(() => {
     setDialogOpen(false);
@@ -83,10 +90,16 @@ const Clientes: React.FC = () => {
 
       if (selectedCliente) {
         await api.patch(`${ENDPOINTS.CLIENTES}/${selectedCliente.id}`, payload);
-        showSnackbar({ message: "Cliente atualizado com sucesso!", severity: "success" });
+        showSnackbar({
+          message: "Cliente atualizado com sucesso!",
+          severity: "success",
+        });
       } else {
         await api.post(ENDPOINTS.CLIENTES, payload);
-        showSnackbar({ message: "Cliente cadastrado com sucesso!", severity: "success" });
+        showSnackbar({
+          message: "Cliente cadastrado com sucesso!",
+          severity: "success",
+        });
       }
       tableRef.current?.reload();
       handleCloseDialog();
@@ -95,34 +108,40 @@ const Clientes: React.FC = () => {
     }
   };
 
-  const handleDelete = useCallback((id: number) => {
-    showDialog({
-      title: "Excluir Cliente",
-      body: "Deseja realmente excluir este cliente? Esta ação não pode ser desfeita.",
-      actions: [
-        <Button key="cancel" onClick={closeDialog}>
-          Cancelar
-        </Button>,
-        <Button
-          key="confirm"
-          color="error"
-          variant="contained"
-          onClick={async () => {
-            closeDialog();
-            try {
-              await api.delete(`${ENDPOINTS.CLIENTES}/${id}`);
-              showSnackbar({ message: "Cliente excluído com sucesso!", severity: "success" });
-              tableRef.current?.reload();
-            } catch (error) {
-              handleError(error);
-            }
-          }}
-        >
-          Excluir
-        </Button>,
-      ],
-    });
-  }, [showDialog, closeDialog, handleError, showSnackbar]);
+  const handleDelete = useCallback(
+    (id: number) => {
+      showDialog({
+        title: "Excluir Cliente",
+        body: "Deseja realmente excluir este cliente? Esta ação não pode ser desfeita.",
+        actions: [
+          <Button key="cancel" onClick={closeDialog}>
+            Cancelar
+          </Button>,
+          <Button
+            key="confirm"
+            color="error"
+            variant="contained"
+            onClick={async () => {
+              closeDialog();
+              try {
+                await api.delete(`${ENDPOINTS.CLIENTES}/${id}`);
+                showSnackbar({
+                  message: "Cliente excluído com sucesso!",
+                  severity: "success",
+                });
+                tableRef.current?.reload();
+              } catch (error) {
+                handleError(error);
+              }
+            }}
+          >
+            Excluir
+          </Button>,
+        ],
+      });
+    },
+    [showDialog, closeDialog, handleError, showSnackbar],
+  );
 
   return (
     <Box>

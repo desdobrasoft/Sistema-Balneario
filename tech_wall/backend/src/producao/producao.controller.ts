@@ -101,4 +101,9 @@ export class ProducaoController {
   desalocarPlaca(@Body('requisitoId', ParseIntPipe) requisitoId: number) {
     return this.producaoService.desalocarPlaca(requisitoId);
   }
+
+  @Post(':id/desalocar-alocadas')
+  desalocarTodasPlacas(@Param('id', ParseIntPipe) id: number) {
+    return this.producaoService.desalocarTodasPlacas(id);
+  }
 }

@@ -1,72 +1,165 @@
-import React, { type ReactNode, useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState, type ReactNode } from "react";
 
+import Close from "@mui/icons-material/Close";
 import Alert, { type AlertProps } from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
 import Snackbar from "@mui/material/Snackbar";
 import Typography from "@mui/material/Typography";
-import SnackbarContext, { type SnackbarOptions } from "contexts/SnackbarContext";
+import ErrorDetailDialog from "components/ErrorDetailDialog";
+import SnackbarContext, {
+  type SnackbarOptions,
+} from "contexts/SnackbarContext";
+import { ErrorNotifier, type ErrorNotification } from "utils/ErrorNotifier";
 
-const SnackbarProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
-  const [open, setOpen] = useState(false);
-  const [options, setOptions] = useState<SnackbarOptions>({
+const snackbarSx = {
+  maxWidth: { md: "50%", xs: "none" },
+  width: { md: "50%", xs: "calc(100% - 32px)" },
+};
+
+const SnackbarProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  // General snackbar state (for success/info/warning via context)
+  const [generalOpen, setGeneralOpen] = useState(false);
+  const [generalOptions, setGeneralOptions] = useState<SnackbarOptions>({
     message: "",
     severity: "info",
   });
 
-  const showSnackbar = useCallback((newOptions: SnackbarOptions) => {
-    setOptions({
-      severity: "info",
-      autoHideDuration: 6000,
-      ...newOptions,
+  // Error snackbar state (from ErrorNotifier)
+  const [errorOpen, setErrorOpen] = useState(false);
+  const [errorNotification, setErrorNotification] =
+    useState<ErrorNotification | null>(null);
+
+  // Error detail dialog state
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+
+  // Subscribe to ErrorNotifier
+  useEffect(() => {
+    ErrorNotifier.subscribe((notification) => {
+      setErrorOpen(false);
+      setTimeout(() => {
+        setErrorNotification(notification);
+        setErrorOpen(true);
+      }, 100);
     });
-    setOpen(true);
+    return () => ErrorNotifier.unsubscribe();
   }, []);
 
-  const handleClose = (
+  // General snackbar handler (context API)
+  const showSnackbar = useCallback((newOptions: SnackbarOptions) => {
+    setGeneralOptions({
+      autoHideDuration: 6000,
+      severity: "info",
+      ...newOptions,
+    });
+    setGeneralOpen(true);
+  }, []);
+
+  const handleGeneralClose = (
     _event?: React.SyntheticEvent | Event,
-    reason?: string
+    reason?: string,
   ) => {
     if (reason === "clickaway") return;
-    setOpen(false);
-    if (options.onClose) options.onClose();
+    setGeneralOpen(false);
+    if (generalOptions.onClose) generalOptions.onClose();
   };
+
+  const handleErrorClose = (
+    _event?: React.SyntheticEvent | Event,
+    reason?: string,
+  ) => {
+    if (reason === "clickaway") return;
+    setErrorOpen(false);
+  };
+
+  const hasErrorDetails =
+    errorNotification != null &&
+    (!!errorNotification.detalhes ||
+      (errorNotification.mensagens != null &&
+        errorNotification.mensagens.length > 0));
 
   return (
     <SnackbarContext.Provider value={{ showSnackbar }}>
       {children}
+
+      {/* General snackbar (success/info/warning) */}
       <Snackbar
-        open={open}
-        autoHideDuration={options.autoHideDuration}
-        onClose={handleClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        anchorOrigin={{ horizontal: "right", vertical: "top" }}
+        autoHideDuration={generalOptions.autoHideDuration}
+        disableWindowBlurListener
+        onClose={handleGeneralClose}
+        open={generalOpen}
+        sx={snackbarSx}
       >
         <Alert
-          onClose={handleClose}
-          severity={options.severity as AlertProps["severity"]}
+          action={generalOptions.action}
+          onClose={handleGeneralClose}
+          severity={generalOptions.severity as AlertProps["severity"]}
+          sx={{ boxShadow: 3, width: "100%" }}
           variant="filled"
-          sx={{ width: "100%", boxShadow: 3 }}
-          action={options.action}
         >
-          {options.title && <AlertTitle sx={{ fontWeight: "bold" }}>{options.title}</AlertTitle>}
-          <Typography variant="body2">{options.message}</Typography>
-          {options.details && (
-            <Box sx={{ mt: 1, maxHeight: 100, overflow: 'auto', p: 0.5, bgcolor: 'rgba(0,0,0,0.1)', borderRadius: 1 }}>
-              {Array.isArray(options.details) ? (
-                options.details.map((detail, idx) => (
-                  <Typography key={idx} variant="caption" sx={{ display: "block" }}>
-                    • {detail}
-                  </Typography>
-                ))
-              ) : (
-                <Typography variant="caption">{options.details}</Typography>
-              )}
-            </Box>
+          {generalOptions.title && (
+            <AlertTitle sx={{ fontWeight: "bold" }}>
+              {generalOptions.title}
+            </AlertTitle>
           )}
+          <Typography variant="body2">{generalOptions.message}</Typography>
         </Alert>
       </Snackbar>
+
+      <Snackbar
+        anchorOrigin={{ horizontal: "right", vertical: "top" }}
+        autoHideDuration={generalOptions.autoHideDuration}
+        disableWindowBlurListener
+        onClose={handleErrorClose}
+        open={errorOpen}
+        sx={snackbarSx}
+      >
+        <Alert
+          action={
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              {hasErrorDetails && (
+                <Button
+                  color="inherit"
+                  onClick={() => {
+                    setErrorOpen(false);
+                    setDetailDialogOpen(true);
+                  }}
+                  size="small"
+                  sx={{ fontWeight: "bold", whiteSpace: "nowrap" }}
+                >
+                  DETALHES
+                </Button>
+              )}
+              <IconButton
+                aria-label="fechar"
+                color="inherit"
+                onClick={handleErrorClose}
+                size="small"
+              >
+                <Close fontSize="small" />
+              </IconButton>
+            </Box>
+          }
+          severity="error"
+          sx={{ boxShadow: 3, width: "100%" }}
+          variant="filled"
+        >
+          <AlertTitle sx={{ fontWeight: "bold" }}>Algo deu errado</AlertTitle>
+          <Typography variant="body2">
+            {errorNotification?.erro ?? "Erro desconhecido"}
+          </Typography>
+        </Alert>
+      </Snackbar>
+
+      {/* Error detail dialog */}
+      <ErrorDetailDialog
+        notification={errorNotification}
+        onClose={() => setDetailDialogOpen(false)}
+        open={detailDialogOpen}
+      />
     </SnackbarContext.Provider>
   );
 };

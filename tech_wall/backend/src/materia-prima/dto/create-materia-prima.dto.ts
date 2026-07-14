@@ -1,11 +1,11 @@
-import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateMateriaPrimaDto {
   @IsString()
   @IsNotEmpty()
   item: string;
 
-  @IsInt()
+  @IsNumber()
   @IsOptional()
   quantidade?: number;
 
@@ -13,7 +13,7 @@ export class CreateMateriaPrimaDto {
   @IsOptional()
   unidade?: string;
 
-  @IsInt()
+  @IsNumber()
   @IsOptional()
   estoqueMinimo?: number;
 }

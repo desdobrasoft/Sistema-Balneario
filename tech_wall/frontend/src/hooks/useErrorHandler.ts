@@ -1,80 +1,32 @@
-import { isAxiosError } from "axios";
 import { useCallback } from "react";
+import { isAxiosError } from "axios";
 
-import { useSnackbar } from "./useSnackbar";
+import { ErrorNotifier } from "utils/ErrorNotifier";
 
 /**
- * Hook utilitário para tratamento padronizado de erros em toda a aplicação.
+ * Hook utilitário para tratamento de erros não-API.
  *
- * Extrai automaticamente mensagens de erro de respostas Axios (incluindo arrays
- * de validação do NestJS), erros nativos e objetos genéricos, exibindo-os via
- * Snackbar com detalhes completos quando disponíveis.
- *
- * Exemplo de uso:
- * const handleError = useErrorHandler();
- *
- * ```typescript
- * try { ... }
- * catch (error) { handleError(error); }
- * ```
+ * Para erros de API (Axios), o interceptor em api.ts já exibe
+ * a notificação automaticamente. Este hook é útil apenas para
+ * erros locais ou de lógica que não passam pelo Axios.
  */
 export const useErrorHandler = () => {
-  const { showSnackbar } = useSnackbar();
+  const handleError = useCallback((error: unknown) => {
+    // Se for erro Axios, o interceptor em api.ts já tratou
+    if (isAxiosError(error)) return;
 
-  const handleError = useCallback(
-    (error: unknown) => {
-      if (isAxiosError(error)) {
-        const data = error.response?.data as Record<string, unknown> | undefined;
-        const status = error.response?.status;
-        const statusText = error.response?.statusText || "Erro";
-
-        // NestJS retorna { message: string | string[], error: string, statusCode: number }
-        const rawMessage = data?.message;
-        const errorLabel = data?.error || statusText;
-
-        // Se message for array (validação class-validator), mostra cada item como detalhe
-        if (Array.isArray(rawMessage)) {
-          showSnackbar({
-            title: `${errorLabel} (${status})`,
-            message: `A requisição retornou ${rawMessage.length} erro(s) de validação.`,
-            severity: "error",
-            details: rawMessage.map(String),
-            autoHideDuration: 10000,
-          });
-        } else {
-          showSnackbar({
-            title: `${errorLabel} (${status})`,
-            message: String(rawMessage || error.message),
-            severity: "error",
-            autoHideDuration: 8000,
-          });
-        }
-      } else if (error instanceof Error) {
-        showSnackbar({
-          title: error.name,
-          message: error.message,
-          severity: "error",
-        });
-      } else if (
-        typeof error === "object" &&
-        error !== null &&
-        "message" in error
-      ) {
-        showSnackbar({
-          title: "Erro",
-          message: String((error as { message: unknown }).message),
-          severity: "error",
-        });
-      } else {
-        showSnackbar({
-          title: "Erro Inesperado",
-          message: String(error),
-          severity: "error",
-        });
-      }
-    },
-    [showSnackbar],
-  );
+    // Para erros não-API, exibe via ErrorNotifier
+    if (error instanceof Error) {
+      ErrorNotifier.show({
+        detalhes: error.stack,
+        erro: error.message,
+      });
+    } else {
+      ErrorNotifier.show({
+        erro: String(error),
+      });
+    }
+  }, []);
 
   return handleError;
 };

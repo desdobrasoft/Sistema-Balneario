@@ -20,28 +20,30 @@ import Typography from "@mui/material/Typography";
 import { useSnackbar } from "hooks/useSnackbar";
 
 export interface DataTableDialogProps<T> {
-  open: boolean;
+  disableSubmit?: boolean;
+  initialValues: T;
+  isLoading?: boolean;
+  item: T | null;
+  maxWidth?: "xs" | "sm" | "md" | "lg" | "xl" | false;
   onClose: () => void;
   onSubmit: (values: T) => Promise<void> | void;
-  item: T | null;
-  validationSchema: yup.AnyObjectSchema;
-  initialValues: T;
+  open: boolean;
   renderForm: (props: FormikProps<T>) => React.ReactNode;
   title: string;
-  maxWidth?: "xs" | "sm" | "md" | "lg" | "xl" | false;
-  isLoading?: boolean;
+  validationSchema: yup.AnyObjectSchema;
 }
 
 const DataTableDialog = <T extends object>({
-  open,
+  disableSubmit = false,
+  initialValues,
+  item,
+  maxWidth = false,
   onClose,
   onSubmit,
-  item,
-  validationSchema,
-  initialValues,
+  open,
   renderForm,
   title,
-  maxWidth = false,
+  validationSchema,
 }: DataTableDialogProps<T>) => {
   const formikRef = useRef<FormikProps<T>>(null);
   const { showSnackbar } = useSnackbar();
@@ -122,7 +124,7 @@ const DataTableDialog = <T extends object>({
               Cancelar
             </Button>
             <Button
-              disabled={formikProps.isSubmitting}
+              disabled={formikProps.isSubmitting || disableSubmit}
               onClick={() => {
                 formikRef.current?.submitForm();
               }}

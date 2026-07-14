@@ -3,7 +3,6 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 
 // icons
 import AddIcon from "@mui/icons-material/Add";
-import ContentCutIcon from "@mui/icons-material/ContentCut";
 
 // material-ui
 import Box from "@mui/material/Box";
@@ -106,39 +105,45 @@ const Cortes: React.FC = () => {
     }
   };
 
-  const executeDelete = useCallback(async (id: number) => {
-    closeDialog();
-    try {
-      await api.delete(`${ENDPOINTS.CORTES}/${id}`);
-      showSnackbar({
-        message: "Corte excluído com sucesso!",
-        severity: "success",
-      });
-      tableRef.current?.reload();
-    } catch (error) {
-      handleError(error);
-    }
-  }, [closeDialog, showSnackbar, handleError]);
+  const executeDelete = useCallback(
+    async (id: number) => {
+      closeDialog();
+      try {
+        await api.delete(`${ENDPOINTS.CORTES}/${id}`);
+        showSnackbar({
+          message: "Corte excluído com sucesso!",
+          severity: "success",
+        });
+        tableRef.current?.reload();
+      } catch (error) {
+        handleError(error);
+      }
+    },
+    [closeDialog, showSnackbar, handleError],
+  );
 
-  const handleDelete = useCallback((id: number) => {
-    showDialog({
-      title: "Excluir Forma de Corte",
-      body: "Deseja realmente excluir esta forma do catálogo?",
-      actions: [
-        <Button key="cancel" onClick={closeDialog}>
-          Cancelar
-        </Button>,
-        <Button
-          key="confirm"
-          color="error"
-          variant="contained"
-          onClick={() => executeDelete(id)}
-        >
-          Excluir
-        </Button>,
-      ],
-    });
-  }, [showDialog, closeDialog, executeDelete]);
+  const handleDelete = useCallback(
+    (id: number) => {
+      showDialog({
+        title: "Excluir Forma de Corte",
+        body: "Deseja realmente excluir esta forma do catálogo?",
+        actions: [
+          <Button key="cancel" onClick={closeDialog}>
+            Cancelar
+          </Button>,
+          <Button
+            key="confirm"
+            color="error"
+            variant="contained"
+            onClick={() => executeDelete(id)}
+          >
+            Excluir
+          </Button>,
+        ],
+      });
+    },
+    [showDialog, closeDialog, executeDelete],
+  );
 
   return (
     <Box>
@@ -157,7 +162,6 @@ const Cortes: React.FC = () => {
             gap: 1,
           }}
         >
-          <ContentCutIcon fontSize="large" color="primary" />
           Catálogo de Cortes
         </Typography>
         <Button

@@ -100,7 +100,8 @@ const MateriaPrimaDashboard: React.FC<MateriaPrimaDashboardProps> = ({
           ? materiaisRes.data
           : materiaisRes.data.data || [];
         const low = allItems.filter(
-          (m: { estoqueMinimo?: number; quantidade: number }) => m.estoqueMinimo != null && m.quantidade < m.estoqueMinimo,
+          (m: { estoqueMinimo?: number; quantidade: number }) =>
+            m.estoqueMinimo != null && m.quantidade < m.estoqueMinimo,
         );
         setLowStockItems(low);
       } catch (error) {
@@ -186,8 +187,12 @@ const MateriaPrimaDashboard: React.FC<MateriaPrimaDashboardProps> = ({
                 <ListItemText
                   primary={<strong>{item.item}</strong>}
                   secondary={
-                    <Typography component="span" variant="body2" color="warning.dark">
-                      {`Em estoque: ${item.quantidade} ${item.unidade || ""} — Mínimo: ${item.estoqueMinimo}`}
+                    <Typography
+                      component="span"
+                      variant="body2"
+                      color="warning.dark"
+                    >
+                      {`Em estoque: ${Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 }).format(item.quantidade)} ${item.unidade || ""} — Mínimo: ${item.estoqueMinimo}`}
                     </Typography>
                   }
                 />

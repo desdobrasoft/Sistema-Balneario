@@ -27,6 +27,9 @@ import RequisitosEditor from "components/RequisitosEditor";
 import { ENDPOINTS } from "config/endpoints";
 import api from "services/api";
 
+import type { MaterialRequeridoDto } from "types/dtos";
+import type { RequisitoEditorItem } from "components/RequisitosEditor";
+
 interface SuprimentoObra {
   id: string;
   nome: string;
@@ -36,24 +39,11 @@ interface SuprimentoObra {
   status: "PENDENTE" | "ADQUIRIDO";
 }
 
-interface MaterialRequerido {
-  materiaPrimaId: number;
-  qtModelo: number;
+export type MaterialRequerido = MaterialRequeridoDto & {
   materiaPrima?: { item: string, unidade?: string };
-}
+};
 
-export interface RequisitoRequerido {
-  tipo: "PLACA_LISA" | "CORTE_ESPECIFICO";
-  alias?: string;
-  parede: string;
-  largura?: number;
-  altura?: number;
-  espessura?: number;
-  tramaEsquerdaId?: number | null;
-  tramaDireitaId?: number | null;
-  tramaSuperiorId?: number | null;
-  tramaInferiorId?: number | null;
-  corteId?: number | null;
+export type RequisitoRequerido = RequisitoEditorItem & {
   corte?: {
     id?: number;
     nome?: string;
@@ -61,18 +51,34 @@ export interface RequisitoRequerido {
     altura?: number;
     percurso?: { distancia: number }[];
   };
-}
+  tipoPlaca?: {
+    id?: number;
+    nome?: string;
+    largura?: number;
+    altura?: number;
+    espessura?: number;
+    reforco?: string;
+    tramaEsquerdaAtiva?: boolean;
+    tramaDireitaAtiva?: boolean;
+    tramaSuperiorAtiva?: boolean;
+    tramaInferiorAtiva?: boolean;
+    tramaEsquerda?: { nome: string };
+    tramaDireita?: { nome: string };
+    tramaSuperior?: { nome: string };
+    tramaInferior?: { nome: string };
+  };
+};
 
 interface ModeloCasaModel {
-  id: number;
+  id?: number;
   nome: string;
-  descricao: string;
+  descricao?: string;
   tempoFabricacao: number;
-  preco: string | number;
+  preco: number | string;
   imagemBase64?: string;
-  requisitos?: RequisitoRequerido[];
-  materiaisModeloCasa?: MaterialRequerido[];
-  suprimentosObra?: SuprimentoObra[];
+  materiais: MaterialRequerido[];
+  requisitos: RequisitoRequerido[];
+  suprimentosObra: SuprimentoObra[];
 }
 
 interface ModeloCasaFormValues {
@@ -133,6 +139,7 @@ const ModelosForm: React.FC<FormProps> = ({
 }) => {
   const [tab, setTab] = useState(0);
   const [allMateriais, setAllMateriais] = useState<{ id: number; item: string; unidade: string }[]>([]);
+  const [hasEmptyParedes, setHasEmptyParedes] = useState(false);
   const [loadingMateriais, setLoadingMateriais] = useState(false);
 
   const fetchMateriais = useCallback(async () => {
@@ -168,6 +175,7 @@ const ModelosForm: React.FC<FormProps> = ({
 
   return (
     <DataTableDialog
+      disableSubmit={hasEmptyParedes}
       open={open}
       onClose={onClose}
       onSubmit={(values) => {
@@ -175,19 +183,16 @@ const ModelosForm: React.FC<FormProps> = ({
           ...values,
           tempoFabricacao: Number(values.tempoFabricacao),
           preco: Number(String(values.preco).replace(",", ".")),
-          requisitos: values.requisitos.map((r: RequisitoRequerido) => ({
-            tipo: r.tipo,
-            alias: r.alias || undefined,
-            parede: r.parede,
-            largura: r.largura ? Number(r.largura) : undefined,
-            altura: r.altura ? Number(r.altura) : undefined,
-            espessura: r.espessura ? Number(r.espessura) : undefined,
-            tramaEsquerdaId: r.tramaEsquerdaId || undefined,
-            tramaDireitaId: r.tramaDireitaId || undefined,
-            tramaSuperiorId: r.tramaSuperiorId || undefined,
-            tramaInferiorId: r.tramaInferiorId || undefined,
-            corteId: r.corteId || undefined,
-          })),
+          requisitos: values.requisitos.flatMap((r: RequisitoRequerido & { quantidade?: number }) => {
+            const count = r.quantidade && r.quantidade > 1 ? r.quantidade : 1;
+            return Array.from({ length: count }).map(() => ({
+              tipo: r.tipo,
+              alias: r.alias || undefined,
+              parede: r.parede,
+              tipoPlacaId: r.tipoPlacaId || 0,
+              corteId: r.corteId || undefined,
+            }));
+          }),
           materiais: values.materiais.map((m: MaterialRequerido) => ({
             materiaPrimaId: Number(m.materiaPrimaId),
             qtModelo: Number(m.qtModelo),
@@ -204,7 +209,7 @@ const ModelosForm: React.FC<FormProps> = ({
               preco: Number(item.preco).toFixed(2).replace(".", ","),
               imagemBase64: item.imagemBase64 || "",
               requisitos: item.requisitos || [],
-              materiais: item.materiaisModeloCasa || [],
+              materiais: (item as ModeloCasaModel & { materiaisModeloCasa?: MaterialRequerido[] }).materiaisModeloCasa || [],
               suprimentosObra: item.suprimentosObra || [],
             }
           : null
@@ -531,8 +536,9 @@ const ModelosForm: React.FC<FormProps> = ({
             {/* ABA 2: REQUISITOS (PAREDES) */}
             {tab === 2 && (
               <RequisitosEditor
-                requisitos={formik.values.requisitos}
                 onChange={(novos) => formik.setFieldValue("requisitos", novos)}
+                onHasEmptyParedes={setHasEmptyParedes}
+                requisitos={formik.values.requisitos}
                 showParedes={true}
               />
             )}

@@ -8,7 +8,7 @@ import {
   DataTableResult,
 } from '../common/dto/data-table.dto';
 import { PrismaDatatableHelper } from '../common/utils/datatable.helper';
-import { getIdsByNumericPartialMatch } from '../common/utils/prisma-search.utils';
+import { formatDecimal } from '../common/utils/format.utils';
 import {
   Prisma,
   StatusPagamentoVenda,
@@ -26,7 +26,19 @@ const includeRelations = {
   modeloCasa: true,
   user: { select: { id: true, fullName: true, username: true } },
   vendasHistorico: { orderBy: { dataAlteracao: 'asc' } },
-  vendaRequisitos: true,
+  vendaRequisitos: {
+    include: {
+      tipoPlaca: {
+        include: {
+          tramaEsquerda: true,
+          tramaDireita: true,
+          tramaSuperior: true,
+          tramaInferior: true,
+        },
+      },
+      corte: true,
+    },
+  },
 } as const;
 
 @Injectable()
@@ -55,124 +67,77 @@ export class VendasService {
       baseWhere.status = { not: excludeStatus };
     }
 
-    const {
-      skip,
-      take,
-      where: generatedWhere,
-      orderBy,
-    } = PrismaDatatableHelper.buildPrismaQuery(
+    return PrismaDatatableHelper.execute({
+      prismaModel: this.prisma.venda,
+      prismaClient: this.prisma,
       query,
-      ['cliente.nome', 'modeloCasa.nome', 'enderecoEntrega'],
+      searchableFields: ['cliente.nome', 'modeloCasa.nome', 'enderecoEntrega'],
+      numericSearchFields: ['id', 'preco'],
+      tableName: 'vendas',
       baseWhere,
-    );
-
-    const where = { ...generatedWhere };
-
-    if (query.search?.value) {
-      const searchValueStr = query.search.value.toUpperCase();
-      const searchValueClean = query.search.value
-        .replace(/\s+/g, '_')
-        .toUpperCase();
-
-      const matchedStatuses = Object.values(StatusVenda).filter(
-        (val) =>
-          String(val).toUpperCase().includes(searchValueStr) ||
-          String(val).toUpperCase().includes(searchValueClean),
-      ) as StatusVenda[];
-
-      const matchedPagamentos = Object.values(StatusPagamentoVenda).filter(
-        (val) =>
-          String(val).toUpperCase().includes(searchValueStr) ||
-          String(val).toUpperCase().includes(searchValueClean),
-      ) as StatusPagamentoVenda[];
-
-      const idsByPrice = await getIdsByNumericPartialMatch(
-        this.prisma,
-        'vendas',
-        ['id', 'preco'],
-        query.search.value,
-      );
-
-      if (!where.OR) {
-        where.OR = [];
-      }
-
-      if (idsByPrice.length > 0) {
-        where.OR.push({ id: { in: idsByPrice } });
-      }
-
-      if (searchValueStr.includes('PLACA')) {
-        where.OR.push({ modeloId: null });
-      }
-
-      if (matchedStatuses.length > 0) {
-        where.OR.push({ status: { in: matchedStatuses } });
-      }
-
-      if (matchedPagamentos.length > 0) {
-        where.OR.push({ statusPagamento: { in: matchedPagamentos } });
-      }
-    }
-
-    const [rawData, total, filtered] = await Promise.all([
-      this.prisma.venda.findMany({
-        where,
-        skip,
-        take,
-        orderBy: Object.keys(orderBy as Record<string, unknown>).length
-          ? orderBy
-          : { id: 'desc' },
-        select: {
-          id: true,
-          preco: true,
-          status: true,
-          statusPagamento: true,
-          dataVenda: true,
-          modeloId: true,
-          cliente: { select: { nome: true } },
-          modeloCasa: { select: { nome: true } },
+      totalCountWhere: baseWhere,
+      select: {
+        id: true,
+        preco: true,
+        status: true,
+        statusPagamento: true,
+        dataVenda: true,
+        modeloId: true,
+        cliente: { select: { nome: true } },
+        modeloCasa: { select: { nome: true } },
+        _count: {
+          select: { vendaItensOverride: true },
         },
-      }),
-      this.prisma.venda.count({ where: baseWhere }),
-      this.prisma.venda.count({ where }),
-    ]);
+      },
+      customSearchEnhancer: (searchValue: string) => {
+        const conditions: any[] = [];
+        const searchValueStr = searchValue.toUpperCase();
+        const searchValueClean = searchValue.replace(/\s+/g, '_').toUpperCase();
 
-    const requestedFields = (query.columns
-      ?.map((c) => c.data)
-      .filter((d) => d && d !== 'null') || []) as string[];
+        const matchedStatuses = Object.values(StatusVenda).filter(
+          (val) =>
+            String(val).toUpperCase().includes(searchValueStr) ||
+            String(val).toUpperCase().includes(searchValueClean),
+        ) as StatusVenda[];
 
-    const data = rawData.map((item) => {
-      const flatObj: any = {
+        const matchedPagamentos = Object.values(StatusPagamentoVenda).filter(
+          (val) =>
+            String(val).toUpperCase().includes(searchValueStr) ||
+            String(val).toUpperCase().includes(searchValueClean),
+        ) as StatusPagamentoVenda[];
+
+        if (searchValueStr.includes('PLACA')) {
+          conditions.push({ modeloId: null });
+        }
+
+        if (matchedStatuses.length > 0) {
+          conditions.push({ status: { in: matchedStatuses } });
+        }
+
+        if (matchedPagamentos.length > 0) {
+          conditions.push({ statusPagamento: { in: matchedPagamentos } });
+        }
+
+        return conditions;
+      },
+      mapRow: (item: any) => ({
         id: item.id,
-        preco: item.preco,
+        preco: formatDecimal(item.preco),
         status: item.status,
         statusPagamento: item.statusPagamento,
         dataVenda: item.dataVenda,
-        clienteNome: item.cliente?.nome || 'N/A',
-        modeloNome:
-          item.modeloId === null
-            ? 'Venda de Placas'
-            : item.modeloCasa?.nome || 'N/A',
+        cliente: { nome: item.cliente?.nome || 'N/A' },
+        modeloCasa: {
+          nome:
+            item.modeloId === null
+              ? 'Venda de Placas'
+              : item.modeloCasa?.nome || 'N/A',
+        },
         isVendaPlacas: item.modeloId === null,
-      };
-
-      if (requestedFields.length === 0) return flatObj;
-
-      const result: any = {};
-      requestedFields.forEach((field) => {
-        if (flatObj[field] !== undefined) {
-          result[field] = flatObj[field];
-        }
-      });
-      return result;
+        possuiCustomizacao: (item._count?.vendaItensOverride ?? 0) > 0,
+      }),
+      filterRequestedFields: false,
     });
-
-    return {
-      draw: query.draw || 1,
-      data,
-      recordsTotal: total,
-      recordsFiltered: filtered,
-    };
   }
 
   async create(dto: CreateVendaDto, userId: number) {
@@ -236,15 +201,8 @@ export class VendasService {
             tipo: r.tipo,
             alias: r.alias,
             parede: r.parede,
-            largura: r.largura,
-            altura: r.altura,
-            espessura: r.espessura,
-            tramaEsquerdaId: r.tramaEsquerdaId,
-            tramaDireitaId: r.tramaDireitaId,
-            tramaSuperiorId: r.tramaSuperiorId,
-            tramaInferiorId: r.tramaInferiorId,
+            tipoPlacaId: r.tipoPlacaId,
             corteId: r.corteId,
-            reforco: r.reforco,
           })),
         });
       }
@@ -332,7 +290,7 @@ export class VendasService {
       return this.findOne(novaVenda.id, tx);
     });
   }
-  async estornar(id: number) {
+  async cancelar(id: number) {
     return this.prisma.$transaction(async (tx) => {
       // 1. Valida a venda
       const venda = await tx.venda.findUnique({
@@ -385,7 +343,7 @@ export class VendasService {
             ordemProducaoId: ordemProducao.id,
             statusAnterior: ordemProducao.status,
             statusNovo: StatusProducao.CANCELADO,
-            notas: `Ordem cancelada devido ao estorno da Venda #${id}.`,
+            notas: `Ordem cancelada devido ao cancelamento da Venda #${id}.`,
           },
         });
       }
@@ -402,26 +360,28 @@ export class VendasService {
             entregaId: entrega.id,
             statusAnterior: entrega.status,
             statusNovo: 'CANCELADA',
-            notas: `Entrega cancelada devido ao estorno da Venda #${id}.`,
+            notas: `Entrega cancelada devido ao cancelamento da Venda #${id}.`,
           },
         });
       }
 
-      // 4. Estorna os lançamentos financeiros
-      await tx.lancamentoFinanceiro.updateMany({
+      // 4. Atualiza os lançamentos financeiros da venda (somente receitas)
+      const lancamentos = await tx.lancamentoFinanceiro.findMany({
         where: { vendaId: id, tipo: TipoLancamento.R },
-        data: { statusPagamento: StatusPagamentoVenda.CANCELADO },
       });
-      await tx.lancamentoFinanceiro.create({
-        data: {
-          tipo: TipoLancamento.D,
-          descricao: `Estorno referente à Venda #${venda.id}`,
-          valorTotal: venda.preco,
-          valorPendente: 0,
-          vendaId: venda.id,
-          statusPagamento: StatusPagamentoVenda.CANCELADO,
-        },
-      });
+
+      for (const lanc of lancamentos) {
+        // Se o valor pago for zero, não houve pagamento.
+        const valorPago = lanc.valorTotal.minus(lanc.valorPendente);
+        const novoStatus = valorPago.isZero()
+          ? StatusPagamentoVenda.CANCELADO
+          : StatusPagamentoVenda.ESTORNO_PENDENTE;
+
+        await tx.lancamentoFinanceiro.update({
+          where: { id: lanc.id },
+          data: { statusPagamento: novoStatus },
+        });
+      }
 
       // 5. Decrementa contadores
       if (venda.clienteId) {
@@ -456,7 +416,10 @@ export class VendasService {
         where: { id },
         data: {
           status: StatusVenda.CANCELADA,
-          statusPagamento: StatusPagamentoVenda.CANCELADO,
+          statusPagamento:
+            venda.statusPagamento === StatusPagamentoVenda.PENDENTE
+              ? StatusPagamentoVenda.CANCELADO
+              : StatusPagamentoVenda.ESTORNO_PENDENTE,
         },
         include: includeRelations,
       });
@@ -475,11 +438,160 @@ export class VendasService {
   }
 
   async update(id: number, dto: UpdateVendaDto) {
-    await this.findOne(id);
-    return this.prisma.venda.update({
-      where: { id },
-      data: dto,
-      include: includeRelations,
+    return this.prisma.$transaction(async (tx) => {
+      const vendaOriginal = await tx.venda.findUnique({
+        where: { id },
+        include: {
+          lancamentosFinanceiros: true,
+          ordemProducao: true,
+        },
+      });
+
+      if (!vendaOriginal) {
+        throw new NotFoundException(`Venda com ID ${id} não encontrada.`);
+      }
+
+      // 1. Valida se a produção já iniciou e bloqueia edição estrutural
+      const producaoIniciada =
+        vendaOriginal.ordemProducao &&
+        vendaOriginal.ordemProducao.status !==
+          StatusProducao.MATERIAIS_PENDENTES;
+
+      if (producaoIniciada) {
+        if (
+          (dto.modeloId !== undefined &&
+            dto.modeloId !== vendaOriginal.modeloId) ||
+          dto.itensOverride ||
+          dto.requisitosOverride
+        ) {
+          throw new ConflictException(
+            'Não é possível alterar o modelo ou requisitos de uma venda após o início da produção (alocação de materiais).',
+          );
+        }
+      }
+
+      // 2. Atualiza campos básicos
+      const modeloId =
+        dto.modeloId !== undefined ? dto.modeloId : vendaOriginal.modeloId;
+      await tx.venda.update({
+        where: { id },
+        data: {
+          clienteId: dto.clienteId ?? vendaOriginal.clienteId,
+          modeloId: modeloId,
+          dataVenda: dto.dataVenda
+            ? new Date(dto.dataVenda)
+            : vendaOriginal.dataVenda,
+          preco: dto.preco ?? vendaOriginal.preco,
+          enderecoEntrega: dto.enderecoEntrega ?? vendaOriginal.enderecoEntrega,
+        },
+      });
+
+      // 3. Atualiza contadores
+      if (
+        dto.clienteId !== undefined &&
+        dto.clienteId !== vendaOriginal.clienteId
+      ) {
+        if (vendaOriginal.clienteId) {
+          await tx.cliente.update({
+            where: { id: vendaOriginal.clienteId },
+            data: { historicoVendas: { decrement: 1 } },
+          });
+        }
+        await tx.cliente.update({
+          where: { id: dto.clienteId },
+          data: { historicoVendas: { increment: 1 } },
+        });
+      }
+
+      if (
+        dto.modeloId !== undefined &&
+        dto.modeloId !== vendaOriginal.modeloId
+      ) {
+        if (vendaOriginal.modeloId) {
+          await tx.modeloCasa.update({
+            where: { id: vendaOriginal.modeloId },
+            data: { qtVendido: { decrement: 1 } },
+          });
+        }
+        if (dto.modeloId) {
+          await tx.modeloCasa.update({
+            where: { id: dto.modeloId },
+            data: { qtVendido: { increment: 1 } },
+          });
+        }
+      }
+
+      // 4. Relacionamentos aninhados (somente se não estiver bloqueado pela produção)
+      if (!producaoIniciada) {
+        if (dto.requisitosOverride) {
+          await tx.vendaRequisito.deleteMany({ where: { vendaId: id } });
+          if (dto.requisitosOverride.length > 0) {
+            await tx.vendaRequisito.createMany({
+              data: dto.requisitosOverride.map((r: any) => ({
+                vendaId: id,
+                tipo: r.tipo,
+                alias: r.alias,
+                parede: r.parede,
+                tipoPlacaId: r.tipoPlacaId,
+                corteId: r.corteId,
+              })),
+            });
+          }
+        }
+
+        if (dto.itensOverride) {
+          await tx.vendaItemOverride.deleteMany({ where: { vendaId: id } });
+          if (dto.itensOverride.length > 0) {
+            await tx.vendaItemOverride.createMany({
+              data: dto.itensOverride.map((item: any) => ({
+                vendaId: id,
+                materiaPrimaId: item.materiaPrimaId,
+                qtFinal: item.qtFinal,
+              })),
+            });
+          }
+        }
+      }
+
+      if (dto.suprimentosOverride) {
+        await tx.vendaSuprimentoOverride.deleteMany({ where: { vendaId: id } });
+        if (dto.suprimentosOverride.length > 0) {
+          await tx.vendaSuprimentoOverride.createMany({
+            data: dto.suprimentosOverride.map((s: any) => ({
+              vendaId: id,
+              nome: s.nome || s.name || '',
+              quantidade: parseInt(String(s.quantidade ?? s.qty ?? 0), 10),
+              unidade: s.unidade || s.unit || '',
+              momento: s.momento || s.when || null,
+            })),
+          });
+        }
+      }
+
+      // 5. Financeiro
+      if (
+        dto.preco !== undefined &&
+        Number(dto.preco) !== Number(vendaOriginal.preco)
+      ) {
+        const lancamentoReceita = vendaOriginal.lancamentosFinanceiros.find(
+          (l) =>
+            l.tipo === TipoLancamento.R &&
+            l.statusPagamento !== StatusPagamentoVenda.CANCELADO,
+        );
+
+        if (lancamentoReceita) {
+          const diff = Number(dto.preco) - Number(vendaOriginal.preco);
+          await tx.lancamentoFinanceiro.update({
+            where: { id: lancamentoReceita.id },
+            data: {
+              valorTotal: dto.preco,
+              valorPendente: { increment: diff },
+            },
+          });
+        }
+      }
+
+      return this.findOne(id, tx);
     });
   }
 

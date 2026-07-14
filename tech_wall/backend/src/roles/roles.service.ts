@@ -29,60 +29,36 @@ export class RolesService {
   async findDatatable(
     query: DataTableParamsDto,
   ): Promise<DataTableResult<any>> {
-    const {
-      skip,
-      take,
-      where: generatedWhere,
-      orderBy,
-    } = PrismaDatatableHelper.buildPrismaQuery(query, ['role']);
+    return PrismaDatatableHelper.execute({
+      prismaModel: this.prisma.role,
+      query,
+      searchableFields: ['role'],
+      customSearchEnhancer: async (searchValue: string) => {
+        const searchStr = searchValue.toLowerCase();
 
-    const where = { ...generatedWhere };
+        const allRoles = await this.prisma.role.findMany({
+          select: { id: true, permissions: true },
+        });
 
-    if (query.search?.value) {
-      const searchStr = query.search.value.toLowerCase();
+        const matchingRoleIds = allRoles
+          .filter((role) => {
+            const permsStr =
+              !role.permissions || role.permissions.length === 0
+                ? 'Sem permissões'
+                : role.permissions.length >= ALL_MODULE_KEYS.length
+                  ? 'Acesso Total'
+                  : role.permissions.join(', ');
 
-      const allRoles = await this.prisma.role.findMany({
-        select: { id: true, permissions: true },
-      });
+            return permsStr.toLowerCase().includes(searchStr);
+          })
+          .map((r) => r.id);
 
-      const matchingRoleIds = allRoles
-        .filter((role) => {
-          const permsStr =
-            !role.permissions || role.permissions.length === 0
-              ? 'Sem permissões'
-              : role.permissions.length >= ALL_MODULE_KEYS.length
-                ? 'Acesso Total'
-                : role.permissions.join(', ');
-
-          return permsStr.toLowerCase().includes(searchStr);
-        })
-        .map((r) => r.id);
-
-      if (matchingRoleIds.length > 0) {
-        if (!where.OR) where.OR = [];
-        where.OR.push({ id: { in: matchingRoleIds } });
-      }
-    }
-
-    const [rawData, total, filtered] = await Promise.all([
-      this.prisma.role.findMany({
-        where,
-        skip,
-        take,
-        orderBy: Object.keys(orderBy as Record<string, unknown>).length
-          ? orderBy
-          : { id: 'desc' },
-      }),
-      this.prisma.role.count(),
-      this.prisma.role.count({ where }),
-    ]);
-
-    const requestedFields = (query.columns
-      ?.map((c) => c.data)
-      .filter((d) => d && d !== 'null') || []) as string[];
-
-    const data = rawData.map((role: any) => {
-      const flatObj: any = {
+        if (matchingRoleIds.length > 0) {
+          return [{ id: { in: matchingRoleIds } }];
+        }
+        return [];
+      },
+      mapRow: (role: any) => ({
         id: role.id,
         role: role.role,
         permissions:
@@ -91,25 +67,8 @@ export class RolesService {
             : role.permissions.length >= ALL_MODULE_KEYS.length
               ? 'Acesso Total'
               : role.permissions.join(', '),
-      };
-
-      if (requestedFields.length === 0) return flatObj;
-
-      const result: any = {};
-      requestedFields.forEach((field) => {
-        if (flatObj[field] !== undefined) {
-          result[field] = flatObj[field];
-        }
-      });
-      return result;
+      }),
     });
-
-    return {
-      draw: query.draw || 1,
-      data,
-      recordsTotal: total,
-      recordsFiltered: filtered,
-    };
   }
 
   async findOne(id: number) {

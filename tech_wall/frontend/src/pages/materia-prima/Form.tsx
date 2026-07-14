@@ -24,7 +24,9 @@ interface FormProps {
   item: MateriaPrimaModel | null;
 }
 
-const getInitialValues = (item: MateriaPrimaModel | null): MateriaPrimaModel => {
+const getInitialValues = (
+  item: MateriaPrimaModel | null,
+): MateriaPrimaModel => {
   return (
     item || {
       id: 0,
@@ -57,7 +59,7 @@ const MateriaPrimaForm: React.FC<FormProps> = ({
       title={item ? "Editar Matéria Prima" : "Nova Matéria Prima"}
       item={item}
       initialValues={getInitialValues(item)}
-      maxWidth="md"
+      maxWidth="sm"
       validationSchema={validationSchema}
       renderForm={(formik) => (
         <Grid container spacing={2} sx={{ mt: 1 }}>

@@ -1,4 +1,4 @@
-import { IsInt, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
+import { IsInt, IsNumber, Min } from 'class-validator';
 
 export class AplicarCorteDto {
   @IsInt()
@@ -14,8 +14,4 @@ export class AplicarCorteDto {
 
   @IsInt()
   rotacao: number; // 0, 90, 180, 270
-
-  @IsString()
-  @IsNotEmpty()
-  nomePlacaFilha: string;
 }

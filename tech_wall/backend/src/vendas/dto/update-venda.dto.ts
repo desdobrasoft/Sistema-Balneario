@@ -1,18 +1,4 @@
-import { IsEnum, IsOptional } from 'class-validator';
-import {
-  StatusPagamentoVenda,
-  StatusVenda,
-} from '../../generated/prisma/client';
+import { PartialType } from '@nestjs/mapped-types';
+import { CreateVendaDto } from './create-venda.dto';
 
-export class UpdateVendaDto {
-  @IsOptional()
-  @IsEnum(StatusVenda)
-  status?: StatusVenda;
-
-  @IsOptional()
-  @IsEnum(StatusPagamentoVenda)
-  statusPagamento?: StatusPagamentoVenda;
-
-  @IsOptional()
-  suprimentosObra?: any[];
-}
+export class UpdateVendaDto extends PartialType(CreateVendaDto) {}

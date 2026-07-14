@@ -34,41 +34,13 @@ class VendaRequisitoOverrideDto {
   @IsString()
   parede?: string;
 
-  @IsOptional()
-  @IsNumber()
-  largura?: number;
-
-  @IsOptional()
-  @IsNumber()
-  altura?: number;
-
-  @IsOptional()
-  @IsNumber()
-  espessura?: number;
-
-  @IsOptional()
+  @IsNotEmpty()
   @IsInt()
-  tramaEsquerdaId?: number;
-
-  @IsOptional()
-  @IsInt()
-  tramaDireitaId?: number;
-
-  @IsOptional()
-  @IsInt()
-  tramaSuperiorId?: number;
-
-  @IsOptional()
-  @IsInt()
-  tramaInferiorId?: number;
+  tipoPlacaId: number;
 
   @IsOptional()
   @IsInt()
   corteId?: number;
-
-  @IsOptional()
-  @IsString()
-  reforco?: string;
 }
 
 class VendaSuprimentoOverrideDto {

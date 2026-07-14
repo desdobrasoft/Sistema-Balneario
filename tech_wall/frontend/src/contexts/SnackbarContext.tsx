@@ -6,7 +6,6 @@ export interface SnackbarOptions {
   title?: string;
   message: string;
   severity?: SnackbarSeverity;
-  details?: string | string[];
   autoHideDuration?: number;
   action?: ReactNode;
   onClose?: () => void;

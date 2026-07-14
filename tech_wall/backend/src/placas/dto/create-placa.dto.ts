@@ -2,109 +2,50 @@ import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
+  IsEnum,
   IsInt,
-  IsNotEmpty,
   IsNumber,
   IsOptional,
-  IsPositive,
-  IsString,
+  Min,
   ValidateNested,
 } from 'class-validator';
 
-class MaterialPlacaDto {
+class EconomiaItemDto {
   @IsInt()
-  @IsNotEmpty()
   materiaPrimaId: number;
 
   @IsNumber()
-  @IsPositive()
   quantidade: number;
 }
 
-export class CreatePlacaDto {
-  @IsString()
-  @IsNotEmpty()
-  nome: string;
-
-  @IsString()
-  @IsOptional()
-  descricao?: string;
-
-  @IsNumber()
-  @IsOptional()
-  altura?: number;
-
-  @IsNumber()
-  @IsOptional()
-  largura?: number;
-
-  @IsNumber()
-  @IsOptional()
-  espessura?: number;
-
-  @IsBoolean()
-  @IsOptional()
-  tramaEsquerdaAtiva?: boolean;
-
-  @IsInt()
-  @IsOptional()
-  tramaEsquerdaId?: number;
-
-  @IsString()
-  @IsOptional()
-  tramaEsquerdaOrientacao?: string;
-
-  @IsBoolean()
-  @IsOptional()
-  tramaDireitaAtiva?: boolean;
-
-  @IsInt()
-  @IsOptional()
-  tramaDireitaId?: number;
-
-  @IsString()
-  @IsOptional()
-  tramaDireitaOrientacao?: string;
-
-  @IsBoolean()
-  @IsOptional()
-  tramaSuperiorAtiva?: boolean;
-
-  @IsInt()
-  @IsOptional()
-  tramaSuperiorId?: number;
-
-  @IsString()
-  @IsOptional()
-  tramaSuperiorOrientacao?: string;
-
-  @IsBoolean()
-  @IsOptional()
-  tramaInferiorAtiva?: boolean;
-
-  @IsInt()
-  @IsOptional()
-  tramaInferiorId?: number;
-
-  @IsString()
-  @IsOptional()
-  tramaInferiorOrientacao?: string;
-
-  @IsBoolean()
-  @IsOptional()
-  retalhoDescartado?: boolean;
-
-  @IsString()
-  @IsOptional()
-  reforco?: string;
+class EconomiaInfoDto {
+  @IsEnum(['total', 'individual'])
+  modo: 'total' | 'individual';
 
   @IsArray()
-  @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => MaterialPlacaDto)
-  materiais: MaterialPlacaDto[];
+  @Type(() => EconomiaItemDto)
+  itens: EconomiaItemDto[];
+}
+
+export class CreatePlacaDto {
+  @IsInt()
+  tipoPlacaId: number;
+
+  @IsInt()
+  @Min(1)
+  quantidade: number;
 
   @IsBoolean()
   @IsOptional()
-  darBaixaImediata?: boolean;
+  jaFinalizada?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  deduzirMateriaPrima?: boolean;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => EconomiaInfoDto)
+  economiaInfo?: EconomiaInfoDto;
 }

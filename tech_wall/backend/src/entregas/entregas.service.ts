@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { StatusEntrega } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEntregaDto } from './dto/create-entrega.dto';
-import { UpdateEntregaDto } from './dto/update-entrega.dto';
 
 // Bloco de 'include' reutilizável
 const includeRelations = {
@@ -24,10 +23,7 @@ import {
   DataTableParamsDto,
   DataTableResult,
 } from '../common/dto/data-table.dto';
-import {
-  buildSearchFilter,
-  getIdsByNumericPartialMatch,
-} from '../common/utils/prisma-search.utils';
+import { PrismaDatatableHelper } from '../common/utils/datatable.helper';
 
 @Injectable()
 export class EntregasService {
@@ -38,8 +34,6 @@ export class EntregasService {
     return this.prisma.entrega.create({
       data: {
         vendaId: dto.vendaId,
-        enderecoEntrega: dto.enderecoEntrega,
-        previsaoEntrega: new Date(dto.previsaoEntrega),
         status: StatusEntrega.PENDENTE_TRANSPORTADORA,
       },
     });
@@ -55,58 +49,22 @@ export class EntregasService {
   async findDatatable(
     query: DataTableParamsDto,
   ): Promise<DataTableResult<any>> {
-    const { start = 0, length = 10, search, draw = 1 } = query;
-    const skip = start;
-    const limit = length;
-    const searchValue = search?.value || '';
-
-    const baseWhere: any = {};
-    let where = { ...baseWhere };
-
-    if (searchValue) {
-      const idsByOrder = await getIdsByNumericPartialMatch(
-        this.prisma,
-        'entregas',
-        ['id', 'venda_id'],
-        searchValue,
-      );
-
-      const searchFilter = buildSearchFilter(searchValue, [
+    return PrismaDatatableHelper.execute({
+      prismaModel: this.prisma.entrega,
+      prismaClient: this.prisma,
+      query,
+      searchableFields: [
         'venda.cliente.nome',
-        'enderecoEntrega',
+        'venda.enderecoEntrega',
         'transportadora',
         'status',
-      ]);
-
-      if (idsByOrder.length > 0) {
-        if (searchFilter.OR) {
-          searchFilter.OR.push({ id: { in: idsByOrder } });
-        } else {
-          searchFilter.OR = [{ id: { in: idsByOrder } }];
-        }
-      }
-
-      where = { ...baseWhere, ...searchFilter };
-    }
-
-    const [data, total, filtered] = await Promise.all([
-      this.prisma.entrega.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { previsaoEntrega: 'asc' },
-        include: includeRelations,
-      }),
-      this.prisma.entrega.count({ where: baseWhere }),
-      this.prisma.entrega.count({ where }),
-    ]);
-
-    return {
-      draw,
-      data,
-      recordsTotal: total,
-      recordsFiltered: filtered,
-    };
+      ],
+      numericSearchFields: ['id', 'venda_id'],
+      tableName: 'entregas',
+      defaultOrderBy: { previsaoEntrega: 'asc' },
+      include: includeRelations,
+      filterRequestedFields: false,
+    });
   }
 
   async findOne(id: number) {
@@ -119,75 +77,118 @@ export class EntregasService {
     return entrega;
   }
 
-  async update(id: number, dto: UpdateEntregaDto) {
+  async agendarColeta(
+    id: number,
+    transportadora: string,
+    previsaoEntrega: string,
+    notas?: string,
+  ) {
+    return this.changeStatus(id, StatusEntrega.COLETA_AGENDADA, notas, {
+      transportadora,
+      previsaoEntrega: new Date(previsaoEntrega),
+    });
+  }
+
+  async editarAgendamento(
+    id: number,
+    transportadora: string,
+    previsaoEntrega: string,
+    notas?: string,
+  ) {
     return this.prisma.$transaction(async (tx) => {
-      // 1. Busca o estado atual da entrega
-      const entregaAtual = await tx.entrega.findUnique({
+      const entrega = await tx.entrega.findUnique({ where: { id } });
+      if (!entrega)
+        throw new NotFoundException(`Entrega com ID ${id} não encontrada.`);
+
+      if (notas) {
+        await tx.entregaHistorico.create({
+          data: { entregaId: id, statusNovo: entrega.status, notas },
+        });
+      }
+
+      return tx.entrega.update({
         where: { id },
+        data: { transportadora, previsaoEntrega: new Date(previsaoEntrega) },
+        include: includeRelations,
       });
+    });
+  }
+
+  async iniciarEntrega(id: number, notas?: string) {
+    return this.changeStatus(id, StatusEntrega.EM_TRANSITO, notas);
+  }
+
+  async finalizarEntrega(id: number, notas?: string) {
+    return this.changeStatus(id, StatusEntrega.ENTREGUE, notas);
+  }
+
+  async cancelarEntrega(id: number, notas?: string) {
+    return this.changeStatus(id, StatusEntrega.CANCELADA, notas);
+  }
+
+  private async changeStatus(
+    id: number,
+    novoStatus: StatusEntrega,
+    notas?: string,
+    extraData?: any,
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      const entregaAtual = await tx.entrega.findUnique({ where: { id } });
       if (!entregaAtual) {
         throw new NotFoundException(`Entrega com ID ${id} não encontrada.`);
       }
 
-      // 2. Se o status foi alterado, cria um registro de histórico
-      if (dto.status && dto.status !== entregaAtual.status) {
+      if (novoStatus !== entregaAtual.status) {
         await tx.entregaHistorico.create({
           data: {
             entregaId: id,
             statusAnterior: entregaAtual.status,
-            statusNovo: dto.status,
-            notas: dto.notas, // Salva a nota da alteração
+            statusNovo: novoStatus,
+            notas,
           },
         });
       }
 
-      // 3. Atualiza a entrega com os novos dados
       const entregaAtualizada = await tx.entrega.update({
         where: { id },
         data: {
-          status: dto.status,
-          transportadora: dto.transportadora,
-          previsaoEntrega: dto.previsaoEntrega
-            ? new Date(dto.previsaoEntrega)
-            : undefined,
+          status: novoStatus,
+          ...extraData,
         },
-        include: includeRelations, // Retorna o objeto atualizado com o histórico
+        include: includeRelations,
       });
 
       // Mapeamento e atualização do status da Venda (sincronização)
-      if (dto.status && dto.status !== entregaAtual.status) {
-        let novoStatusVenda:
-          | import('../generated/prisma/client').StatusVenda
-          | null = null;
-        if (
-          dto.status === StatusEntrega.PENDENTE_TRANSPORTADORA ||
-          dto.status === StatusEntrega.COLETA_AGENDADA
-        )
-          novoStatusVenda = 'PRONTO_PARA_ENVIO';
-        else if (dto.status === StatusEntrega.EM_TRANSITO)
-          novoStatusVenda = 'ENVIADO';
-        else if (dto.status === StatusEntrega.ENTREGUE)
-          novoStatusVenda = 'ENTREGUE';
-        else if (dto.status === StatusEntrega.CANCELADA)
-          novoStatusVenda = 'CANCELADA';
+      let novoStatusVenda:
+        import('../generated/prisma/client').StatusVenda | null = null;
+      if (
+        novoStatus === StatusEntrega.PENDENTE_TRANSPORTADORA ||
+        novoStatus === StatusEntrega.COLETA_AGENDADA
+      )
+        novoStatusVenda = 'PRONTO_PARA_ENVIO';
+      else if (novoStatus === StatusEntrega.EM_TRANSITO)
+        novoStatusVenda = 'ENVIADO';
+      else if (novoStatus === StatusEntrega.ENTREGUE)
+        novoStatusVenda = 'ENTREGUE';
+      else if (novoStatus === StatusEntrega.CANCELADA)
+        novoStatusVenda = 'CANCELADA';
 
-        if (novoStatusVenda && entregaAtual.vendaId) {
-          const vendaAtual = await tx.venda.findUnique({
+      if (novoStatusVenda && entregaAtual.vendaId) {
+        const vendaAtual = await tx.venda.findUnique({
+          where: { id: entregaAtual.vendaId },
+        });
+        if (vendaAtual && vendaAtual.status !== novoStatusVenda) {
+          await tx.venda.update({
             where: { id: entregaAtual.vendaId },
+            data: { status: novoStatusVenda },
           });
-          if (vendaAtual && vendaAtual.status !== novoStatusVenda) {
-            await tx.venda.update({
-              where: { id: entregaAtual.vendaId },
-              data: { status: novoStatusVenda },
-            });
-            await tx.vendaHistorico.create({
-              data: {
-                vendaId: entregaAtual.vendaId,
-                statusAnterior: vendaAtual.status,
-                statusNovo: novoStatusVenda,
-              },
-            });
-          }
+          await tx.vendaHistorico.create({
+            data: {
+              vendaId: entregaAtual.vendaId,
+              statusAnterior: vendaAtual.status,
+              statusNovo: novoStatusVenda,
+            },
+          });
         }
       }
 

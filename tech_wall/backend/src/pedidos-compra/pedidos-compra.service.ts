@@ -14,10 +14,7 @@ import {
   DataTableParamsDto,
   DataTableResult,
 } from '../common/dto/data-table.dto';
-import {
-  buildSearchFilter,
-  getIdsByNumericPartialMatch,
-} from '../common/utils/prisma-search.utils';
+import { PrismaDatatableHelper } from '../common/utils/datatable.helper';
 
 @Injectable()
 export class PedidosCompraService {
@@ -70,65 +67,30 @@ export class PedidosCompraService {
   async findDatatable(
     query: DataTableParamsDto,
   ): Promise<DataTableResult<any>> {
-    const { start = 0, length = 10, search, draw = 1 } = query;
-    const skip = start;
-    const limit = length;
-    const searchValue = search?.value || '';
-
-    const baseWhere: any = {};
-    let where = { ...baseWhere };
-
-    if (searchValue) {
-      const idsByValues = await getIdsByNumericPartialMatch(
-        this.prisma,
-        'pedidos_compra',
-        ['qt_solicitada', 'qt_entregue', 'valor_unitario', 'id'],
-        searchValue,
-      );
-
-      const searchFilter = buildSearchFilter(searchValue, [
+    return PrismaDatatableHelper.execute({
+      prismaModel: this.prisma.pedidoCompra,
+      prismaClient: this.prisma,
+      query,
+      searchableFields: [
         'fornecedor',
         'status',
         'materiaPrima.item',
         'user.fullName',
-      ]);
-
-      if (idsByValues.length > 0) {
-        if (searchFilter.OR) {
-          searchFilter.OR.push({
-            id: { in: idsByValues.map((id) => Number(id)) },
-          });
-        } else {
-          searchFilter.OR = [
-            { id: { in: idsByValues.map((id) => Number(id)) } },
-          ];
-        }
-      }
-
-      where = { ...baseWhere, ...searchFilter };
-    }
-
-    const [data, total, filtered] = await Promise.all([
-      this.prisma.pedidoCompra.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: [{ status: 'asc' }, { dataPedido: 'desc' }],
-        include: {
-          materiaPrima: true,
-          user: { select: { id: true, fullName: true } },
-        },
-      }),
-      this.prisma.pedidoCompra.count({ where: baseWhere }),
-      this.prisma.pedidoCompra.count({ where }),
-    ]);
-
-    return {
-      draw,
-      data,
-      recordsTotal: total,
-      recordsFiltered: filtered,
-    };
+      ],
+      numericSearchFields: [
+        'qtSolicitada',
+        'qtEntregue',
+        'valorUnitario',
+        'id',
+      ],
+      tableName: 'pedidos_compra',
+      defaultOrderBy: [{ status: 'asc' }, { dataPedido: 'desc' }],
+      include: {
+        materiaPrima: true,
+        user: { select: { id: true, fullName: true } },
+      },
+      filterRequestedFields: false,
+    });
   }
 
   async comprar(id: number, dto: ComprarPedidoDto) {

@@ -12,10 +12,7 @@ import {
   DataTableParamsDto,
   DataTableResult,
 } from '../../common/dto/data-table.dto';
-import {
-  buildSearchFilter,
-  getIdsByNumericPartialMatch,
-} from '../../common/utils/prisma-search.utils';
+import { PrismaDatatableHelper } from '../../common/utils/datatable.helper';
 
 @Injectable()
 export class LancamentosService {
@@ -57,86 +54,25 @@ export class LancamentosService {
   async findDatatable(
     query: DataTableParamsDto,
   ): Promise<DataTableResult<any>> {
-    const { start = 0, length = 10, search, draw = 1 } = query;
-    const skip = start;
-    const limit = length;
-    const searchValue = search?.value || '';
-
-    const baseWhere: any = {};
-    let where = { ...baseWhere };
-
-    if (searchValue) {
-      const idsByValues = await getIdsByNumericPartialMatch(
-        this.prisma,
-        'lancamentos_financeiros',
-        ['valor_total', 'valor_pendente', 'id', 'venda_id'],
-        searchValue,
-      );
-
-      const searchFilter = buildSearchFilter(searchValue, [
-        'descricao',
-        'venda.cliente.nome',
-      ]);
-
-      const statusMatches = Object.values(StatusPagamentoVenda).filter((s) =>
-        s.toLowerCase().includes(searchValue.toLowerCase()),
-      );
-      if (statusMatches.length > 0) {
-        if (!searchFilter.OR) searchFilter.OR = [];
-        searchFilter.OR.push({ statusPagamento: { in: statusMatches } });
-      }
-
-      if (idsByValues.length > 0) {
-        if (searchFilter.OR) {
-          searchFilter.OR.push({ id: { in: idsByValues } });
-        } else {
-          searchFilter.OR = [{ id: { in: idsByValues } }];
-        }
-      }
-
-      where = { ...baseWhere, ...searchFilter };
-    }
-
-    const orderBy =
-      query.order?.length && query.columns?.length
-        ? (query.order
-            .map((o) => {
-              const col = query.columns![o.column!];
-              if (!col || !col.data) return undefined;
-              const parts = col.data.split('.');
-              if (parts.length === 1) return { [parts[0]]: o.dir };
-              const res: any = {};
-              let curr = res;
-              for (let i = 0; i < parts.length - 1; i++) {
-                curr[parts[i]] = {};
-                curr = curr[parts[i]];
-              }
-              curr[parts[parts.length - 1]] = o.dir;
-              return res;
-            })
-            .filter(Boolean) as any)
-        : [{ dataVencimento: 'asc' }];
-
-    const [data, total, filtered] = await Promise.all([
-      this.prisma.lancamentoFinanceiro.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy,
-        include: {
-          venda: { include: { cliente: true } },
-        },
-      }),
-      this.prisma.lancamentoFinanceiro.count({ where: baseWhere }),
-      this.prisma.lancamentoFinanceiro.count({ where }),
-    ]);
-
-    return {
-      draw,
-      data,
-      recordsTotal: total,
-      recordsFiltered: filtered,
-    };
+    return PrismaDatatableHelper.execute({
+      prismaModel: this.prisma.lancamentoFinanceiro,
+      prismaClient: this.prisma,
+      query,
+      searchableFields: ['descricao', 'venda.cliente.nome'],
+      numericSearchFields: ['valorTotal', 'valorPendente', 'id', 'vendaId'],
+      tableName: 'lancamentos_financeiros',
+      defaultOrderBy: [{ dataVencimento: 'asc' }],
+      include: { venda: { include: { cliente: true } } },
+      customSearchEnhancer: (searchValue: string) => {
+        const statusMatches = Object.values(StatusPagamentoVenda).filter((s) =>
+          s.toLowerCase().includes(searchValue.toLowerCase()),
+        );
+        return statusMatches.length > 0
+          ? [{ statusPagamento: { in: statusMatches } }]
+          : [];
+      },
+      filterRequestedFields: false,
+    });
   }
 
   async findOne(id: number) {
@@ -177,9 +113,23 @@ export class LancamentosService {
       if (novoValorPendente.isZero()) {
         novoStatusPagamento = StatusPagamentoVenda.PAGO;
       } else if (novoValorPendente.equals(lancamentoAtual.valorTotal)) {
-        novoStatusPagamento = StatusPagamentoVenda.PENDENTE;
+        if (
+          lancamentoAtual.statusPagamento ===
+          StatusPagamentoVenda.ESTORNO_PENDENTE
+        ) {
+          novoStatusPagamento = StatusPagamentoVenda.CANCELADO;
+        } else {
+          novoStatusPagamento = StatusPagamentoVenda.PENDENTE;
+        }
       } else {
-        novoStatusPagamento = StatusPagamentoVenda.PAGO_PARCIALMENTE;
+        if (
+          lancamentoAtual.statusPagamento ===
+          StatusPagamentoVenda.ESTORNO_PENDENTE
+        ) {
+          novoStatusPagamento = StatusPagamentoVenda.ESTORNO_PENDENTE;
+        } else {
+          novoStatusPagamento = StatusPagamentoVenda.PAGO_PARCIALMENTE;
+        }
       }
     }
 

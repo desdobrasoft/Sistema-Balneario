@@ -6,9 +6,17 @@ import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import ShoppingCartCheckoutIcon from "@mui/icons-material/ShoppingCartCheckout";
 import VerifiedIcon from "@mui/icons-material/Verified";
 
+import VisibilityIcon from "@mui/icons-material/Visibility";
+
 // material-ui
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 
@@ -21,6 +29,7 @@ import api from "services/api";
 import { StatusPedidoCompra } from "types/enums";
 import ComprarPedidoForm from "./ComprarPedidoForm";
 import NovoPedidoFinanceiroForm from "./NovoPedidoFinanceiroForm";
+import PedidoCompraDetailsDialog from "./PedidoCompraDetailsDialog";
 
 // ===============================
 // COMPONENT
@@ -43,10 +52,24 @@ const PedidosCompraTable: React.FC = () => {
 
   // Comprar dialog
   const [comprarOpen, setComprarOpen] = useState(false);
-  const [selectedPedido, setSelectedPedido] = useState<PedidoCompraRow | null>(null);
+  const [selectedPedido, setSelectedPedido] = useState<PedidoCompraRow | null>(
+    null,
+  );
 
   // Novo pedido direto
   const [novoOpen, setNovoOpen] = useState(false);
+
+  // Detalhes dialog
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedDetailsPedido, setSelectedDetailsPedido] =
+    useState<PedidoCompraRow | null>(null);
+
+  // Resolver dialog
+  const [resolverOpen, setResolverOpen] = useState(false);
+  const [resolverPedido, setResolverPedido] = useState<PedidoCompraRow | null>(
+    null,
+  );
+  const [isResolving, setIsResolving] = useState(false);
 
   // ===============================
   // COLUMNS
@@ -61,13 +84,8 @@ const PedidosCompraTable: React.FC = () => {
       },
       {
         title: "Material",
-        data: "materiaPrima",
-        render: (data: { item?: string } | null) => data?.item || "N/A",
-      },
-      {
-        title: "Solicitante",
-        data: "user",
-        render: (data: { fullName?: string } | null) => data?.fullName || "---",
+        data: "materiaPrima.item",
+        defaultContent: "N/A",
       },
       { title: "Qtd Solicitada", data: "qtSolicitada" },
       {
@@ -75,47 +93,60 @@ const PedidosCompraTable: React.FC = () => {
         data: "qtEntregue",
         render: (data: number | null) => data ?? "---",
       },
-      { title: "Fornecedor", data: "fornecedor" },
       {
         title: "Valor Total",
         data: "valorUnitario",
         render: (data: string | number | null) =>
           data
             ? new Intl.NumberFormat("pt-BR", {
-              style: "currency",
-              currency: "BRL",
-            }).format(parseFloat(data as string))
+                style: "currency",
+                currency: "BRL",
+              }).format(parseFloat(data as string))
             : "---",
       },
       {
         title: "Status",
         data: "status",
-        render: (data: string) => {
-          let bg = "#e0e0e0",
-            text = "#000",
-            border = "#bdbdbd";
-          if (data === "SOLICITADO") {
-            bg = "#fff3e0";
-            text = "#e65100";
-            border = "#ffb74d";
-          } else if (data === "COMPRADO") {
-            bg = "#e3f2fd";
-            text = "#1565c0";
-            border = "#64b5f6";
-          } else if (data === "ENTREGUE") {
-            bg = "#e8f5e9";
-            text = "#2e7d32";
-            border = "#81c784";
-          } else if (data === "ENTREGUE_COM_ALTERACAO") {
-            bg = "#fff3e0";
-            text = "#e65100";
-            border = "#ffb74d";
-          } else if (data === "RESOLVIDO") {
-            bg = "#f3e5f5";
-            text = "#7b1fa2";
-            border = "#ce93d8";
+        reactRender: (data: unknown) => {
+          const status = data as string;
+          let label = status;
+          let color = "#757575"; // default
+
+          switch (status) {
+            case "SOLICITADO":
+              label = "Solicitado";
+              color = "#ed6c02"; // warning
+              break;
+            case "COMPRADO":
+              label = "Comprado";
+              color = "#0288d1"; // info
+              break;
+            case "ENTREGUE":
+              label = "Entregue";
+              color = "#2e7d32"; // success
+              break;
+            case "ENTREGUE_COM_ALTERACAO":
+              label = "Entregue c/ Alteração";
+              color = "#1976d2"; // primary
+              break;
+            case "RESOLVIDO":
+              label = "Resolvido";
+              color = "#9c27b0"; // secondary
+              break;
           }
-          return `<span style="display:inline-block;padding:2px 10px;border-radius:16px;font-size:0.75rem;font-weight:500;background:${bg};color:${text};border:1px solid ${border};text-transform:uppercase;">${data}</span>`;
+
+          return (
+            <Chip
+              label={label}
+              size="small"
+              sx={{
+                bgcolor: `${color}20`,
+                color: color,
+                border: `1px solid ${color}`,
+                fontWeight: "bold",
+              }}
+            />
+          );
         },
       },
     ],
@@ -147,25 +178,50 @@ const PedidosCompraTable: React.FC = () => {
     setComprarOpen(true);
   }, []);
 
-  const handleResolver = useCallback(async (pedido: PedidoCompraRow) => {
+  const handleResolverClick = useCallback((pedido: PedidoCompraRow) => {
+    setResolverPedido(pedido);
+    setResolverOpen(true);
+  }, []);
+
+  const confirmResolver = useCallback(async () => {
+    if (!resolverPedido) return;
+    setIsResolving(true);
     try {
-      await api.patch(`${ENDPOINTS.PEDIDOS_COMPRA}/${pedido.id}/resolver`);
+      await api.patch(
+        `${ENDPOINTS.PEDIDOS_COMPRA}/${resolverPedido.id}/resolver`,
+      );
       showSnackbar({
         message: "Pedido marcado como resolvido!",
         severity: "success",
       });
+      setResolverOpen(false);
+      setResolverPedido(null);
       tableRef.current?.reload();
     } catch (error) {
       handleError(error);
+    } finally {
+      setIsResolving(false);
     }
-  }, [handleError, showSnackbar]);
+  }, [resolverPedido, handleError, showSnackbar]);
 
   // ===============================
   // ROW ACTIONS
   // ===============================
   const renderRowActions = useCallback(
     (row: PedidoCompraRow) => {
-      const actions = [];
+      const actions = [
+        <Tooltip title="Ver Detalhes" key="view">
+          <IconButton
+            color="info"
+            onClick={() => {
+              setSelectedDetailsPedido(row);
+              setDetailsOpen(true);
+            }}
+          >
+            <VisibilityIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>,
+      ];
 
       if (row.status === StatusPedidoCompra.SOLICITADO) {
         actions.push(
@@ -180,7 +236,10 @@ const PedidosCompraTable: React.FC = () => {
       if (row.status === "ENTREGUE_COM_ALTERACAO") {
         actions.push(
           <Tooltip title="Marcar como Resolvido" key="resolver">
-            <IconButton color="secondary" onClick={() => handleResolver(row)}>
+            <IconButton
+              color="secondary"
+              onClick={() => handleResolverClick(row)}
+            >
               <VerifiedIcon fontSize="small" />
             </IconButton>
           </Tooltip>,
@@ -191,7 +250,7 @@ const PedidosCompraTable: React.FC = () => {
 
       return <Box sx={{ display: "flex", gap: 0.5 }}>{actions}</Box>;
     },
-    [handleComprar, handleResolver],
+    [handleComprar, handleResolverClick],
   );
 
   return (
@@ -250,6 +309,53 @@ const PedidosCompraTable: React.FC = () => {
           tableRef.current?.reload();
         }}
       />
+
+      {/* Detalhes do pedido */}
+      <PedidoCompraDetailsDialog
+        open={detailsOpen}
+        onClose={() => {
+          setDetailsOpen(false);
+          setSelectedDetailsPedido(null);
+        }}
+        pedido={selectedDetailsPedido}
+      />
+
+      {/* Confirmação de Resolver */}
+      <Dialog
+        open={resolverOpen}
+        onClose={() => !isResolving && setResolverOpen(false)}
+      >
+        <DialogTitle>Resolver Pedido</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Tem certeza que deseja marcar este pedido como resolvido?
+            <br />
+            <br />
+            Isso indica que as alterações ou pendências na entrega do pedido
+            (Material:{" "}
+            <strong>{resolverPedido?.materiaPrima?.item || "N/A"}</strong>)
+            foram analisadas e o fluxo financeiro/estoque pode ser considerado
+            concluído.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setResolverOpen(false)}
+            color="inherit"
+            disabled={isResolving}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={confirmResolver}
+            color="secondary"
+            variant="contained"
+            disabled={isResolving}
+          >
+            {isResolving ? "Resolvendo..." : "Resolver Pedido"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

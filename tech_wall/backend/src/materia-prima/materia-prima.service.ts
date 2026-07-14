@@ -4,7 +4,7 @@ import {
   DataTableResult,
 } from '../common/dto/data-table.dto';
 import { PrismaDatatableHelper } from '../common/utils/datatable.helper';
-import { getIdsByNumericPartialMatch } from '../common/utils/prisma-search.utils';
+import { formatDecimal } from '../common/utils/format.utils';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMateriaPrimaDto } from './dto/create-materia-prima.dto';
 import { UpdateMateriaPrimaDto } from './dto/update-materia-prima.dto';
@@ -28,64 +28,29 @@ export class MateriaPrimaService {
     });
   }
 
+  // TRADE-OFF: The previous implementation used in-memory sort to prioritize items
+  // below estoqueMinimo. This has been replaced with Prisma-native orderBy ({ item: 'asc' })
+  // for consistency with PrismaDatatableHelper.execute(). To restore the "low stock first"
+  // behavior at DB level, consider adding a computed/virtual column or a raw SQL orderBy.
   async findAll(query: DataTableParamsDto): Promise<DataTableResult<any>> {
-    const {
-      skip,
-      take,
-      where: generatedWhere,
-    } = PrismaDatatableHelper.buildPrismaQuery(query, ['item', 'unidade']);
-
-    const finalWhere = { ...generatedWhere };
-
-    if (query.search?.value) {
-      const searchVal = query.search.value;
-      const idsByQuantity = await getIdsByNumericPartialMatch(
-        this.prisma,
-        'materia_prima',
-        ['quantidade', 'estoque_minimo'],
-        searchVal,
-      );
-
-      if (idsByQuantity.length > 0) {
-        if (finalWhere.OR) {
-          finalWhere.OR.push({
-            id: { in: idsByQuantity.map((id) => Number(id)) },
-          });
-        } else {
-          finalWhere.OR = [
-            { id: { in: idsByQuantity.map((id) => Number(id)) } },
-          ];
-        }
-      }
-    }
-
-    // Fetch all matching data to sort them globally in memory by availability
-    const allData = await this.prisma.materiaPrima.findMany({
-      where: finalWhere,
-      orderBy: { item: 'asc' }, // fallback sort
+    return PrismaDatatableHelper.execute({
+      prismaModel: this.prisma.materiaPrima,
+      prismaClient: this.prisma,
+      query,
+      searchableFields: ['item', 'unidade'],
+      numericSearchFields: ['quantidade', 'estoqueMinimo'],
+      tableName: 'materia_prima',
+      defaultOrderBy: { item: 'asc' },
+      mapRow: (item: any) => ({
+        id: item.id,
+        item: item.item,
+        unidade: item.unidade,
+        quantidade: formatDecimal(item.quantidade),
+        estoqueMinimo: formatDecimal(item.estoqueMinimo),
+        deletedAt: item.deletedAt,
+      }),
+      filterRequestedFields: false,
     });
-
-    // Custom Sort: Items below limit should come first
-    allData.sort((a, b) => {
-      const aIsLow = a.estoqueMinimo && a.quantidade < a.estoqueMinimo;
-      const bIsLow = b.estoqueMinimo && b.quantidade < b.estoqueMinimo;
-      if (aIsLow && !bIsLow) return -1;
-      if (!aIsLow && bIsLow) return 1;
-      return 0; // maintain alphabetical order otherwise
-    });
-
-    const total = await this.prisma.materiaPrima.count();
-    const filtered = allData.length;
-
-    // Manual Pagination
-    const data = allData.slice(skip, skip + take);
-
-    return {
-      draw: query.draw || 1,
-      data,
-      recordsTotal: total,
-      recordsFiltered: filtered,
-    };
   }
 
   async findOne(id: number, tx?: any) {

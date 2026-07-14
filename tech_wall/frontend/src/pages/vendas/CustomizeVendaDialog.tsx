@@ -25,7 +25,7 @@ import Typography from "@mui/material/Typography";
 import { ENDPOINTS } from "config/endpoints";
 import api from "services/api";
 
-import RequisitosEditor, { type RequisitoOverride } from "components/RequisitosEditor";
+import RequisitosEditor, { type RequisitoEditorItem } from "components/RequisitosEditor";
 
 // ===============================
 // TYPES
@@ -36,7 +36,7 @@ export interface VendaItemOverride {
   item?: string;
 }
 
-export type VendaRequisitoOverride = RequisitoOverride;
+export type VendaRequisitoOverride = RequisitoEditorItem;
 
 export interface VendaSuprimentoOverride {
   nome: string;
@@ -118,21 +118,7 @@ const CustomizeVendaDialog: React.FC<CustomizeVendaDialogProps> = ({
                   tipo: r.tipo,
                   alias: r.alias,
                   parede: r.parede,
-                  largura: r.largura ? Number(r.largura) : undefined,
-                  altura: r.altura ? Number(r.altura) : undefined,
-                  espessura: r.espessura ? Number(r.espessura) : undefined,
-                  tramaEsquerdaId: r.tramaEsquerdaId
-                    ? Number(r.tramaEsquerdaId)
-                    : null,
-                  tramaDireitaId: r.tramaDireitaId
-                    ? Number(r.tramaDireitaId)
-                    : null,
-                  tramaSuperiorId: r.tramaSuperiorId
-                    ? Number(r.tramaSuperiorId)
-                    : null,
-                  tramaInferiorId: r.tramaInferiorId
-                    ? Number(r.tramaInferiorId)
-                    : null,
+                  tipoPlacaId: r.tipoPlacaId ? Number(r.tipoPlacaId) : null,
                   corteId: r.corteId ? Number(r.corteId) : null,
                 })),
               );

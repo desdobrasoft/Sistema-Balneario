@@ -65,12 +65,22 @@ export const StatusEntrega = {
 } as const;
 export type StatusEntrega = (typeof StatusEntrega)[keyof typeof StatusEntrega];
 
+export const StatusEntregaLabels: Record<StatusEntrega, string> = {
+  [StatusEntrega.PENDENTE_TRANSPORTADORA]: "Pendente Transportadora",
+  [StatusEntrega.COLETA_AGENDADA]: "Coleta Agendada",
+  [StatusEntrega.EM_TRANSITO]: "Em Trânsito",
+  [StatusEntrega.ENTREGUE]: "Entregue",
+  [StatusEntrega.ATRASADA]: "Atrasada",
+  [StatusEntrega.CANCELADA]: "Cancelada",
+};
+
 export const StatusPagamentoVenda = {
   PENDENTE: "PENDENTE",
   PAGO_PARCIALMENTE: "PAGO_PARCIALMENTE",
   PAGO: "PAGO",
   VENCIDO: "VENCIDO",
   CANCELADO: "CANCELADO",
+  ESTORNO_PENDENTE: "ESTORNO_PENDENTE",
 } as const;
 export type StatusPagamentoVenda =
   (typeof StatusPagamentoVenda)[keyof typeof StatusPagamentoVenda];
@@ -81,6 +91,7 @@ export const StatusPagamentoVendaLabels: Record<StatusPagamentoVenda, string> = 
   [StatusPagamentoVenda.PAGO]: "Pago",
   [StatusPagamentoVenda.VENCIDO]: "Vencido",
   [StatusPagamentoVenda.CANCELADO]: "Cancelado",
+  [StatusPagamentoVenda.ESTORNO_PENDENTE]: "Estorno Pendente",
 };
 
 export const TipoLancamento = {

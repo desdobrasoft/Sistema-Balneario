@@ -22,21 +22,30 @@ export interface ExportModelo {
   requisitos?: {
     parede?: string;
     tipo: string;
-    largura?: number;
-    altura?: number;
     alias?: string;
+    tipoPlaca?: {
+      largura: number;
+      altura: number;
+      tramaEsquerdaId?: number;
+      tramaDireitaId?: number;
+      tramaSuperiorId?: number;
+      tramaInferiorId?: number;
+    };
     corte?: {
       nome?: string;
       largura?: number;
       altura?: number;
       percurso?: { distancia: number }[];
     };
-    tramaEsquerdaId?: number;
-    tramaDireitaId?: number;
-    tramaSuperiorId?: number;
-    tramaInferiorId?: number;
   }[];
 }
+
+const formatMeasure = (val: number | undefined): string => {
+  if (val === undefined || val === null) return "0";
+  return new Intl.NumberFormat("pt-BR", {
+    maximumFractionDigits: 2,
+  }).format(val);
+};
 
 const buildExportData = (modelo: ExportModelo, allTramas: ExportTrama[]): ParedeExportData[] => {
   const requisitos = modelo.requisitos || [];
@@ -50,7 +59,7 @@ const buildExportData = (modelo: ExportModelo, allTramas: ExportTrama[]): Parede
 
     let dimensoes = "—";
     if (item.tipo === "PLACA_LISA") {
-      dimensoes = `${item.largura} x ${item.altura}`;
+      dimensoes = item.tipoPlaca ? `${formatMeasure(item.tipoPlaca.largura)} x ${formatMeasure(item.tipoPlaca.altura)}` : "—";
     } else if (item.tipo === "CORTE_ESPECIFICO" && item.corte) {
       const percurso = Array.isArray(item.corte.percurso)
         ? item.corte.percurso
@@ -58,20 +67,20 @@ const buildExportData = (modelo: ExportModelo, allTramas: ExportTrama[]): Parede
 
       // Se for retangular (4 lados), exibe apenas largura x altura conforme solicitado
       if (percurso.length === 4) {
-        dimensoes = `${item.corte.largura} x ${item.corte.altura}`;
+        dimensoes = `${formatMeasure(item.corte.largura)} x ${formatMeasure(item.corte.altura)}`;
       } else {
         // Caso contrário, exibe o valor bruto das medidas do percurso
-        dimensoes = percurso.map((v: { distancia: number }) => v.distancia).join(" x ");
+        dimensoes = percurso.map((v: { distancia: number }) => formatMeasure(v.distancia)).join(" x ");
       }
     }
 
     // Tenta extrair tramas baseando-se na presença de ID nos requisitos
     const tramasSet = new Set<string>();
     const tramaIds = [
-      item.tramaEsquerdaId,
-      item.tramaDireitaId,
-      item.tramaSuperiorId,
-      item.tramaInferiorId,
+      item.tipoPlaca?.tramaEsquerdaId,
+      item.tipoPlaca?.tramaDireitaId,
+      item.tipoPlaca?.tramaSuperiorId,
+      item.tipoPlaca?.tramaInferiorId,
     ].filter(Boolean);
 
     tramaIds.forEach((id) => {
@@ -188,4 +197,92 @@ export const exportToExcel = async (modelo: ExportModelo, allTramas: ExportTrama
   a.download = `Mapa_Cortes_${modelo.nome.replace(/\s+/g, "_")}.xlsx`;
   a.click();
   window.URL.revokeObjectURL(url);
+};
+
+export const exportToCSV = (modelo: ExportModelo, allTramas: ExportTrama[]) => {
+  const data = buildExportData(modelo, allTramas);
+  let csvContent = "Parede,Nome,Medidas,Tramas\n";
+
+  data.forEach((paredeGroup) => {
+    paredeGroup.items.forEach((item) => {
+      // Escape strings containing commas with double quotes
+      const escape = (str: string) => `"${str.replace(/"/g, '""')}"`;
+      csvContent += `${escape(paredeGroup.parede)},${escape(item.alias)},${escape(item.dimensoes)},${escape(item.tramas)}\n`;
+    });
+  });
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Mapa_Cortes_${modelo.nome.replace(/\s+/g, "_")}.csv`;
+  a.click();
+  window.URL.revokeObjectURL(url);
+};
+
+export const printExport = (modelo: ExportModelo, allTramas: ExportTrama[]) => {
+  const data = buildExportData(modelo, allTramas);
+
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) return;
+
+  let htmlContent = `
+    <html>
+      <head>
+        <title>Mapa de Cortes - ${modelo.nome}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; }
+          h1 { text-align: center; }
+          h2 { margin-top: 30px; border-bottom: 2px solid #ccc; padding-bottom: 5px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #2980b9; color: white; }
+          @media print {
+            button { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <button onclick="window.print()" style="padding: 10px 20px; margin-bottom: 20px; cursor: pointer;">Imprimir Relatório</button>
+        <h1>Mapa de Cortes - ${modelo.nome}</h1>
+  `;
+
+  data.forEach((paredeGroup) => {
+    htmlContent += `
+      <h2>${paredeGroup.parede}</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>NOME</th>
+            <th>MEDIDAS (cm)</th>
+            <th>TRAMAS</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    paredeGroup.items.forEach((item) => {
+      htmlContent += `
+          <tr>
+            <td>${item.alias}</td>
+            <td>${item.dimensoes}</td>
+            <td>${item.tramas}</td>
+          </tr>
+      `;
+    });
+
+    htmlContent += `
+        </tbody>
+      </table>
+    `;
+  });
+
+  htmlContent += `
+      </body>
+    </html>
+  `;
+
+  printWindow.document.write(htmlContent);
+  printWindow.document.close();
+  printWindow.focus();
 };

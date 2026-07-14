@@ -18,6 +18,7 @@ import Placas from "pages/placas";
 import Producao from "pages/producao";
 import Roles from "pages/roles";
 import SessionExpired from "pages/session-expired";
+import TiposPlaca from "pages/tipos-placa";
 import Tramas from "pages/tramas";
 import Users from "pages/usuarios";
 import Vendas from "pages/vendas";
@@ -81,6 +82,10 @@ function App() {
 
                   <Route element={<PermissionGuard permission="estoque" />}>
                     <Route path="materia-prima" element={<MateriaPrima />} />
+                  </Route>
+
+                  <Route element={<PermissionGuard permission="placas" />}>
+                    <Route path="tipos-placa" element={<TiposPlaca />} />
                   </Route>
 
                   <Route element={<PermissionGuard permission="placas" />}>

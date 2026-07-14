@@ -1,7 +1,7 @@
 /** Lista de módulos/permissões do sistema. */
 export const APP_MODULES: Record<string, string> = {
   clientes: 'Clientes',
-  placas: 'Placas (Estoque)',
+  placas: 'Placas',
   cortes: 'Cortes Paramétricos',
   tramas: 'Tramas e Texturas',
   modelos: 'Catálogo de Modelos',

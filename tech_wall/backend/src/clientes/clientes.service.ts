@@ -26,32 +26,12 @@ export class ClientesService {
   async findDatatable(
     query: DataTableParamsDto,
   ): Promise<DataTableResult<any>> {
-    const { skip, take, where, orderBy } =
-      PrismaDatatableHelper.buildPrismaQuery(
-        query,
-        ['nome', 'email', 'nroContato'],
-        { isInternal: false },
-      );
-
-    const [data, total, filtered] = await Promise.all([
-      this.prisma.cliente.findMany({
-        where,
-        skip,
-        take,
-        orderBy: Object.keys(orderBy as Record<string, unknown>).length
-          ? orderBy
-          : { id: 'desc' },
-      }),
-      this.prisma.cliente.count({ where: { isInternal: false } }),
-      this.prisma.cliente.count({ where }),
-    ]);
-
-    const requestedFields = (query.columns
-      ?.map((c) => c.data)
-      .filter((d) => d && d !== 'null') || []) as string[];
-
-    const finalData = data.map((cliente: any) => {
-      const flatObj: any = {
+    return PrismaDatatableHelper.execute({
+      prismaModel: this.prisma.cliente,
+      query,
+      searchableFields: ['nome', 'email', 'nroContato'],
+      baseWhere: { isInternal: false },
+      mapRow: (cliente) => ({
         id: cliente.id,
         nome: cliente.nome,
         email: cliente.email,
@@ -59,25 +39,8 @@ export class ClientesService {
         isInternal: cliente.isInternal,
         createdAt: cliente.createdAt,
         updatedAt: cliente.updatedAt,
-      };
-
-      if (requestedFields.length === 0) return flatObj;
-
-      const result: any = {};
-      requestedFields.forEach((field) => {
-        if (flatObj[field] !== undefined) {
-          result[field] = flatObj[field];
-        }
-      });
-      return result;
+      }),
     });
-
-    return {
-      draw: query.draw || 1,
-      data: finalData,
-      recordsTotal: total,
-      recordsFiltered: filtered,
-    };
   }
 
   async findOrCreateInternalClient() {

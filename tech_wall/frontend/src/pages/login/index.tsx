@@ -32,7 +32,7 @@ const Login: React.FC = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const { setTokens, setUser } = useAuthStore();
+  const { setUser } = useAuthStore();
 
   const from = location.state?.from?.pathname || "/";
 
@@ -42,13 +42,10 @@ const Login: React.FC = () => {
     setError(null);
 
     try {
-      const response = await api.post(ENDPOINTS.AUTH.LOGIN, {
+      await api.post(ENDPOINTS.AUTH.LOGIN, {
         login: username,
         senha: password,
       });
-
-      const { access_token, refresh_token } = response.data;
-      setTokens(access_token, refresh_token);
 
       // Busca o usuário atual imediatamente após o login
       const userResponse = await api.get(ENDPOINTS.AUTH.CURRENT_USER);

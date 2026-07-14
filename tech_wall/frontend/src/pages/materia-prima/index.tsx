@@ -7,6 +7,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 
 // material-ui
 import Box from "@mui/material/Box";
@@ -46,11 +47,13 @@ const MateriaPrima: React.FC = () => {
 
   // Movimentação dialog
   const [movDialogOpen, setMovDialogOpen] = useState(false);
-  const [movPreSelected, setMovPreSelected] = useState<MateriaPrimaModel | null>(null);
+  const [movPreSelected, setMovPreSelected] =
+    useState<MateriaPrimaModel | null>(null);
 
   // Pedido de Compra dialog
   const [pedidoDialogOpen, setPedidoDialogOpen] = useState(false);
-  const [pedidoMaterial, setPedidoMaterial] = useState<MateriaPrimaModel | null>(null);
+  const [pedidoMaterial, setPedidoMaterial] =
+    useState<MateriaPrimaModel | null>(null);
 
   const tableRef = useRef<{ reload: () => void }>(null);
   const { showDialog, closeDialog } = useDialog();
@@ -66,16 +69,27 @@ const MateriaPrima: React.FC = () => {
       {
         title: "Qtd",
         data: "quantidade",
-        render: (data: number, _: unknown, row: MateriaPrimaModel) => {
-          const isLow = data <= (row.estoqueMinimo || 0);
-          const color = isLow ? "#d32f2f" : "inherit";
-          const fontWeight = isLow ? "bold" : "normal";
-          const icon = isLow
-            ? '<span style="color:#d32f2f; margin-right: 4px; font-size: 0.9rem;">⚠️</span>'
-            : "";
-          return `<div style="display: flex; align-items: center; color: ${color}; font-weight: ${fontWeight};">
-            ${icon} ${data} ${row.unidade || ""}
-          </div>`;
+        reactRender: (data: unknown, row: MateriaPrimaModel) => {
+          const numData = Number(data);
+          const isLow = numData <= (row.estoqueMinimo || 0);
+          const formattedData = new Intl.NumberFormat("pt-BR", {
+            maximumFractionDigits: 2,
+          }).format(numData);
+
+          return (
+            <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+              {isLow && <WarningAmberIcon color="error" fontSize="small" />}
+              <Box
+                component="span"
+                sx={{
+                  color: isLow ? "error.main" : "inherit",
+                  fontWeight: isLow ? "bold" : "inherit",
+                }}
+              >
+                {formattedData} {row.unidade || ""}
+              </Box>
+            </Stack>
+          );
         },
       },
       { title: "Lim. Baixo", data: "estoqueMinimo" },
@@ -103,21 +117,24 @@ const MateriaPrima: React.FC = () => {
   // ===============================
   // MATERIAL CRUD HANDLERS
   // ===============================
-  const handleOpenDialog = useCallback(async (
-    material: MateriaPrimaModel | null = null,
-  ) => {
-    if (material) {
-      try {
-        const res = await api.get(`${ENDPOINTS.MATERIA_PRIMA}/${material.id}`);
-        setSelectedMaterial(res.data);
-      } catch (error) {
-        handleError(error);
+  const handleOpenDialog = useCallback(
+    async (material: MateriaPrimaModel | null = null) => {
+      if (material) {
+        try {
+          const res = await api.get(
+            `${ENDPOINTS.MATERIA_PRIMA}/${material.id}`,
+          );
+          setSelectedMaterial(res.data);
+        } catch (error) {
+          handleError(error);
+        }
+      } else {
+        setSelectedMaterial(null);
       }
-    } else {
-      setSelectedMaterial(null);
-    }
-    setDialogOpen(true);
-  }, [handleError]);
+      setDialogOpen(true);
+    },
+    [handleError],
+  );
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
@@ -125,8 +142,11 @@ const MateriaPrima: React.FC = () => {
   };
 
   const handleSubmit = async (values: MateriaPrimaModel) => {
-    const payload = { ...values } as Partial<MateriaPrimaModel> & Record<string, unknown>;
+    const payload = { ...values } as Partial<MateriaPrimaModel> &
+      Record<string, unknown>;
     delete payload.id;
+    delete payload.deletedAt;
+    
     if (selectedMaterial) {
       await api.patch(
         `${ENDPOINTS.MATERIA_PRIMA}/${selectedMaterial.id}`,
@@ -147,45 +167,51 @@ const MateriaPrima: React.FC = () => {
     handleCloseDialog();
   };
 
-  const handleDelete = useCallback((id: number) => {
-    showDialog({
-      title: "Excluir Material",
-      body: "Tem certeza de que deseja excluir este material? Esta ação não pode ser desfeita.",
-      actions: [
-        <Button key="cancel" onClick={closeDialog}>
-          Cancelar
-        </Button>,
-        <Button
-          key="confirm"
-          color="error"
-          variant="contained"
-          onClick={async () => {
-            closeDialog();
-            try {
-              await api.delete(`${ENDPOINTS.MATERIA_PRIMA}/${id}`);
-              showSnackbar({
-                message: "Material excluído com sucesso!",
-                severity: "success",
-              });
-              tableRef.current?.reload();
-            } catch (error) {
-              handleError(error);
-            }
-          }}
-        >
-          Excluir
-        </Button>,
-      ],
-    });
-  }, [showDialog, closeDialog, handleError, showSnackbar]);
+  const handleDelete = useCallback(
+    (id: number) => {
+      showDialog({
+        title: "Excluir Material",
+        body: "Tem certeza de que deseja excluir este material? Esta ação não pode ser desfeita.",
+        actions: [
+          <Button key="cancel" onClick={closeDialog}>
+            Cancelar
+          </Button>,
+          <Button
+            key="confirm"
+            color="error"
+            variant="contained"
+            onClick={async () => {
+              closeDialog();
+              try {
+                await api.delete(`${ENDPOINTS.MATERIA_PRIMA}/${id}`);
+                showSnackbar({
+                  message: "Material excluído com sucesso!",
+                  severity: "success",
+                });
+                tableRef.current?.reload();
+              } catch (error) {
+                handleError(error);
+              }
+            }}
+          >
+            Excluir
+          </Button>,
+        ],
+      });
+    },
+    [showDialog, closeDialog, handleError, showSnackbar],
+  );
 
   // ===============================
   // MOVIMENTAÇÃO HANDLERS
   // ===============================
-  const handleOpenMovimentacao = useCallback((material: MateriaPrimaModel | null = null) => {
-    setMovPreSelected(material);
-    setMovDialogOpen(true);
-  }, []);
+  const handleOpenMovimentacao = useCallback(
+    (material: MateriaPrimaModel | null = null) => {
+      setMovPreSelected(material);
+      setMovDialogOpen(true);
+    },
+    [],
+  );
 
   // ===============================
   // PEDIDO DE COMPRA HANDLERS
@@ -229,7 +255,12 @@ const MateriaPrima: React.FC = () => {
         </Tooltip>
       </Box>
     ),
-    [handleOpenMovimentacao, handleOpenPedidoCompra, handleOpenDialog, handleDelete],
+    [
+      handleOpenMovimentacao,
+      handleOpenPedidoCompra,
+      handleOpenDialog,
+      handleDelete,
+    ],
   );
 
   return (
@@ -276,7 +307,15 @@ const MateriaPrima: React.FC = () => {
         <Box sx={{ p: 2 }}>
           {tabValue === 0 && (
             <MateriaPrimaDashboard
-              onOpenPedidoCompra={handleOpenPedidoCompra as unknown as (material: { id: number; item: string; quantidade: number; estoqueMinimo: number; unidade?: string }) => void}
+              onOpenPedidoCompra={
+                handleOpenPedidoCompra as unknown as (material: {
+                  id: number;
+                  item: string;
+                  quantidade: number;
+                  estoqueMinimo: number;
+                  unidade?: string;
+                }) => void
+              }
             />
           )}
           {tabValue === 1 && (

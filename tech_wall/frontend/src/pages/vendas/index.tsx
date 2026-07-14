@@ -1,23 +1,30 @@
 // packages
+import type { ConfigColumns } from "datatables.net-dt";
 import { useCallback, useMemo, useRef, useState } from "react";
 
 // icons
 import AddCircleOutlinedIcon from "@mui/icons-material/AddCircleOutlined";
-import DeleteIcon from "@mui/icons-material/Delete";
+import BlockIcon from "@mui/icons-material/Block";
 import EditIcon from "@mui/icons-material/Edit";
+import HomeIcon from "@mui/icons-material/Home";
+import IosShareIcon from "@mui/icons-material/IosShare";
+import ViewModuleIcon from "@mui/icons-material/ViewModule";
 
 // material-ui
+import PrintIcon from "@mui/icons-material/Print";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import ButtonBase from "@mui/material/ButtonBase";
+import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import PrintIcon from "@mui/icons-material/Print";
 
 // project imports
 import DataTable from "../../components/datatable/DataTable";
+import { ReportExportModal } from "../../components/ReportExportModal";
 import { ENDPOINTS } from "../../config/endpoints";
 import { useDialog } from "../../hooks/useDialog";
 import { useErrorHandler } from "../../hooks/useErrorHandler";
@@ -25,13 +32,18 @@ import { useSnackbar } from "../../hooks/useSnackbar";
 import api from "../../services/api";
 import {
   StatusPagamentoVenda,
+  StatusPagamentoVendaLabels,
   StatusVenda,
   StatusVendaLabels,
-  StatusPagamentoVendaLabels,
 } from "../../types/enums";
-import VendaForm from "./Form";
-import { ReportExportModal } from "../../components/ReportExportModal";
 import { handleExportFormat, type ColumnDef } from "../../utils/exportUtils";
+import {
+  exportToCSV,
+  exportToExcel,
+  exportToPDF,
+  printExport,
+} from "../modelos/ExportUtils";
+import VendaForm from "./Form";
 
 // ===============================
 // STATUS COLOR HELPERS
@@ -83,6 +95,11 @@ const statusPagamentoColors: Record<
   string,
   { bg: string; text: string; border: string }
 > = {
+  [StatusPagamentoVenda.ESTORNO_PENDENTE]: {
+    bg: "#FFF3E0",
+    text: "#E65100",
+    border: "#FFB74D",
+  },
   [StatusPagamentoVenda.PENDENTE]: {
     bg: "#FFF8E1",
     text: "#F57F17",
@@ -110,20 +127,16 @@ const statusPagamentoColors: Record<
   },
 };
 
-function chipHtml(
-  label: string,
-  colors: { bg: string; text: string; border: string },
-) {
-  return `<span style="display:inline-block;padding:2px 10px;border-radius:16px;font-size:0.8125rem;font-weight:500;background:${colors.bg};color:${colors.text};border:1px solid ${colors.border};">${label}</span>`;
-}
-
 // ===============================
 // VENDAS PAGE
 // ===============================
 const Vendas = () => {
   const tableRef = useRef<{ reload: () => void }>(null);
+
   const [formOpen, setFormOpen] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [mapExportModalOpen, setMapExportModalOpen] = useState(false);
+  const [vendaToExportMap, setVendaToExportMap] = useState<number | null>(null);
   const [initialIsAvulso, setInitialIsAvulso] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Record<
     string,
@@ -133,12 +146,59 @@ const Vendas = () => {
   const { showSnackbar } = useSnackbar();
   const handleError = useErrorHandler();
 
-  // All column render functions return plain strings/HTML – required by DataTables.net
-  const columns = useMemo(
+  const handleExportMap = useCallback(
+    async (format: "PDF" | "CSV" | "XLSX" | "PRINT") => {
+      if (!vendaToExportMap) return;
+
+      setMapExportModalOpen(false);
+      showSnackbar({ message: "Gerando exportação...", severity: "info" });
+      try {
+        // Fetch full venda to get vendaRequisitos
+        const vendaRes = await api.get(
+          `${ENDPOINTS.VENDAS}/${vendaToExportMap}`,
+        );
+        const fullVenda = vendaRes.data;
+
+        // Fetch all tramas to get names (optional since ExportUtils now uses tipoPlaca)
+        const tramasRes = await api.get(ENDPOINTS.TRAMAS);
+        const allTramas = Array.isArray(tramasRes.data)
+          ? tramasRes.data
+          : tramasRes.data.data || [];
+
+        // Convert VendaRequisito to the ExportModelo structure
+        const modeloExportData = {
+          nome: fullVenda.modeloCasa?.nome || "Modelo Customizado",
+          requisitos: fullVenda.vendaRequisitos || [],
+        };
+
+        if (format === "PDF") {
+          exportToPDF(modeloExportData, allTramas);
+        } else if (format === "XLSX") {
+          exportToExcel(modeloExportData, allTramas);
+        } else if (format === "CSV") {
+          exportToCSV(modeloExportData, allTramas);
+        } else if (format === "PRINT") {
+          printExport(modeloExportData, allTramas);
+        }
+
+        showSnackbar({
+          message: "Exportação concluída com sucesso!",
+          severity: "success",
+        });
+      } catch (error) {
+        handleError(error);
+      } finally {
+        setVendaToExportMap(null);
+      }
+    },
+    [vendaToExportMap, handleError, showSnackbar],
+  );
+
+  const columns = useMemo<ConfigColumns[]>(
     () => [
       { title: "ID", data: "id", width: "1px" },
-      { title: "Cliente", data: "clienteNome" },
-      { title: "Produto", data: "modeloNome" },
+      { title: "Cliente", data: "cliente.nome", defaultContent: "N/A" },
+      { title: "Produto", data: "modeloCasa.nome", defaultContent: "N/A" },
       {
         title: "Preço",
         data: "preco",
@@ -151,34 +211,61 @@ const Vendas = () => {
       {
         title: "Status",
         data: "status",
-        render: (data: string) => {
+        reactRender: (data: string) => {
           const label = StatusVendaLabels[data as StatusVenda] || data || "—";
           const colors = statusVendaColors[data] || {
             bg: "#F5F5F5",
             text: "#616161",
             border: "#BDBDBD",
           };
-          return chipHtml(label, colors);
+          return (
+            <Chip
+              label={label}
+              size="small"
+              sx={{
+                bgcolor: colors.bg,
+                color: colors.text,
+                border: `1px solid ${colors.border}`,
+                fontWeight: 500,
+              }}
+            />
+          );
         },
       },
       {
         title: "Pagamento",
         data: "statusPagamento",
-        render: (data: string) => {
-          const label = data?.replace(/_/g, " ") || "—";
+        reactRender: (data: string) => {
+          const label =
+            StatusPagamentoVendaLabels[data as StatusPagamentoVenda] ||
+            data ||
+            "—";
           const colors = statusPagamentoColors[data] || {
             bg: "#F5F5F5",
             text: "#616161",
             border: "#BDBDBD",
           };
-          return chipHtml(label, colors);
+          return (
+            <Chip
+              label={label}
+              size="small"
+              sx={{
+                bgcolor: colors.bg,
+                color: colors.text,
+                border: `1px solid ${colors.border}`,
+                fontWeight: 500,
+              }}
+            />
+          );
         },
       },
       {
         title: "Data",
         data: "dataVenda",
         render: (data: string) =>
-          data ? new Date(data).toLocaleDateString("pt-BR") : "—",
+          data
+            ? new Date(data).toLocaleDateString("pt-BR", { timeZone: "UTC" })
+            : "—",
       },
     ],
     [],
@@ -201,34 +288,103 @@ const Vendas = () => {
   const handleOpenAdd = () => {
     showDialog({
       title: "Nova Venda",
-      body: "Escolha o tipo de venda que deseja registrar:",
+      body: (
+        <Stack direction="row" spacing={2} sx={{ mt: 1 }}>
+          <ButtonBase
+            onClick={() => {
+              closeDialog();
+              setInitialIsAvulso(false);
+              setSelectedItem(null);
+              setFormOpen(true);
+            }}
+            sx={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 1,
+              p: 3,
+              borderRadius: 2,
+              border: "1px solid",
+              borderColor: "divider",
+              bgcolor: "background.paper",
+              transition: "all 0.2s ease",
+              "&:hover": {
+                borderColor: "primary.main",
+                bgcolor: "action.hover",
+                transform: "translateY(-2px)",
+                boxShadow: 3,
+              },
+            }}
+          >
+            <HomeIcon sx={{ fontSize: 40, color: "primary.main" }} />
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Modelo de Casa
+            </Typography>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ textAlign: "center" }}
+            >
+              Venda baseada em um projeto de modelo cadastrado
+            </Typography>
+          </ButtonBase>
+
+          <ButtonBase
+            onClick={() => {
+              closeDialog();
+              setInitialIsAvulso(true);
+              setSelectedItem(null);
+              setFormOpen(true);
+            }}
+            sx={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 1,
+              p: 3,
+              borderRadius: 2,
+              border: "1px solid",
+              borderColor: "divider",
+              bgcolor: "background.paper",
+              transition: "all 0.2s ease",
+              "&:hover": {
+                borderColor: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? "secondary.light"
+                    : "secondary.main",
+                bgcolor: "action.hover",
+                transform: "translateY(-2px)",
+                boxShadow: 3,
+              },
+            }}
+          >
+            <ViewModuleIcon
+              sx={{
+                fontSize: 40,
+                color: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? "secondary.light"
+                    : "secondary.main",
+              }}
+            />
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Placas Avulsas
+            </Typography>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ textAlign: "center" }}
+            >
+              Venda direta de placas sem modelo associado
+            </Typography>
+          </ButtonBase>
+        </Stack>
+      ),
       actions: [
-        <Button key="cancel" onClick={closeDialog}>
-          Cancelar
-        </Button>,
-        <Button
-          key="modelo"
-          variant="contained"
-          onClick={() => {
-            closeDialog();
-            setInitialIsAvulso(false);
-            setSelectedItem(null);
-            setFormOpen(true);
-          }}
-        >
-          Modelo de Casa
-        </Button>,
-        <Button
-          key="avulsa"
-          variant="contained"
-          onClick={() => {
-            closeDialog();
-            setInitialIsAvulso(true);
-            setSelectedItem(null);
-            setFormOpen(true);
-          }}
-        >
-          Placas
+        <Button key="close" onClick={closeDialog}>
+          Fechar
         </Button>,
       ],
     });
@@ -257,14 +413,14 @@ const Vendas = () => {
     tableRef.current?.reload();
   };
 
-  const handleDelete = useCallback(
+  const handleCancel = useCallback(
     async (id: number) => {
       showDialog({
-        title: "Excluir Venda",
-        body: "Deseja realmente excluir esta venda?",
+        title: "Cancelar Venda",
+        body: "Deseja realmente cancelar esta venda? O status do pagamento constará como 'Estorno Pendente', de forma que você deverá estornar o lançamento financeiro manualmente, se houver.",
         actions: [
           <Button key="cancel" onClick={closeDialog}>
-            Cancelar
+            Voltar
           </Button>,
           <Button
             key="confirm"
@@ -273,9 +429,9 @@ const Vendas = () => {
             onClick={async () => {
               closeDialog();
               try {
-                await api.post(`${ENDPOINTS.VENDAS}/${id}/estornar`);
+                await api.post(`${ENDPOINTS.VENDAS}/${id}/cancelar`);
                 showSnackbar({
-                  message: "Venda excluída/estornada com sucesso!",
+                  message: "Venda cancelada com sucesso!",
                   severity: "success",
                 });
                 tableRef.current?.reload();
@@ -284,7 +440,7 @@ const Vendas = () => {
               }
             }}
           >
-            Excluir
+            Confirmar Cancelamento
           </Button>,
         ],
       });
@@ -294,7 +450,24 @@ const Vendas = () => {
 
   const renderRowActions = useCallback(
     (row: Record<string, unknown> & { id: number }) => (
-      <Box sx={{ display: "flex", gap: 0.5 }}>
+      <Stack direction="row">
+        {(row.modeloCasaId || row.modeloCasa) && row.possuiCustomizacao ? (
+          <Tooltip title="Exportar Mapa de Cortes">
+            <IconButton
+              color="secondary"
+              size="small"
+              onClick={() => {
+                setVendaToExportMap(row.id);
+                setMapExportModalOpen(true);
+              }}
+            >
+              <IosShareIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        ) : (
+          <Box sx={{ width: 30, height: 30 }} />
+        )}
+
         <Tooltip title="Editar Venda">
           <IconButton
             color="primary"
@@ -304,28 +477,38 @@ const Vendas = () => {
             <EditIcon fontSize="small" />
           </IconButton>
         </Tooltip>
-        <Tooltip title="Excluir Venda">
-          <IconButton
-            color="error"
-            size="small"
-            onClick={() => handleDelete(row.id)}
-          >
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </Box>
+
+        {row.status !== StatusVenda.CANCELADA ? (
+          <Tooltip title="Cancelar Venda">
+            <IconButton
+              color="error"
+              size="small"
+              onClick={() => handleCancel(row.id)}
+            >
+              <BlockIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        ) : (
+          <Box sx={{ width: 30, height: 30 }} />
+        )}
+      </Stack>
     ),
-    [handleOpenEdit, handleDelete],
+    [handleOpenEdit, handleCancel],
   );
 
-  const handleExport = async (format: 'PDF' | 'CSV' | 'XLSX' | 'PRINT', filters: { startDate: string; endDate: string }) => {
+  const handleExport = async (
+    format: "PDF" | "CSV" | "XLSX" | "PRINT",
+    filters: { startDate: string; endDate: string },
+  ) => {
     try {
       const params = new URLSearchParams();
       if (filters.startDate) params.append("startDate", filters.startDate);
       if (filters.endDate) params.append("endDate", filters.endDate);
-      
-      const res = await api.get(`${ENDPOINTS.VENDAS}/report?${params.toString()}`);
-      
+
+      const res = await api.get(
+        `${ENDPOINTS.VENDAS}/report?${params.toString()}`,
+      );
+
       const columns: ColumnDef[] = [
         { header: "ID", key: "id", width: 10 },
         { header: "Data", key: "dataVenda", width: 20 },
@@ -338,15 +521,24 @@ const Vendas = () => {
 
       const data = res.data.map((item: Record<string, unknown>) => {
         const clienteObj = item.cliente as Record<string, unknown> | undefined;
-        const modeloObj = item.modeloCasa as Record<string, unknown> | undefined;
+        const modeloObj = item.modeloCasa as
+          | Record<string, unknown>
+          | undefined;
         return {
           id: item.id,
-          dataVenda: new Date(item.dataVenda as string).toLocaleDateString('pt-BR'),
+          dataVenda: new Date(item.dataVenda as string).toLocaleDateString(
+            "pt-BR",
+          ),
           cliente: clienteObj?.nome || "-",
           modelo: modeloObj?.nome || "Venda de Placas",
           status: StatusVendaLabels[item.status as StatusVenda] || item.status,
-          pagamento: StatusPagamentoVendaLabels[item.statusPagamento as StatusPagamentoVenda] || item.statusPagamento,
-          valor: new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(Number(item.preco)),
+          pagamento:
+            StatusPagamentoVendaLabels[
+              item.statusPagamento as StatusPagamentoVenda
+            ] || item.statusPagamento,
+          valor: new Intl.NumberFormat("pt-BR", {
+            minimumFractionDigits: 2,
+          }).format(Number(item.preco)),
         };
       });
 
@@ -417,6 +609,15 @@ const Vendas = () => {
         open={reportModalOpen}
         onClose={() => setReportModalOpen(false)}
         onExport={handleExport}
+      />
+      <ReportExportModal
+        open={mapExportModalOpen}
+        onClose={() => {
+          setMapExportModalOpen(false);
+          setVendaToExportMap(null);
+        }}
+        onExport={handleExportMap}
+        hideDateFilters={true}
       />
     </Box>
   );

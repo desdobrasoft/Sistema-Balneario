@@ -46,11 +46,12 @@ export class DashboardService {
       avgDelivery,
       deliveryAnalysis,
     ] = await Promise.all([
-      // 1. Total de Vendas (não canceladas)
+      // 1. Total de Vendas (não canceladas e não internas)
       this.prisma.venda.aggregate({
         _sum: { preco: true },
         where: {
           status: { not: StatusVenda.CANCELADA },
+          isInternal: false,
           ...(dateFilter ? { dataVenda: dateFilter } : {}),
         },
       }),
@@ -69,6 +70,7 @@ export class DashboardService {
         where: {
           dataVenda: dateFilter || { gte: sixMonthsAgo },
           status: { not: StatusVenda.CANCELADA },
+          isInternal: false,
         },
         select: {
           dataVenda: true,

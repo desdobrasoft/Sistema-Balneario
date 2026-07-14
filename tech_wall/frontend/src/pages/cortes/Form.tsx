@@ -3,10 +3,6 @@ import React, { useEffect, useMemo, useState } from "react";
 
 // icons
 import AddIcon from "@mui/icons-material/Add";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import ArrowLeftIcon from "@mui/icons-material/ArrowLeft";
-import ArrowRightIcon from "@mui/icons-material/ArrowRight";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 
@@ -50,13 +46,6 @@ interface FormProps {
   onSubmit: (values: CorteModel) => void;
   initialValues?: CorteModel | null;
 }
-
-const DIRECTION_ICONS: Record<string, React.ReactNode> = {
-  UP: <ArrowUpwardIcon fontSize="small" />,
-  DOWN: <ArrowDownwardIcon fontSize="small" />,
-  LEFT: <ArrowLeftIcon fontSize="small" />,
-  RIGHT: <ArrowRightIcon fontSize="small" />,
-};
 
 const FormCorte: React.FC<FormProps> = ({
   open,
@@ -201,7 +190,7 @@ const FormCorte: React.FC<FormProps> = ({
             {/* Lado Esquerdo: Formulário */}
             <Grid
               size={{ xs: 12, md: 6 }}
-              sx={{ height: "100%", overflowY: "auto", pr: 1 }}
+              sx={{ height: "100%", overflowY: "auto", pr: 1, pt: 1 }}
             >
               <Stack spacing={3}>
                 <TextField
@@ -269,7 +258,11 @@ const FormCorte: React.FC<FormProps> = ({
                                       spacing={1}
                                       sx={{ alignItems: "center" }}
                                     >
-                                      {DIRECTION_ICONS["UP"]}{" "}
+                                      <Typography
+                                        sx={{ fontFamily: "monospace" }}
+                                      >
+                                        ↑
+                                      </Typography>
                                       <Typography>Cima</Typography>
                                     </Stack>
                                   </MenuItem>
@@ -279,7 +272,11 @@ const FormCorte: React.FC<FormProps> = ({
                                       spacing={1}
                                       sx={{ alignItems: "center" }}
                                     >
-                                      {DIRECTION_ICONS["DOWN"]}{" "}
+                                      <Typography
+                                        sx={{ fontFamily: "monospace" }}
+                                      >
+                                        ↓
+                                      </Typography>
                                       <Typography>Baixo</Typography>
                                     </Stack>
                                   </MenuItem>
@@ -289,7 +286,11 @@ const FormCorte: React.FC<FormProps> = ({
                                       spacing={1}
                                       sx={{ alignItems: "center" }}
                                     >
-                                      {DIRECTION_ICONS["LEFT"]}{" "}
+                                      <Typography
+                                        sx={{ fontFamily: "monospace" }}
+                                      >
+                                        ←
+                                      </Typography>
                                       <Typography>Esquerda</Typography>
                                     </Stack>
                                   </MenuItem>
@@ -299,7 +300,11 @@ const FormCorte: React.FC<FormProps> = ({
                                       spacing={1}
                                       sx={{ alignItems: "center" }}
                                     >
-                                      {DIRECTION_ICONS["RIGHT"]}{" "}
+                                      <Typography
+                                        sx={{ fontFamily: "monospace" }}
+                                      >
+                                        →
+                                      </Typography>
                                       <Typography>Direita</Typography>
                                     </Stack>
                                   </MenuItem>
@@ -440,7 +445,7 @@ const FormCorte: React.FC<FormProps> = ({
           </Grid>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={onClose} color="inherit">
+          <Button onClick={onClose} color="primary">
             Cancelar
           </Button>
           <Button type="submit" variant="contained" disabled={!isValid}>

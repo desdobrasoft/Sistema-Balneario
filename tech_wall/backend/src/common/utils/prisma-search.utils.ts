@@ -88,6 +88,11 @@ export async function getIdsByNumericPartialMatch(
   fields: string[],
   searchTerm: string,
 ): Promise<number[]> {
+  // Pula busca numérica se o termo contém caracteres não-numéricos (letras, etc.)
+  // Ex: "T2" não é uma busca numérica, é uma busca por texto
+  const isNumericSearch = /^[\d.,\s]+$/.test(searchTerm.trim());
+  if (!isNumericSearch) return [];
+
   const normalized = searchTerm.replace(/[^0-9.,]/g, '').replace(',', '.');
   if (!normalized) return [];
 

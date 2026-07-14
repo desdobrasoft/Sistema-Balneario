@@ -24,7 +24,10 @@ import TramasForm from "./Form";
 
 const Tramas: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedTrama, setSelectedTrama] = useState<Record<string, unknown> | null>(null);
+  const [selectedTrama, setSelectedTrama] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
   const tableRef = useRef<{ reload: () => void }>(null);
   const { showDialog, closeDialog } = useDialog();
   const { showSnackbar } = useSnackbar();
@@ -36,13 +39,15 @@ const Tramas: React.FC = () => {
       { title: "Nome", data: "nome" },
       { title: "Altura Base (cm)", data: "alturaBase" },
       { title: "Prof. da Saliência (cm)", data: "profundidadeSaliencia" },
-      { title: "Lado", data: "direcionamento" },
     ],
     [],
   );
 
   const handleFetchData = useCallback(async (data: Record<string, unknown>) => {
-    const res = await api.post(`${ENDPOINTS.TRAMAS}${ENDPOINTS.DATATABLE}`, data);
+    const res = await api.post(
+      `${ENDPOINTS.TRAMAS}${ENDPOINTS.DATATABLE}`,
+      data,
+    );
 
     return {
       draw: res.data.draw,
@@ -52,19 +57,22 @@ const Tramas: React.FC = () => {
     };
   }, []);
 
-  const handleOpenDialog = useCallback(async (trama: Record<string, unknown> | null = null) => {
-    if (trama) {
-      try {
-        const res = await api.get(`${ENDPOINTS.TRAMAS}/${trama.id}`);
-        setSelectedTrama(res.data);
-      } catch (error) {
-        handleError(error);
+  const handleOpenDialog = useCallback(
+    async (trama: Record<string, unknown> | null = null) => {
+      if (trama) {
+        try {
+          const res = await api.get(`${ENDPOINTS.TRAMAS}/${trama.id}`);
+          setSelectedTrama(res.data);
+        } catch (error) {
+          handleError(error);
+        }
+      } else {
+        setSelectedTrama(null);
       }
-    } else {
-      setSelectedTrama(null);
-    }
-    setDialogOpen(true);
-  }, [handleError]);
+      setDialogOpen(true);
+    },
+    [handleError],
+  );
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
@@ -82,10 +90,16 @@ const Tramas: React.FC = () => {
     try {
       if (selectedTrama) {
         await api.patch(`${ENDPOINTS.TRAMAS}/${selectedTrama.id}`, payload);
-        showSnackbar({ message: "Trama atualizada com sucesso!", severity: "success" });
+        showSnackbar({
+          message: "Trama atualizada com sucesso!",
+          severity: "success",
+        });
       } else {
         await api.post(ENDPOINTS.TRAMAS, payload);
-        showSnackbar({ message: "Trama registrada com sucesso!", severity: "success" });
+        showSnackbar({
+          message: "Trama registrada com sucesso!",
+          severity: "success",
+        });
       }
       tableRef.current?.reload();
       handleCloseDialog();
@@ -94,39 +108,48 @@ const Tramas: React.FC = () => {
     }
   };
 
-  const executeDelete = useCallback(async (id: number) => {
-    try {
-      await api.delete(`${ENDPOINTS.TRAMAS}/${id}`);
-      showSnackbar({ message: "Trama excluída com sucesso!", severity: "success" });
-      tableRef.current?.reload();
-    } catch (error) {
-      handleError(error);
-    } finally {
-      closeDialog();
-    }
-  }, [handleError, showSnackbar, closeDialog]);
+  const executeDelete = useCallback(
+    async (id: number) => {
+      try {
+        await api.delete(`${ENDPOINTS.TRAMAS}/${id}`);
+        showSnackbar({
+          message: "Trama excluída com sucesso!",
+          severity: "success",
+        });
+        tableRef.current?.reload();
+      } catch (error) {
+        handleError(error);
+      } finally {
+        closeDialog();
+      }
+    },
+    [handleError, showSnackbar, closeDialog],
+  );
 
-  const handleDelete = useCallback(async (id: number) => {
-    showDialog({
-      title: "Confirmar Exclusão",
-      body: "Deseja realmente excluir esta trama? Se ela estiver atrelada a uma placa o banco poderá bloquear a operação de exclusão.",
-      actions: [
-        <Button key="cancel" onClick={closeDialog} color="inherit">
-          Cancelar
-        </Button>,
-        <Button
-          key="confirm"
-          onClick={() => executeDelete(id)}
-          color="error"
-          variant="contained"
-          autoFocus
-        >
-          Excluir
-        </Button>,
-      ],
-      dismissable: true,
-    });
-  }, [showDialog, closeDialog, executeDelete]);
+  const handleDelete = useCallback(
+    async (id: number) => {
+      showDialog({
+        title: "Confirmar Exclusão",
+        body: "Deseja realmente excluir esta trama? Se ela estiver atrelada a uma placa o banco poderá bloquear a operação de exclusão.",
+        actions: [
+          <Button key="cancel" onClick={closeDialog} color="inherit">
+            Cancelar
+          </Button>,
+          <Button
+            key="confirm"
+            onClick={() => executeDelete(id)}
+            color="error"
+            variant="contained"
+            autoFocus
+          >
+            Excluir
+          </Button>,
+        ],
+        dismissable: true,
+      });
+    },
+    [showDialog, closeDialog, executeDelete],
+  );
 
   return (
     <Box>

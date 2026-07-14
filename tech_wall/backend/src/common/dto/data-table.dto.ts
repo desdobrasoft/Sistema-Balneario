@@ -93,6 +93,9 @@ export class DataTableParamsDto {
   @ValidateNested({ each: true })
   @Type(() => DataTableColumnDto)
   columns?: DataTableColumnDto[];
+
+  @IsOptional()
+  filter?: Record<string, unknown>;
 }
 
 export interface DataTableResult<T> {

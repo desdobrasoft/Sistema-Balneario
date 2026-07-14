@@ -1,6 +1,7 @@
 import {
   IsDateString,
   IsIn,
+  IsNumber,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -20,7 +21,7 @@ export class CreateMovimentacaoDto {
   @IsDateString()
   dataMovimentacao: string;
 
-  @IsInt()
+  @IsNumber()
   @IsPositive()
   qtde: number;
 

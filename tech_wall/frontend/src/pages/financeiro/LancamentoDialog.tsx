@@ -14,8 +14,9 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import Divider from "@mui/material/Divider";
 import InputAdornment from "@mui/material/InputAdornment";
-import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Typography from "@mui/material/Typography";
 
 // project imports
@@ -36,7 +37,7 @@ export interface LancamentoModel {
   valorTotal?: string;
   dataVencimento?: string;
   dataPagamento?: string;
-  status?: string;
+  statusPagamento?: string;
   venda?: {
     id: number;
     cliente?: { nome: string };
@@ -75,12 +76,14 @@ const LancamentoDialog: React.FC<LancamentoDialogProps> = ({
 
   // States para edição / pagamento
   const [valorPago, setValorPago] = useState<number | "">("");
+  const [isEstorno, setIsEstorno] = useState(false);
 
   /* eslint-disable react-hooks/set-state-in-effect -- Intentional: resetting form state on dialog open */
   useEffect(() => {
     if (open) {
       if (lancamento) {
         setValorPago("");
+        setIsEstorno(false);
         setDescricao(lancamento.descricao || "");
         setDataVencimento(
           lancamento.dataVencimento
@@ -101,7 +104,8 @@ const LancamentoDialog: React.FC<LancamentoDialogProps> = ({
     setLoading(true);
     try {
       if (mode === "pay" && lancamento) {
-        const payload = { valorPago: Number(valorPago) || 0 };
+        const vPago = Number(valorPago) || 0;
+        const payload = { valorPago: isEstorno ? -vPago : vPago };
         await api.patch(`${ENDPOINTS.LANCAMENTOS}/${lancamento.id}`, payload);
         showSnackbar({
           message:
@@ -177,26 +181,60 @@ const LancamentoDialog: React.FC<LancamentoDialogProps> = ({
                   {lancamento.descricao}
                 </Typography>
 
-                <Typography
-                  variant="subtitle2"
-                  color="text.secondary"
-                  sx={{ mt: 1 }}
-                >
-                  Valor Pendente:
-                </Typography>
-                <Typography
-                  variant="h6"
-                  color={
-                    lancamento.tipo === TipoLancamento.R
-                      ? "success.main"
-                      : "error.main"
-                  }
-                >
-                  {formatCurrency(parseFloat(lancamento.valorPendente))}
-                </Typography>
+                <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Valor Pendente:
+                    </Typography>
+                    <Typography
+                      variant="h6"
+                      color={
+                        lancamento.tipo === TipoLancamento.R
+                          ? "success.main"
+                          : "error.main"
+                      }
+                    >
+                      {formatCurrency(parseFloat(lancamento.valorPendente))}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ textAlign: "right" }}>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      {lancamento.tipo === TipoLancamento.R
+                        ? "Já Recebido:"
+                        : "Já Pago:"}
+                    </Typography>
+                    <Typography variant="h6" color="text.secondary">
+                      {formatCurrency(
+                        parseFloat(lancamento.valorTotal || "0") -
+                          parseFloat(lancamento.valorPendente),
+                      )}
+                    </Typography>
+                  </Box>
+                </Box>
               </Box>
 
               <Divider />
+
+              <ToggleButtonGroup
+                color={isEstorno ? "error" : "success"}
+                value={isEstorno}
+                exclusive
+                onChange={(_, newVal) => {
+                  if (newVal !== null) setIsEstorno(newVal);
+                }}
+                fullWidth
+                size="small"
+                sx={{ mb: 1, mt: 1 }}
+              >
+                <ToggleButton value={false} sx={{ fontWeight: "bold" }}>
+                  {lancamento.tipo === TipoLancamento.R
+                    ? "Recebimento"
+                    : "Pagamento"}
+                </ToggleButton>
+                <ToggleButton value={true} sx={{ fontWeight: "bold" }}>
+                  Estorno
+                </ToggleButton>
+              </ToggleButtonGroup>
 
               <TextField
                 autoFocus
@@ -250,17 +288,38 @@ const LancamentoDialog: React.FC<LancamentoDialogProps> = ({
           {mode === "create" && (
             // Form de Criação
             <>
-              <TextField
-                select
-                fullWidth
-                label="Tipo"
-                size="small"
-                value={tipo}
-                onChange={(e) => setTipo(e.target.value as TipoLancamento)}
-              >
-                <MenuItem value={TipoLancamento.R}>Receita (+)</MenuItem>
-                <MenuItem value={TipoLancamento.D}>Despesa (-)</MenuItem>
-              </TextField>
+              <Box sx={{ mb: 1 }}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 1 }}
+                >
+                  Tipo de Lançamento
+                </Typography>
+                <ToggleButtonGroup
+                  color={tipo === TipoLancamento.R ? "success" : "error"}
+                  value={tipo}
+                  exclusive
+                  onChange={(_, newTipo) => {
+                    if (newTipo !== null) setTipo(newTipo);
+                  }}
+                  fullWidth
+                  size="small"
+                >
+                  <ToggleButton
+                    value={TipoLancamento.R}
+                    sx={{ fontWeight: "bold" }}
+                  >
+                    Receita
+                  </ToggleButton>
+                  <ToggleButton
+                    value={TipoLancamento.D}
+                    sx={{ fontWeight: "bold" }}
+                  >
+                    Despesa
+                  </ToggleButton>
+                </ToggleButtonGroup>
+              </Box>
 
               <TextField
                 fullWidth

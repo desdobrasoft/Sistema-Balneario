@@ -71,7 +71,9 @@ const RolesForm: React.FC<FormProps> = ({ open, onClose, onSubmit, item }) => {
                 formik.touched.permissions && Boolean(formik.errors.permissions)
               }
             >
-              <InputLabel size="small" id="permissions-label">Módulos Permitidos</InputLabel>
+              <InputLabel size="small" id="permissions-label">
+                Módulos Permitidos
+              </InputLabel>
               <Select
                 labelId="permissions-label"
                 id="permissions"

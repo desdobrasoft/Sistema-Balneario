@@ -97,15 +97,18 @@ const UsuariosForm: React.FC<FormProps> = ({
       title={item ? "Editar Usuário" : "Novo Usuário"}
       item={
         item
-          ? {
-            ...item,
-            roles: item.roles.map((r: string | { role?: string | { role: string } }) => {
-              if (typeof r === 'string') return r;
-              if (r.role && typeof r.role === 'string') return r.role;
-              if (r.role && typeof r.role === 'object' && 'role' in r.role) return (r.role as {role: string}).role;
-              return String(r);
-            }),
-          } as unknown as UsuarioFormValues
+          ? ({
+              ...item,
+              roles: item.roles.map(
+                (r: string | { role?: string | { role: string } }) => {
+                  if (typeof r === "string") return r;
+                  if (r.role && typeof r.role === "string") return r.role;
+                  if (r.role && typeof r.role === "object" && "role" in r.role)
+                    return (r.role as { role: string }).role;
+                  return String(r);
+                },
+              ),
+            } as unknown as UsuarioFormValues)
           : null
       }
       initialValues={initialValues}
@@ -117,7 +120,9 @@ const UsuariosForm: React.FC<FormProps> = ({
               autoFocus
               error={formik.touched.fullName && Boolean(formik.errors.fullName)}
               fullWidth
-              helperText={formik.touched.fullName && (formik.errors.fullName as string)}
+              helperText={
+                formik.touched.fullName && (formik.errors.fullName as string)
+              }
               label="Nome completo"
               name="fullName"
               onChange={formik.handleChange}
@@ -125,11 +130,14 @@ const UsuariosForm: React.FC<FormProps> = ({
               value={formik.values.fullName}
             />
           </Grid>
+
           <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               error={formik.touched.username && Boolean(formik.errors.username)}
               fullWidth
-              helperText={formik.touched.username && (formik.errors.username as string)}
+              helperText={
+                formik.touched.username && (formik.errors.username as string)
+              }
               label="Nome de usuário"
               name="username"
               onChange={formik.handleChange}
@@ -137,11 +145,14 @@ const UsuariosForm: React.FC<FormProps> = ({
               value={formik.values.username}
             />
           </Grid>
+
           <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               error={formik.touched.email && Boolean(formik.errors.email)}
               fullWidth
-              helperText={formik.touched.email && (formik.errors.email as string)}
+              helperText={
+                formik.touched.email && (formik.errors.email as string)
+              }
               label="E-mail"
               name="email"
               onChange={formik.handleChange}
@@ -150,12 +161,15 @@ const UsuariosForm: React.FC<FormProps> = ({
               value={formik.values.email}
             />
           </Grid>
+
           <Grid size={{ xs: 12, md: 6 }}>
             <FormControl
               error={formik.touched.roles && Boolean(formik.errors.roles)}
               fullWidth
             >
-              <InputLabel size="small" id="roles-label">Cargos</InputLabel>
+              <InputLabel size="small" id="roles-label">
+                Cargos
+              </InputLabel>
               <Select
                 id="roles"
                 input={<OutlinedInput label="Cargos" />}
@@ -175,23 +189,24 @@ const UsuariosForm: React.FC<FormProps> = ({
               >
                 {availableRoles.map((r) => (
                   <MenuItem key={r.id} value={r.role}>
-                    <Checkbox checked={formik.values.roles.indexOf(r.role) > -1} />
+                    <Checkbox
+                      checked={formik.values.roles.indexOf(r.role) > -1}
+                    />
                     <ListItemText primary={r.role} />
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Grid>
+
           <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               error={formik.touched.password && Boolean(formik.errors.password)}
               fullWidth
-              helperText={formik.touched.password && (formik.errors.password as string)}
-              label={
-                item
-                  ? "Nova Senha (deixe em branco se não quiser alterar)"
-                  : "Senha"
+              helperText={
+                formik.touched.password && (formik.errors.password as string)
               }
+              label={item ? "Nova Senha" : "Senha"}
               name="password"
               onChange={formik.handleChange}
               size="small"
@@ -202,11 +217,16 @@ const UsuariosForm: React.FC<FormProps> = ({
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
-                        size="small"
-                        onClick={() => setShowPassword((prev) => !prev)}
                         edge="end"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        size="small"
+                        tabIndex={-1}
                       >
-                        {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                        {showPassword ? (
+                          <VisibilityOff fontSize="small" />
+                        ) : (
+                          <Visibility fontSize="small" />
+                        )}
                       </IconButton>
                     </InputAdornment>
                   ),
@@ -214,6 +234,7 @@ const UsuariosForm: React.FC<FormProps> = ({
               }}
             />
           </Grid>
+
           <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               error={
@@ -236,11 +257,16 @@ const UsuariosForm: React.FC<FormProps> = ({
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
-                        size="small"
-                        onClick={() => setShowConfirmPassword((prev) => !prev)}
                         edge="end"
+                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                        size="small"
+                        tabIndex={-1}
                       >
-                        {showConfirmPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                        {showConfirmPassword ? (
+                          <VisibilityOff fontSize="small" />
+                        ) : (
+                          <Visibility fontSize="small" />
+                        )}
                       </IconButton>
                     </InputAdornment>
                   ),

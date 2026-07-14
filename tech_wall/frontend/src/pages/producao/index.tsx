@@ -1,11 +1,15 @@
+import type { ConfigColumns } from "datatables.net-dt";
+
 import AddIcon from "@mui/icons-material/Add";
+import BlockIcon from "@mui/icons-material/Block";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
-import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import InventoryIcon from "@mui/icons-material/Inventory";
+import UndoIcon from "@mui/icons-material/Undo";
 
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
@@ -47,25 +51,48 @@ const Producao: React.FC = () => {
   const { showSnackbar } = useSnackbar();
   const handleError = useErrorHandler();
 
-  const columns = useMemo(
+  const columns = useMemo<ConfigColumns[]>(
     () => [
       { data: "id", visible: false },
-      { title: "Venda", data: "vendaId", render: (data: number) => `#${data}` },
-      { title: "Cliente", data: "clienteNome" },
-      { title: "Produto", data: "modeloNome" },
+      {
+        title: "Venda",
+        data: "vendaId",
+        width: "0px",
+        render: (data: number) => `#${data}`,
+      },
+      { title: "Cliente", data: "venda.cliente.nome", defaultContent: "N/A" },
+      {
+        title: "Produto",
+        data: "modeloNome",
+        defaultContent: "N/A",
+      },
       {
         title: "Data Agendada",
         data: "dataAgendamento",
         render: (data: string) =>
-          data ? new Date(data).toLocaleDateString("pt-BR") : "Não agendado",
+          data
+            ? new Date(data).toLocaleDateString("pt-BR", { timeZone: "UTC" })
+            : "Não agendado",
       },
       {
         title: "Status do Kit",
         data: "status",
-        render: (data: StatusProducao) => {
-          const label = StatusProducaoLabels[data] || data;
-          const color = StatusProducaoColors[data] || "#000000";
-          return `<span style="display:inline-block;padding:2px 8px;border-radius:16px;font-size:0.75rem;font-weight:bold;background:${color}20;color:${color};border:1px solid ${color};">${label}</span>`;
+        reactRender: (data: unknown) => {
+          const status = data as StatusProducao;
+          const label = StatusProducaoLabels[status] || status;
+          const color = StatusProducaoColors[status] || "#000000";
+          return (
+            <Chip
+              label={label}
+              size="small"
+              sx={{
+                bgcolor: `${color}20`,
+                color: color,
+                border: `1px solid ${color}`,
+                fontWeight: "bold",
+              }}
+            />
+          );
         },
       },
     ],
@@ -147,11 +174,11 @@ const Producao: React.FC = () => {
   const handleRemoverOrdem = useCallback(
     async (id: number) => {
       showDialog({
-        title: "Remover Ordem",
-        body: "ATENÇÃO: Deseja realmente remover permanentemente esta ordem de produção? Esta ação não pode ser desfeita.",
+        title: "Cancelar Ordem",
+        body: "ATENÇÃO: Deseja realmente cancelar esta ordem de produção? Esta ação irá interromper a linha de montagem e impedir novas alocações de materiais.",
         actions: [
           <Button key="cancel" onClick={closeDialog}>
-            Cancelar
+            Voltar
           </Button>,
           <Button
             key="confirm"
@@ -162,18 +189,63 @@ const Producao: React.FC = () => {
               try {
                 await api.delete(`${ENDPOINTS.PRODUCAO}/${id}`);
                 tableRef.current?.reload();
+                showSnackbar({
+                  title: "Cancelada",
+                  message: "Ordem cancelada com sucesso.",
+                  severity: "success",
+                });
               } catch (error) {
-                console.error("Erro ao excluir ordem de produção:", error);
+                console.error("Erro ao cancelar ordem de produção:", error);
                 handleError(error);
               }
             }}
           >
-            Remover
+            Confirmar Cancelamento
           </Button>,
         ],
       });
     },
-    [showDialog, closeDialog, handleError],
+    [showDialog, closeDialog, handleError, showSnackbar],
+  );
+
+  const handleDesalocarPlacas = useCallback(
+    async (id: number) => {
+      showDialog({
+        title: "Desalocar Placas",
+        body: "Tem certeza que deseja desalocar todas as placas vinculadas a esta ordem de produção cancelada? As placas retornarão para o status FINALIZADA (estoque).",
+        actions: [
+          <Button key="cancel" onClick={closeDialog}>
+            Cancelar
+          </Button>,
+          <Button
+            key="confirm"
+            color="warning"
+            variant="contained"
+            onClick={async () => {
+              closeDialog();
+              try {
+                const res = await api.post(
+                  `${ENDPOINTS.PRODUCAO}/${id}/desalocar-alocadas`,
+                );
+                tableRef.current?.reload();
+                showSnackbar({
+                  title: "Placas Desalocadas",
+                  message:
+                    res.data.message || "Placas desalocadas com sucesso.",
+                  severity: "success",
+                });
+              } catch (error) {
+                console.error("Erro ao desalocar placas:", error);
+                handleError(error);
+              }
+            }}
+          >
+            Desalocar
+          </Button>,
+        ],
+      });
+    },
+    [showDialog, closeDialog, handleError, showSnackbar],
   );
 
   const handleOpenInternalOrderDialog = () => {
@@ -252,68 +324,84 @@ const Producao: React.FC = () => {
             ) => {
               const actions = [];
 
-              if (row.status === "MATERIAIS_PENDENTES") {
+              if (row.status === "CANCELADO") {
+                if (row.hasPlacasAlocadas) {
+                  actions.push(
+                    <Tooltip title="Desalocar Placas" key="desalocar">
+                      <IconButton
+                        color="warning"
+                        onClick={() => handleDesalocarPlacas(row.id)}
+                      >
+                        <UndoIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>,
+                  );
+                }
+              } else {
+                if (row.status === "MATERIAIS_PENDENTES") {
+                  actions.push(
+                    <Tooltip title="Iniciar Produção" key="iniciar">
+                      <IconButton
+                        color="primary"
+                        onClick={() => {
+                          setSelectedOrdem(row);
+                          setIniciarProducaoOpen(true);
+                        }}
+                      >
+                        <CheckCircleOutlinedIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>,
+                  );
+                } else if (row.status !== "PRONTO_PARA_ENVIO") {
+                  actions.push(
+                    <Tooltip title="Suprimentos de Obra" key="suprimentos">
+                      <IconButton
+                        color="warning"
+                        onClick={() => handleOpenSuprimentos(row.vendaId)}
+                        disabled={!row.vendaId}
+                      >
+                        <InventoryIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>,
+                    <Tooltip title="Alterar Status" key="status">
+                      <IconButton
+                        color="primary"
+                        onClick={() => handleOpenStatusUpdate(row)}
+                      >
+                        <EditNoteIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>,
+                    <Tooltip title="Finalizar Produção" key="finalizar">
+                      <IconButton
+                        color="success"
+                        onClick={() => handleFinalizarProducao(row.id)}
+                      >
+                        <CheckCircleOutlinedIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>,
+                  );
+                }
+
                 actions.push(
-                  <Tooltip title="Iniciar Produção" key="iniciar">
+                  <Tooltip title="Cancelar Ordem" key="remover">
                     <IconButton
-                      color="primary"
-                      onClick={() => {
-                        setSelectedOrdem(row);
-                        setIniciarProducaoOpen(true);
-                      }}
+                      color="error"
+                      onClick={() => handleRemoverOrdem(row.id)}
                     >
-                      <CheckCircleOutlinedIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>,
-                );
-              } else if (row.status !== "PRONTO_PARA_ENVIO") {
-                actions.push(
-                  <Tooltip title="Suprimentos de Obra" key="suprimentos">
-                    <IconButton
-                      color="warning"
-                      onClick={() => handleOpenSuprimentos(row.vendaId)}
-                      disabled={!row.vendaId}
-                    >
-                      <InventoryIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>,
-                  <Tooltip title="Alterar Status" key="status">
-                    <IconButton
-                      color="primary"
-                      onClick={() => handleOpenStatusUpdate(row)}
-                    >
-                      <EditNoteIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>,
-                  <Tooltip title="Finalizar Produção" key="finalizar">
-                    <IconButton
-                      color="success"
-                      onClick={() => handleFinalizarProducao(row.id)}
-                    >
-                      <CheckCircleOutlinedIcon fontSize="small" />
+                      <BlockIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>,
                 );
               }
 
-              actions.push(
-                <Tooltip title="Remover Ordem" key="remover">
-                  <IconButton
-                    color="error"
-                    onClick={() => handleRemoverOrdem(row.id)}
-                  >
-                    <DeleteForeverIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>,
-              );
-
-              return <Box sx={{ display: "flex", gap: 1 }}>{actions}</Box>;
+              return <Stack direction="row">{actions}</Stack>;
             },
             [
               handleFinalizarProducao,
               handleOpenStatusUpdate,
               handleOpenSuprimentos,
               handleRemoverOrdem,
+              handleDesalocarPlacas,
             ],
           )}
         />
@@ -332,6 +420,9 @@ const Producao: React.FC = () => {
               await api.patch(`${ENDPOINTS.PRODUCAO}/${selectedOrdem.id}`, {
                 status: values.status,
                 notas: values.notas,
+                dataAgendamento: values.dataAgendamento
+                  ? new Date(values.dataAgendamento).toISOString()
+                  : undefined,
               });
               tableRef.current?.reload();
               setUpdateStatusOpen(false);
