@@ -1,6 +1,7 @@
 services:
   reverse-proxy:
     image: traefik:latest
+    restart: always
     command:
       - "--providers.docker"
       - "--providers.docker.exposedbydefault=false"
@@ -70,6 +71,12 @@ services:
         condition: service_healthy
       backend-migrate:
         condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -S http://127.0.0.1:3000/dashboard/stats 2>&1 | grep -q 'HTTP/'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
     env_file:
       - ./backend/.env.production
     labels:
